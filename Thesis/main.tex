@@ -1,0 +1,167 @@
+\documentclass{report}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{float}  % Enables [H]
+\usepackage{amsmath}
+\usepackage{amssymb} % For advanced mathematical symbols
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage[utf8]{inputenc}
+\usepackage{adjustbox}
+\usepackage{bm}
+\usepackage[numbers,sort&compress]{natbib} % in the preamble
+%\usepackage{newpxtext,newpxmath} 
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{physics}
+\usepackage{braket}
+\usepackage{tikz}
+\usepackage{siunitx}
+\usepackage{makecell} % for multi-line cells in tables
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows.meta,positioning,fit}
+\usepackage[flushleft]{threeparttable}  % provides the threeparttable and tablenotes environments
+
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric}
+
+
+
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric}
+
+% Define your professional hex colors:
+% ================== Colors (use your palette) ==================
+% Base hex colors
+\definecolor{mutedblue}{HTML}{1F77B4}
+\definecolor{deepwine}{HTML}{A13333}
+\definecolor{earthybrown}{HTML}{8c564b}
+\definecolor{mutedpurple}{HTML}{9467bd}
+
+% Lighter (50% white) versions for reduced saturation
+\colorlet{mutedblueLight}{mutedblue!20!white}
+\colorlet{deepwineLight}{deepwine!30!white}
+\colorlet{lightearthybrown}{earthybrown!30!white}
+\colorlet{lightmutedpurple}{mutedpurple!20!white}
+
+% Optional aliases to keep earlier code working (map my soft names to yours)
+\colorlet{softblue}{mutedblueLight}
+\colorlet{softpurple}{lightmutedpurple}
+\colorlet{softrose}{deepwineLight}
+\colorlet{softsand}{lightearthybrown}
+\colorlet{softteal}{mutedblueLight} % reuse light blue for pooling
+% ================================================================
+\definecolor{myaccent}{HTML}{a13333}
+% --- siunitx number formatting (decimals, not scientific notation) ---
+\sisetup{
+  scientific-notation = false, % disables 9.99×10^{-1} style
+  exponent-mode       = input, % don't auto-normalize exponents
+  round-mode          = places,
+  round-precision     = 5,     % choose: 3/4/5/etc.
+  round-pad           = false  % no forced trailing zeros
+}
+
+
+% helpers
+\newcommand{\pmnum}[2]{\num{#1}\,$\pm$\,\num{#2}}
+\newcommand{\powtrip}[3]{\num{#1}/\num{#2}/\num{#3}} % phi/psi/extras
+\newcommand{\nfshare}[2]{\num{#1}/\num{#2}}         % 5%/10% etc
+
+% put this in your preamble, after amsmath/amssymb
+\newcommand{\RR}{\mathbb{R}}        % expectation
+\newcommand{\EE}{\mathbb{E}}        % expectation
+
+% expectation & probability
+
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\KL}{\mathrm{D}_{\mathrm{KL}}}
+
+% variance & covariance
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+
+% bold vectors (uses bm package you already load)
+\newcommand{\bx}{\bm{x}}
+\newcommand{\bz}{\bm{z}}
+\newcommand{\bw}{\bm{w}}
+\newcommand{\btheta}{\bm{\theta}}
+
+% distributions
+\newcommand{\calN}{\mathcal{N}}   % normal distribution symbol
+
+% convenience
+\usepackage{amsthm}
+\numberwithin{equation}{chapter}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\usepackage{subcaption}
+\usepackage{graphicx}
+\newlength\figgutter
+\setlength{\figgutter}{0.3em} % tweak gutter size
+\newcommand{\threecolw}{\dimexpr(\textwidth-2\figgutter)/3\relax}
+
+\titleformat{\chapter}
+  [display]  % display = title is on its own line
+  {\normalfont\huge\bfseries\color{myaccent}}  % Style
+  {\chaptername\ \thechapter}  % "Chapter 1"
+  {20pt}  % Space between number and title
+  {}  % Code before the title (none)
+
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{black}}{\thesubsection}{1em}{}
+\titleformat{\section}
+  {\normalfont\Large\bfseries}  % Style of the title
+  {\thesection}{1em}            % Number formatting
+  {\vspace{0.0em}}              % Space before title
+  [\vspace{0.03em}{\color{myaccent}\rule{0.62\textwidth}{0.5pt}}]
+    % Small rule below the title
+
+\pagestyle{fancy}
+
+\title{On the state of Many body quantum mechanics, and on PINNs}
+\author{Aleksander Sekkelsten}
+
+\date{\today}
+\begin{document}
+\maketitle
+
+
+\include{abstract}
+\include{acknowledgement}
+\tableofcontents
+
+\part{Introduction}
+\input{introduction}
+
+\part{Theory}
+\input{theory}
+
+\part{Methods}
+\input{method}
+
+\part{Results}
+\input{results}
+
+\part{Discussion}
+\input{discussion}
+
+\part{Conclusion}
+\input{conclusion}
+
+\part{Appendices}
+\appendix
+\input{appendix}
+
+%\bibliographystyle{johd}
+\bibliographystyle{unsrtnat} 
+\bibliography{references}
+
+\end{document}

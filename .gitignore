@@ -1,0 +1,29 @@
+.venv/
+.uv/
+.DS_Store
+
+# LaTeX build files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.pdf
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+# Python build artifacts
+*.egg-info/
+*.egg
+dist/
+build/
+*.pid
