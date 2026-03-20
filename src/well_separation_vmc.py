@@ -39,7 +39,10 @@ import torch.optim as optim
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
-from functions.Slater_Determinant import slater_determinant_closed_shell
+from functions.Slater_Determinant import (
+    slater_determinant_closed_shell,
+    evaluate_basis_functions_torch_batch_2d,
+)
 
 
 def setup_sd(n_particles, dim, omega, E_ref):
@@ -89,6 +92,8 @@ class WSConfig:
     n_epochs: int = 800
     n_samples: int = 1024
     lr: float = 3e-3
+    clip_el: float = 5.0           # MAD-based local energy clipping
+    direct_weight: float = 0.0     # REINFORCE only (0) vs hybrid
     # Architecture
     pinn_hidden: int = 64
     pinn_layers: int = 2
@@ -96,12 +101,18 @@ class WSConfig:
     bf_hidden: int = 32
     bf_layers: int = 2
     use_backflow: bool = True
+    # Sampling
+    oversample: int = 8            # candidates = oversample * n_samples
+    sigma_fs: tuple = (0.8, 1.3, 2.0)
+    # Polish
+    polish_epochs: int = 400
+    polish_lr_factor: float = 0.2  # lr *= this for polish
     # Evaluation
     n_eval_samples: int = 4000
     eval_warmup: int = 500
     # d-conditioned mode
     d_embed_dim: int = 16
-    d_values: tuple = (0.0, 1.0, 2.0, 4.0, 6.0, 8.0)
+    d_values: tuple = (0.0, 1.0, 2.0, 4.0, 6.0, 8.0, 12.0, 16.0, 20.0)
 
 
 # ============================================================
@@ -162,8 +173,109 @@ def compute_potential_decomposed(x, omega, well_sep, smooth_T=0.2, coulomb=True)
 
 
 # ============================================================
-# MCMC sampling
+# Sampling: Two-center Gaussian mixture importance sampling
 # ============================================================
+def _sample_gauss(n, n_particles, dim, omega, sigma_f=1.3, center=None):
+    """Sample from N(center, (sigma_f/√ω)² I), return (x, log_q)."""
+    s = sigma_f / math.sqrt(omega)
+    x = torch.randn(n, n_particles, dim, device=DEVICE, dtype=DTYPE) * s
+    if center is not None:
+        x = x + center.unsqueeze(0)
+    Nd = n_particles * dim
+    x_flat = x.reshape(n, -1)
+    if center is not None:
+        dx = x_flat - center.reshape(1, -1)
+    else:
+        dx = x_flat
+    lq = -0.5 * Nd * math.log(2 * math.pi * s**2) - dx.pow(2).sum(-1) / (2 * s**2)
+    return x, lq
+
+
+def _eval_mixture_logq(x, n_particles, dim, omega, sigma_fs, centers):
+    """Evaluate log-density of multi-center Gaussian mixture.
+    centers: list of (n_particles, dim) tensors or None for origin.
+    """
+    n_components = len(sigma_fs) * len(centers)
+    Nd = n_particles * dim
+    x_flat = x.reshape(x.shape[0], -1)
+    log_components = []
+    for c in centers:
+        c_flat = c.reshape(1, -1) if c is not None else torch.zeros(1, Nd, device=DEVICE, dtype=DTYPE)
+        for sf in sigma_fs:
+            s = sf / math.sqrt(omega)
+            log_norm = -0.5 * Nd * math.log(2 * math.pi * s**2)
+            log_exp = -(x_flat - c_flat).pow(2).sum(-1) / (2 * s**2)
+            log_components.append(log_norm + log_exp)
+    log_stack = torch.stack(log_components, dim=-1)
+    return torch.logsumexp(log_stack, dim=-1) - math.log(n_components)
+
+
+def _build_centers(n_particles, dim, well_sep):
+    """Build sampling centers for double-well geometry.
+    For N=2: particle 0 at left well, particle 1 at right well (and swapped).
+    """
+    if well_sep <= 1e-10:
+        return [None]  # single origin-centered Gaussian
+    # Center 1: particle 0 left, particle 1 right
+    c1 = torch.zeros(n_particles, dim, device=DEVICE, dtype=DTYPE)
+    c1[0, 0] = -well_sep / 2
+    if n_particles > 1:
+        c1[1, 0] = +well_sep / 2
+    # Center 2: swapped (both at same well — covers correlated configs)
+    c2 = torch.zeros(n_particles, dim, device=DEVICE, dtype=DTYPE)
+    c2[0, 0] = +well_sep / 2
+    if n_particles > 1:
+        c2[1, 0] = -well_sep / 2
+    return [c1, c2]
+
+
+@torch.no_grad()
+def importance_resample(log_psi_fn, n_keep, n_particles, dim, omega, well_sep=0.0,
+                        oversample=8, sigma_fs=(0.8, 1.3, 2.0)):
+    """Sample from two-center Gaussian mixture, resample ∝ |Ψ|²/q."""
+    centers = _build_centers(n_particles, dim, well_sep)
+    n_cand = oversample * n_keep
+    n_per_center = n_cand // len(centers)
+
+    xs, lqs = [], []
+    for c in centers:
+        for i, sf in enumerate(sigma_fs):
+            nc = len(sigma_fs)
+            ni = n_per_center // nc if i < nc - 1 else n_per_center - (n_per_center // nc) * (nc - 1)
+            xi, _ = _sample_gauss(ni, n_particles, dim, omega, sf, center=c)
+            xs.append(xi)
+    x_all = torch.cat(xs)
+
+    # Evaluate true mixture log-density at all candidates
+    lq_all = _eval_mixture_logq(x_all, n_particles, dim, omega, sigma_fs, centers)
+
+    # Evaluate log|Ψ|²
+    lp2 = []
+    for i in range(0, len(x_all), 4096):
+        lp2.append(2.0 * log_psi_fn(x_all[i:i + 4096]))
+    lp2 = torch.cat(lp2)
+
+    log_w = lp2 - lq_all
+
+    # Guard NaN/Inf
+    bad = torch.isnan(log_w) | torch.isinf(log_w)
+    if bad.any():
+        log_w = log_w.clone()
+        good = ~bad
+        log_w[bad] = log_w[good].min() if good.any() else 0.0
+
+    log_w_norm = log_w - log_w.max()
+    w = torch.exp(log_w_norm)
+    probs = w / w.sum()
+    if torch.isnan(probs).any() or probs.sum() == 0:
+        probs = torch.ones_like(probs) / probs.numel()
+
+    ess = (w.sum()**2 / (w**2).sum()).item()
+    idx = torch.multinomial(probs, n_keep, replacement=True)
+    return x_all[idx].clone(), ess
+
+
+# Keep MCMC for backward compatibility / evaluation
 def mcmc_sample(log_psi_fn, n_samples, n_particles, dim, omega, well_sep=0.0,
                 n_warmup=400, step_size=0.5, target_acc=0.45):
     """Adaptive Metropolis from |Ψ|²."""
@@ -194,10 +306,54 @@ def mcmc_sample(log_psi_fn, n_samples, n_particles, dim, omega, well_sep=0.0,
 
 
 # ============================================================
-# Local energy  (exact Laplacian)
+# Local energy (forward-only Laplacian for REINFORCE)
 # ============================================================
+def compute_local_energy_reinforce(wf, x, omega, well_sep, smooth_T=0.2, coulomb=True,
+                                   clip_el=5.0, **wf_kwargs):
+    """Compute E_L with forward-only Laplacian (detached) + REINFORCE loss components.
+
+    Returns (loss, E_mean, E_L_detached, log_psi, T, V_ext, V_coul, r12).
+    The Laplacian is NOT in the backward graph — only log_psi carries gradients.
+    """
+    B, N, d = x.shape
+    x = x.detach().requires_grad_(True)
+    log_psi = wf(x, **wf_kwargs)
+
+    # First derivatives (keep in graph for REINFORCE)
+    grad_log = torch.autograd.grad(log_psi.sum(), x, create_graph=True)[0]
+    grad_sq = (grad_log**2).sum(dim=(1, 2))
+
+    # Laplacian: forward-only (create_graph=False → not in backward graph)
+    lap = torch.zeros(B, device=x.device, dtype=x.dtype)
+    for i in range(N):
+        for j in range(d):
+            d2 = torch.autograd.grad(grad_log[:, i, j].sum(), x,
+                                     retain_graph=True, create_graph=False)[0]
+            lap = lap + d2[:, i, j]
+
+    # Local energy (fully detached)
+    with torch.no_grad():
+        V_ext, V_coul, r12 = compute_potential_decomposed(x, omega, well_sep, smooth_T, coulomb)
+
+    E_L = (-0.5 * (lap + grad_sq.detach()) + V_ext + V_coul).detach()
+
+    # MAD-based clipping
+    med = E_L.median()
+    mad = (E_L - med).abs().median()
+    if mad > 0 and clip_el > 0:
+        E_L = E_L.clamp(med.item() - clip_el * mad.item(), med.item() + clip_el * mad.item())
+
+    T = (-0.5 * (lap + grad_sq.detach())).detach()
+
+    # REINFORCE loss: gradient flows only through log_psi
+    E_mean = E_L.mean()
+    loss = 2.0 * ((E_L - E_mean) * log_psi).mean()
+
+    return loss, E_mean.item(), E_L, log_psi, T, V_ext, V_coul, r12
+
+
 def compute_local_energy(wf, x, omega, well_sep, smooth_T=0.2, coulomb=True, **wf_kwargs):
-    """E_L = -½(∇²logΨ + |∇logΨ|²) + V(x). Returns (E_L, T, V_ext, V_coul, r12)."""
+    """E_L for evaluation only (no graph needed). Returns (E_L, T, V_ext, V_coul, r12)."""
     B, N, d = x.shape
     x = x.detach().requires_grad_(True)
     log_psi = wf(x, **wf_kwargs)
@@ -206,7 +362,8 @@ def compute_local_energy(wf, x, omega, well_sep, smooth_T=0.2, coulomb=True, **w
     lap = torch.zeros(B, device=x.device, dtype=x.dtype)
     for i in range(N):
         for j in range(d):
-            d2 = torch.autograd.grad(grad_log[:, i, j].sum(), x, create_graph=True, retain_graph=True)[0]
+            d2 = torch.autograd.grad(grad_log[:, i, j].sum(), x,
+                                     create_graph=False, retain_graph=True)[0]
             lap = lap + d2[:, i, j]
 
     grad_sq = (grad_log**2).sum(dim=(1, 2))
@@ -216,7 +373,7 @@ def compute_local_energy(wf, x, omega, well_sep, smooth_T=0.2, coulomb=True, **w
         V_ext, V_coul, r12 = compute_potential_decomposed(x, omega, well_sep, smooth_T, coulomb)
 
     E_L = T + V_ext + V_coul
-    return E_L, T.detach(), V_ext, V_coul, r12
+    return E_L.detach(), T.detach(), V_ext, V_coul, r12
 
 
 # ============================================================
@@ -389,11 +546,12 @@ class BackflowNet(nn.Module):
 # Full wavefunction: SD × BF × Jastrow (no τ)
 # ============================================================
 class Wavefunction(nn.Module):
-    def __init__(self, n_particles, dim, omega, C_occ, spin, params, cfg):
+    def __init__(self, n_particles, dim, omega, C_occ, spin, params, cfg, well_sep=0.0):
         super().__init__()
         self.n_particles = n_particles
         self.dim = dim
         self.omega = omega
+        self.well_sep = well_sep
         self.register_buffer("C_occ", C_occ)
         self.register_buffer("spin", spin)
         self.params = params
@@ -405,6 +563,45 @@ class Wavefunction(nn.Module):
             self.bf_net = BackflowNet(d=dim, omega=omega, hidden=cfg.bf_hidden,
                                       layers=cfg.bf_layers, bf_scale_init=0.3)
 
+    def _two_center_log_sd(self, x_eff, spin):
+        """Two-center LCAO Slater determinant for double-well.
+        Evaluates HO basis at both well centers and combines:
+          Φ(r) = φ(r - R_L) + φ(r - R_R)  (bonding-like MOs)
+        """
+        B, N, d = x_eff.shape
+        n_occ = N // 2
+
+        R_L = torch.zeros(d, device=x_eff.device, dtype=x_eff.dtype)
+        R_R = torch.zeros(d, device=x_eff.device, dtype=x_eff.dtype)
+        R_L[0] = -self.well_sep / 2
+        R_R[0] = +self.well_sep / 2
+
+        # Evaluate basis at both well centers
+        Phi_L = evaluate_basis_functions_torch_batch_2d(
+            x_eff - R_L, self.params['nx'], self.params['ny'])
+        Phi_R = evaluate_basis_functions_torch_batch_2d(
+            x_eff - R_R, self.params['nx'], self.params['ny'])
+
+        # LCAO: bonding combination
+        Phi = Phi_L + Phi_R  # (B, N, n_basis)
+
+        # Occupied MOs
+        C = self.C_occ.to(device=x_eff.device, dtype=Phi.dtype)
+        Psi = torch.matmul(Phi, C)  # (B, N, n_occ)
+
+        # Split by spin
+        spin_vec = spin[0] if spin.dim() == 2 else spin
+        idx_up = torch.nonzero(spin_vec == 0, as_tuple=False).squeeze(-1)
+        idx_down = torch.nonzero(spin_vec == 1, as_tuple=False).squeeze(-1)
+
+        Psi_up = Psi.index_select(dim=1, index=idx_up)
+        Psi_down = Psi.index_select(dim=1, index=idx_down)
+
+        sign_u, log_u = torch.linalg.slogdet(Psi_up)
+        sign_d, log_d = torch.linalg.slogdet(Psi_down)
+
+        return log_u + log_d - math.lgamma(n_occ + 1)
+
     def forward(self, x):
         B = x.shape[0]
         spin = self.spin.expand(B, -1)
@@ -412,7 +609,13 @@ class Wavefunction(nn.Module):
         if self.bf_net is not None:
             dx = self.bf_net(x, spin=spin)
             x_eff = x + dx
-        _, log_sd = slater_determinant_closed_shell(x_eff, self.C_occ, params=self.params, spin=spin)
+
+        if self.well_sep > 1e-10:
+            log_sd = self._two_center_log_sd(x_eff, spin)
+        else:
+            _, log_sd = slater_determinant_closed_shell(
+                x_eff, self.C_occ, params=self.params, spin=spin)
+
         f_jastrow = self.jastrow(x, spin=spin)
         return log_sd + f_jastrow
 
@@ -590,7 +793,7 @@ class DCondBackflow(nn.Module):
 
 
 class DCondWavefunction(nn.Module):
-    """Full wavefunction with d as a native input."""
+    """Full wavefunction with d as a native input. Uses two-center LCAO basis."""
     def __init__(self, n_particles, dim, omega, C_occ, spin, params, cfg):
         super().__init__()
         self.n_particles = n_particles
@@ -609,6 +812,37 @@ class DCondWavefunction(nn.Module):
             self.bf_net = DCondBackflow(d=dim, omega=omega, hidden=cfg.bf_hidden,
                                         layers=cfg.bf_layers, d_embed_dim=cfg.d_embed_dim)
 
+    def _two_center_log_sd(self, x_eff, spin, d_scalar):
+        """Two-center LCAO Slater determinant for d > 0."""
+        B, N, d = x_eff.shape
+        n_occ = N // 2
+
+        R_L = torch.zeros(d, device=x_eff.device, dtype=x_eff.dtype)
+        R_R = torch.zeros(d, device=x_eff.device, dtype=x_eff.dtype)
+        R_L[0] = -d_scalar / 2
+        R_R[0] = +d_scalar / 2
+
+        Phi_L = evaluate_basis_functions_torch_batch_2d(
+            x_eff - R_L, self.params['nx'], self.params['ny'])
+        Phi_R = evaluate_basis_functions_torch_batch_2d(
+            x_eff - R_R, self.params['nx'], self.params['ny'])
+
+        Phi = Phi_L + Phi_R
+        C = self.C_occ.to(device=x_eff.device, dtype=Phi.dtype)
+        Psi = torch.matmul(Phi, C)
+
+        spin_vec = spin[0] if spin.dim() == 2 else spin
+        idx_up = torch.nonzero(spin_vec == 0, as_tuple=False).squeeze(-1)
+        idx_down = torch.nonzero(spin_vec == 1, as_tuple=False).squeeze(-1)
+
+        Psi_up = Psi.index_select(dim=1, index=idx_up)
+        Psi_down = Psi.index_select(dim=1, index=idx_down)
+
+        sign_u, log_u = torch.linalg.slogdet(Psi_up)
+        sign_d, log_d = torch.linalg.slogdet(Psi_down)
+
+        return log_u + log_d - math.lgamma(n_occ + 1)
+
     def forward(self, x, d_val=None):
         """x: (B, N, d), d_val: (B,) well separation."""
         B = x.shape[0]
@@ -620,7 +854,14 @@ class DCondWavefunction(nn.Module):
             dx = self.bf_net(x, d_emb, spin=spin)
             x_eff = x + dx
 
-        _, log_sd = slater_determinant_closed_shell(x_eff, self.C_occ, params=self.params, spin=spin)
+        # Use two-center basis when d > 0 (all samples have same d in round-robin)
+        d_scalar = d_val[0].item()
+        if d_scalar > 1e-10:
+            log_sd = self._two_center_log_sd(x_eff, spin, d_scalar)
+        else:
+            _, log_sd = slater_determinant_closed_shell(
+                x_eff, self.C_occ, params=self.params, spin=spin)
+
         f_jastrow = self.jastrow(x, d_emb, spin=spin)
         return log_sd + f_jastrow
 
@@ -628,57 +869,36 @@ class DCondWavefunction(nn.Module):
 # ============================================================
 # Training: Per-d mode
 # ============================================================
-def train_per_d(cfg: WSConfig, well_sep: float, warm_start_state=None) -> dict:
-    """Train an independent model for a single well separation d.
-    If warm_start_state is given, initialise from it (curriculum transfer).
+def _run_training_phase(wf, cfg, well_sep, n_epochs, lr, phase_name="Train"):
+    """Core training loop used by both main training and polish phases.
+    Uses importance sampling + REINFORCE loss with forward-only Laplacian.
     """
-    print(f"\n{'='*60}")
-    print(f"  Per-d training: d = {well_sep:.1f}")
-    print(f"{'='*60}")
-    t0 = time.time()
+    optimizer = optim.Adam(wf.parameters(), lr=lr)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, n_epochs, eta_min=lr / 10)
 
-    C_occ, spin, params = setup_sd(cfg.n_particles, cfg.dim, cfg.omega, 3.0)
-    wf = Wavefunction(cfg.n_particles, cfg.dim, cfg.omega, C_occ, spin, params, cfg).to(DEVICE)
-    if warm_start_state is not None:
-        wf.load_state_dict(warm_start_state, strict=False)
-        print(f"  Warm-started from previous d")
-    n_params = sum(p.numel() for p in wf.parameters() if p.requires_grad)
-    print(f"  Parameters: {n_params:,}")
-
-    optimizer = optim.Adam(wf.parameters(), lr=cfg.lr)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, cfg.n_epochs, eta_min=cfg.lr / 10)
-
-    print_every = max(cfg.n_epochs // 8, 1)
+    print_every = max(n_epochs // 8, 1)
     best_E, best_state = float("inf"), None
-    energies_train = []
+    energies = []
 
-    for epoch in range(cfg.n_epochs):
+    for epoch in range(n_epochs):
+        # ── Importance sampling from two-center Gaussian mixture ──
         with torch.no_grad():
             log_fn = lambda x_: wf(x_)
-            x, acc = mcmc_sample(log_fn, cfg.n_samples, cfg.n_particles, cfg.dim,
-                                 cfg.omega, well_sep, n_warmup=300, step_size=0.5)
+            x, ess = importance_resample(log_fn, cfg.n_samples, cfg.n_particles, cfg.dim,
+                                         cfg.omega, well_sep, oversample=cfg.oversample,
+                                         sigma_fs=cfg.sigma_fs)
 
-        E_L, T, V_ext, V_coul, r12 = compute_local_energy(
-            wf, x, cfg.omega, well_sep, cfg.smooth_T, cfg.coulomb)
+        # ── REINFORCE loss with forward-only Laplacian ──
+        loss, E_val, E_L, log_psi, T, V_ext, V_coul, r12 = compute_local_energy_reinforce(
+            wf, x, cfg.omega, well_sep, cfg.smooth_T, cfg.coulomb, clip_el=cfg.clip_el)
 
-        # ── NaN/Inf guard + outlier clip ──
-        valid = torch.isfinite(E_L)
-        if valid.sum() < 32:
-            # Too few valid samples — skip this epoch
-            energies_train.append(float("nan"))
+        # NaN guard
+        if not math.isfinite(E_val):
+            energies.append(float("nan"))
+            scheduler.step()
             if epoch % print_every == 0:
-                print(f"    [VMC] Ep {epoch:4d}/{cfg.n_epochs} | SKIPPED (insufficient valid samples)")
+                print(f"    [{phase_name}] Ep {epoch:4d}/{n_epochs} | SKIPPED (NaN)")
             continue
-        E_L_clean = E_L[valid]
-        E_med = E_L_clean.median()
-        E_mad = (E_L_clean - E_med).abs().median() * 1.4826  # robust σ
-        clip_lo = E_med - 5 * max(E_mad, 0.1)
-        clip_hi = E_med + 5 * max(E_mad, 0.1)
-        E_L = torch.where(valid, E_L, E_med)  # replace NaN with median
-        E_L = torch.clamp(E_L, clip_lo.item(), clip_hi.item())
-
-        E_mean = E_L.mean()
-        loss = ((E_L - E_mean.detach())**2).mean()
 
         optimizer.zero_grad()
         loss.backward()
@@ -686,21 +906,53 @@ def train_per_d(cfg: WSConfig, well_sep: float, warm_start_state=None) -> dict:
         optimizer.step()
         scheduler.step()
 
-        E_val = E_mean.item()
-        energies_train.append(E_val)
-        if not math.isnan(E_val) and E_val < best_E:
+        energies.append(E_val)
+        if E_val < best_E:
             best_E = E_val
             best_state = {k: v.clone() for k, v in wf.state_dict().items()}
 
         if epoch % print_every == 0:
-            E_err = E_L.detach().std().item() / math.sqrt(cfg.n_samples)
-            print(f"    [VMC] Ep {epoch:4d}/{cfg.n_epochs} | E={E_val:.5f}±{E_err:.5f} | "
-                  f"var={loss.item():.4f} | acc={acc:.2f}")
+            E_err = E_L.std().item() / math.sqrt(cfg.n_samples)
+            print(f"    [{phase_name}] Ep {epoch:4d}/{n_epochs} | E={E_val:.5f}±{E_err:.5f} | "
+                  f"ESS={ess:.0f}/{cfg.n_samples} | lr={optimizer.param_groups[0]['lr']:.1e}")
 
     if best_state is not None:
         wf.load_state_dict(best_state)
+    return energies, best_E, best_state
 
-    # Final evaluation with more samples
+
+def train_per_d(cfg: WSConfig, well_sep: float, warm_start_state=None) -> dict:
+    """Train an independent model for a single well separation d.
+    Uses importance sampling + REINFORCE + polish stage.
+    """
+    print(f"\n{'='*60}")
+    print(f"  Per-d training: d = {well_sep:.1f}")
+    print(f"{'='*60}")
+    t0 = time.time()
+
+    C_occ, spin, params = setup_sd(cfg.n_particles, cfg.dim, cfg.omega, 3.0)
+    wf = Wavefunction(cfg.n_particles, cfg.dim, cfg.omega, C_occ, spin, params, cfg,
+                      well_sep=well_sep).to(DEVICE)
+    if warm_start_state is not None:
+        wf.load_state_dict(warm_start_state, strict=False)
+        print(f"  Warm-started from previous d")
+    n_params = sum(p.numel() for p in wf.parameters() if p.requires_grad)
+    print(f"  Parameters: {n_params:,}")
+
+    # Phase 1: Main training
+    print(f"  Phase 1: Main training ({cfg.n_epochs} epochs, lr={cfg.lr:.1e})")
+    energies_train, best_E, _ = _run_training_phase(
+        wf, cfg, well_sep, cfg.n_epochs, cfg.lr, phase_name="VMC")
+
+    # Phase 2: Polish with lower learning rate
+    if cfg.polish_epochs > 0:
+        polish_lr = cfg.lr * cfg.polish_lr_factor
+        print(f"  Phase 2: Polish ({cfg.polish_epochs} epochs, lr={polish_lr:.1e})")
+        energies_polish, best_E_polish, _ = _run_training_phase(
+            wf, cfg, well_sep, cfg.polish_epochs, polish_lr, phase_name="Polish")
+        energies_train.extend(energies_polish)
+
+    # Final evaluation with more samples (use importance sampling for eval too)
     result = evaluate_model(wf, cfg, well_sep, log_fn_factory=lambda wf_: lambda x_: wf_(x_))
     result["train_energies"] = energies_train
     result["n_params"] = n_params
@@ -708,20 +960,21 @@ def train_per_d(cfg: WSConfig, well_sep: float, warm_start_state=None) -> dict:
 
     print(f"  Final: E = {result['E']:.5f} ± {result['E_err']:.5f} | "
           f"T={result['T']:.4f} | V_coul={result['V_coul']:.4f} | r12={result['r12']:.3f}")
-    # Return final state_dict for curriculum transfer
     result["_state_dict"] = {k: v.clone() for k, v in wf.state_dict().items()}
     return result
 
 
 def evaluate_model(wf, cfg, well_sep, log_fn_factory, d_val_tensor=None):
-    """Evaluate a trained model at a specific well separation."""
+    """Evaluate a trained model using importance sampling."""
     with torch.no_grad():
         if d_val_tensor is not None:
             log_fn = lambda x_: wf(x_, d_val=d_val_tensor[:x_.shape[0]])
         else:
             log_fn = log_fn_factory(wf)
-        x_eval, acc = mcmc_sample(log_fn, cfg.n_eval_samples, cfg.n_particles, cfg.dim,
-                                   cfg.omega, well_sep, n_warmup=cfg.eval_warmup, step_size=0.5)
+        # Use importance sampling for evaluation (better coverage of both wells)
+        x_eval, ess = importance_resample(log_fn, cfg.n_eval_samples, cfg.n_particles, cfg.dim,
+                                           cfg.omega, well_sep, oversample=cfg.oversample,
+                                           sigma_fs=cfg.sigma_fs)
 
     if d_val_tensor is not None:
         d_batch = d_val_tensor[:x_eval.shape[0]]
@@ -742,7 +995,7 @@ def evaluate_model(wf, cfg, well_sep, log_fn_factory, d_val_tensor=None):
         "V_ext": V_ext.mean().item(),
         "V_coul": V_coul.mean().item(),
         "r12": r12.mean().item(),
-        "acc": acc,
+        "ess": ess,
     }
 
 
@@ -751,9 +1004,7 @@ def evaluate_model(wf, cfg, well_sep, log_fn_factory, d_val_tensor=None):
 # ============================================================
 def train_d_conditioned(cfg: WSConfig) -> list:
     """Train a single d-conditioned model on all d values simultaneously.
-    
-    Uses round-robin mini-epochs: each step trains on ONE d value (cycled),
-    which is ~6x faster per epoch than sampling all d simultaneously.
+    Uses importance sampling + REINFORCE + polish.
     """
     print(f"\n{'='*60}")
     print(f"  d-Conditioned training: d = {list(cfg.d_values)}")
@@ -765,70 +1016,70 @@ def train_d_conditioned(cfg: WSConfig) -> list:
     n_params = sum(p.numel() for p in wf.parameters() if p.requires_grad)
     print(f"  d-Conditioned WF: {n_params:,} parameters")
 
-    optimizer = optim.Adam(wf.parameters(), lr=cfg.lr)
-    n_total_epochs = cfg.n_epochs * 2  # 1600 total steps
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, n_total_epochs, eta_min=cfg.lr / 10)
-
-    print_every = max(n_total_epochs // 16, 1)
-    best_loss_avg, best_state = float("inf"), None
     d_vals = list(cfg.d_values)
     n_d = len(d_vals)
-    n_samp = 512  # Samples per mini-epoch (single d)
-    loss_tracker = {d: [] for d in d_vals}
+    n_samp = 512
 
-    for epoch in range(n_total_epochs):
-        # Round-robin: pick one d per step
-        d_val = d_vals[epoch % n_d]
-        d_tensor = torch.full((n_samp,), d_val, dtype=DTYPE, device=DEVICE)
+    def _run_dcond_phase(n_total_epochs, lr, phase_name="Train"):
+        optimizer = optim.Adam(wf.parameters(), lr=lr)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, n_total_epochs, eta_min=lr / 10)
+        print_every = max(n_total_epochs // 16, 1)
+        best_loss_avg, best_state = float("inf"), None
+        loss_tracker = {d: [] for d in d_vals}
 
-        with torch.no_grad():
-            log_fn = lambda x_, dt=d_tensor: wf(x_, d_val=dt[:x_.shape[0]])
-            x, acc = mcmc_sample(log_fn, n_samp, cfg.n_particles, cfg.dim,
-                                 cfg.omega, d_val, n_warmup=200, step_size=0.5)
+        for epoch in range(n_total_epochs):
+            d_val = d_vals[epoch % n_d]
+            d_tensor = torch.full((n_samp,), d_val, dtype=DTYPE, device=DEVICE)
 
-        # Compute local energy
-        E_L, T_k, V_ext, V_coul, r12 = compute_local_energy(
-            wf, x, cfg.omega, d_val, cfg.smooth_T, cfg.coulomb, d_val=d_tensor)
+            with torch.no_grad():
+                log_fn = lambda x_, dt=d_tensor: wf(x_, d_val=dt[:x_.shape[0]])
+                x, ess = importance_resample(log_fn, n_samp, cfg.n_particles, cfg.dim,
+                                             cfg.omega, d_val, oversample=cfg.oversample,
+                                             sigma_fs=cfg.sigma_fs)
 
-        # NaN/Inf guard
-        valid = torch.isfinite(E_L)
-        if valid.sum() < 32:
+            loss, E_val, E_L, log_psi, T_k, V_ext, V_coul, r12 = compute_local_energy_reinforce(
+                wf, x, cfg.omega, d_val, cfg.smooth_T, cfg.coulomb,
+                clip_el=cfg.clip_el, d_val=d_tensor)
+
+            if not math.isfinite(E_val):
+                scheduler.step()
+                continue
+
+            optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(wf.parameters(), 1.0)
+            optimizer.step()
             scheduler.step()
-            continue
-        E_L_clean = E_L[valid]
-        E_med = E_L_clean.median()
-        E_mad = (E_L_clean - E_med).abs().median() * 1.4826
-        clip_r = 5 * max(E_mad.item(), 0.1)
-        E_L = torch.where(valid, E_L, E_med)
-        E_L = torch.clamp(E_L, E_med.item() - clip_r, E_med.item() + clip_r)
 
-        E_mean = E_L.mean()
-        loss = ((E_L - E_mean.detach())**2).mean()
+            loss_tracker[d_val].append(E_val)
+            if epoch >= n_d and epoch % n_d == 0:
+                avg_E = sum(loss_tracker[dv][-1] for dv in d_vals if loss_tracker[dv]) / n_d
+                if avg_E < best_loss_avg:
+                    best_loss_avg = avg_E
+                    best_state = {k: v.clone() for k, v in wf.state_dict().items()}
 
-        optimizer.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(wf.parameters(), 1.0)
-        optimizer.step()
-        scheduler.step()
+            if epoch % print_every == 0:
+                per_d_str = ""
+                for dv in d_vals:
+                    if loss_tracker[dv]:
+                        per_d_str += f" d={dv:.0f}:{loss_tracker[dv][-1]:.3f}"
+                print(f"    [{phase_name}] Ep {epoch:4d}/{n_total_epochs} | d={d_val:.0f} "
+                      f"E={E_val:.5f} | ESS={ess:.0f} |{per_d_str}")
 
-        loss_tracker[d_val].append(E_mean.item())
-        # Track rolling average for checkpointing (last full cycle)
-        if epoch >= n_d and epoch % n_d == 0:
-            avg_E = sum(loss_tracker[dv][-1] for dv in d_vals if loss_tracker[dv]) / n_d
-            if avg_E < best_loss_avg:
-                best_loss_avg = avg_E
-                best_state = {k: v.clone() for k, v in wf.state_dict().items()}
+        if best_state is not None:
+            wf.load_state_dict(best_state)
 
-        if epoch % print_every == 0:
-            per_d_str = ""
-            for dv in d_vals:
-                if loss_tracker[dv]:
-                    per_d_str += f" d={dv:.0f}:{loss_tracker[dv][-1]:.3f}"
-            print(f"    [d-VMC] Ep {epoch:4d}/{n_total_epochs} | d={d_val:.0f} E={E_mean.item():.5f} | "
-                  f"var={loss.item():.4f} |{per_d_str}")
+    # Phase 1: Main training
+    n_main = cfg.n_epochs * 2
+    print(f"  Phase 1: Main training ({n_main} steps, lr={cfg.lr:.1e})")
+    _run_dcond_phase(n_main, cfg.lr, phase_name="d-VMC")
 
-    if best_state is not None:
-        wf.load_state_dict(best_state)
+    # Phase 2: Polish
+    if cfg.polish_epochs > 0:
+        n_polish = cfg.polish_epochs * 2
+        polish_lr = cfg.lr * cfg.polish_lr_factor
+        print(f"  Phase 2: Polish ({n_polish} steps, lr={polish_lr:.1e})")
+        _run_dcond_phase(n_polish, polish_lr, phase_name="Polish")
 
     # Evaluate at each d
     results = []
@@ -843,7 +1094,7 @@ def train_d_conditioned(cfg: WSConfig) -> list:
 
     train_time = time.time() - t0
     for r in results:
-        r["train_time"] = train_time / n_d  # Amortised
+        r["train_time"] = train_time / n_d
 
     return results
 
@@ -981,10 +1232,15 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     cfg = WSConfig(
-        d_values=(0.0, 1.0, 2.0, 4.0, 6.0, 8.0),
+        d_values=(0.0, 1.0, 2.0, 4.0, 6.0, 8.0, 12.0, 16.0, 20.0),
         n_epochs=800,
         n_samples=1024,
         lr=3e-3,
+        clip_el=5.0,
+        direct_weight=0.0,
+        oversample=8,
+        polish_epochs=400,
+        polish_lr_factor=0.2,
         n_eval_samples=4000,
         eval_warmup=500,
     )

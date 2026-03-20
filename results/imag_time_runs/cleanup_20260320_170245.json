@@ -1,0 +1,10 @@
+{
+  "archive_dir": "results/imag_time_archive/legacy_20260320_170245",
+  "dry_run": false,
+  "moved": [
+    "results/imag_time_vmc",
+    "results/imag_time_pinn",
+    "results/imag_time_report.html"
+  ],
+  "skipped_missing": []
+}

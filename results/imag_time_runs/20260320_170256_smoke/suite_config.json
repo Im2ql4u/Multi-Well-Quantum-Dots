@@ -1,0 +1,13 @@
+{
+  "profile": "smoke",
+  "distances": [
+    0.0
+  ],
+  "coulomb": false,
+  "tau_max": 5.0,
+  "omega": 1.0,
+  "strategies": [
+    "pinn"
+  ],
+  "tag": "postclean_"
+}

@@ -1,0 +1,11 @@
+{
+  "run_dir": "/Users/aleksandersekkelsten/thesis-double-well/results/imag_time_runs/20260320_165730_smoke",
+  "figures": [
+    "figure_energy_vs_d.png",
+    "figure_gap_vs_d.png",
+    "figure_traj_d0p0.png",
+    "figure_runtime.png"
+  ],
+  "summary_table": "summary_table.json",
+  "suite_results": "suite_results.json"
+}

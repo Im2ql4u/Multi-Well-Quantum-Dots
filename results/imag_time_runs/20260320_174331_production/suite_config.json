@@ -1,0 +1,16 @@
+{
+  "profile": "production",
+  "distances": [
+    0.0,
+    4.0,
+    8.0
+  ],
+  "coulomb": true,
+  "tau_max": 5.0,
+  "omega": 1.0,
+  "strategies": [
+    "vmc",
+    "pinn"
+  ],
+  "tag": "prod_tdse_"
+}

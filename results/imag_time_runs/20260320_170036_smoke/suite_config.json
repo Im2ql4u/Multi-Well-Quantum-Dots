@@ -1,0 +1,14 @@
+{
+  "profile": "smoke",
+  "distances": [
+    0.0
+  ],
+  "coulomb": true,
+  "tau_max": 5.0,
+  "omega": 1.0,
+  "strategies": [
+    "vmc",
+    "pinn"
+  ],
+  "tag": "smoke_int_"
+}
