@@ -27,3 +27,9 @@ __pycache__/
 dist/
 build/
 *.pid
+
+# Generated run artifacts
+.nfs*
+results/imag_time_pinn/pinn_sweep_*.png
+results/imag_time_runs/*_tiny/
+results/imag_time_runs/strategy_search_*/search.log
