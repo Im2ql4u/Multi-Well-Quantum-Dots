@@ -1,0 +1,5 @@
+combo	profile	coulomb	loss	tau_sampling	x_sampling	mae	run_dir
+c01	tiny	false	curriculum_mse	small_bias	uniform	0.00101739	results/imag_time_runs/20260321_074042_tiny
+c02	tiny	false	curriculum_mse	small_bias	energy_weighted	0.00101739	results/imag_time_runs/20260321_074537_tiny
+c01	tiny	true	curriculum_mse	small_bias	uniform	0.00368284	results/imag_time_runs/20260321_074307_tiny
+c02	tiny	true	curriculum_mse	small_bias	energy_weighted	0.00368284	results/imag_time_runs/20260321_074753_tiny

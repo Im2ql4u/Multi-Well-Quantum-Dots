@@ -44,6 +44,10 @@ class SuiteConfig:
     omega: float
     strategies: list[str]
     tag: str
+    pinn_loss_style: str
+    pinn_tau_sampling: str
+    pinn_x_sampling: str
+    pinn_no_vmc_train: bool
 
 
 def parse_distances(raw: str) -> list[float]:
@@ -178,13 +182,27 @@ def vmc_cfg(profile: str, d: float, coulomb: bool, omega: float, tau_max: float)
     return base
 
 
-def pinn_cfg(profile: str, d: float, coulomb: bool, omega: float, tau_max: float) -> it_pinn.PINNConfig:
+def pinn_cfg(
+    profile: str,
+    d: float,
+    coulomb: bool,
+    omega: float,
+    tau_max: float,
+    loss_style: str,
+    tau_sampling: str,
+    x_sampling: str,
+    no_vmc_train: bool,
+) -> it_pinn.PINNConfig:
     base = it_pinn.PINNConfig(
         omega=omega,
         well_sep=d,
         E_ref=(3.0 if coulomb else 2.0),
         coulomb=coulomb,
         tau_max=tau_max,
+        loss_style=loss_style,
+        tau_sampling=tau_sampling,
+        x_sampling=x_sampling,
+        no_vmc_train=no_vmc_train,
     )
 
     if profile == "smoke":
@@ -267,7 +285,17 @@ def run_suite(cfg: SuiteConfig, out_dir: Path) -> dict:
                 result = it_vmc.run_single(c, tag=f"{cfg.tag}{strategy}_d{safe_name(d)}_")
                 conf = asdict(c)
             elif strategy == "pinn":
-                c = pinn_cfg(cfg.profile, d, cfg.coulomb, cfg.omega, cfg.tau_max)
+                c = pinn_cfg(
+                    cfg.profile,
+                    d,
+                    cfg.coulomb,
+                    cfg.omega,
+                    cfg.tau_max,
+                    cfg.pinn_loss_style,
+                    cfg.pinn_tau_sampling,
+                    cfg.pinn_x_sampling,
+                    cfg.pinn_no_vmc_train,
+                )
                 result = it_pinn.run_single(c, tag=f"{cfg.tag}{strategy}_d{safe_name(d)}_")
                 conf = asdict(c)
             else:
@@ -483,6 +511,22 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--coulomb", action="store_true", help="Enable interaction")
     p.add_argument("--no-coulomb", action="store_true", help="Disable interaction")
     p.add_argument("--tag", default="")
+    p.add_argument(
+        "--pinn-loss-style",
+        default="curriculum_mse",
+        choices=["curriculum_mse", "mse", "huber", "logcosh"],
+    )
+    p.add_argument(
+        "--pinn-tau-sampling",
+        default="small_bias",
+        choices=["small_bias", "uniform", "two_stage"],
+    )
+    p.add_argument(
+        "--pinn-x-sampling",
+        default="uniform",
+        choices=["uniform", "energy_weighted"],
+    )
+    p.add_argument("--pinn-no-vmc-train", action="store_true")
     p.add_argument("--archive-dry-run", action="store_true")
     return p.parse_args()
 
@@ -526,6 +570,10 @@ def main() -> None:
         omega=float(args.omega),
         strategies=strategies,
         tag=args.tag,
+        pinn_loss_style=args.pinn_loss_style,
+        pinn_tau_sampling=args.pinn_tau_sampling,
+        pinn_x_sampling=args.pinn_x_sampling,
+        pinn_no_vmc_train=args.pinn_no_vmc_train,
     )
 
     run_dir = RUNS_ROOT / f"{utc_stamp()}_{profile}"

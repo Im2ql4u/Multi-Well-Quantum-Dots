@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Imaginary-Time Evolution Report</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 28px auto; padding: 0 16px; max-width: 1100px; color: #1b1b1b; }
+    h1, h2 { color: #1c4e80; }
+    .meta { color: #555; margin-bottom: 14px; }
+    .panel { background: #f8fbff; border: 1px solid #c8ddf0; border-radius: 10px; padding: 14px; margin: 14px 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #d7d7d7; padding: 7px 8px; text-align: center; font-size: 0.94rem; }
+    th { background: #eef5fc; }
+    figure { margin: 10px 0; }
+    img { width: 100%; border: 1px solid #ddd; border-radius: 8px; }
+    figcaption { font-size: 0.92rem; color: #555; margin-top: 4px; }
+    .case { margin: 28px 0 36px; border-top: 2px solid #e8e8e8; padding-top: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Imaginary-Time Evolution: Plots, Animations, and Ground-Truth Comparison</h1>
+  <p class="meta">Generated: 2026-03-21 11:17:28</p>
+  <p class="meta">Source run: results/imag_time_runs/strategy_search_20260321_084039</p>
+
+  <div class="panel">
+    <h2>Summary</h2>
+    <p>This report compares measured PINN imaginary-time trajectories against ground-truth references:
+    exact non-interacting $E_0=2$, and separated-dot interacting approximation $E_0pprox2+1/d$.</p>
+    <img src="summary_final_error.png" alt="Summary final error" />
+    <table>
+      <thead>
+        <tr>
+          <th>combo</th><th>d</th><th>coulomb</th><th>loss</th><th>tau_sampling</th><th>x_sampling</th>
+          <th>E_gt</th><th>E(T)</th><th>final |err|</th><th>RMSE</th><th>decay rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>c01</td><td>0.0</td><td>off</td><td>curriculum_mse</td><td>small_bias</td><td>uniform</td><td>2.000000</td><td>1.999982</td><td>1.787e-05</td><td>4.037e-02</td><td>1.8228</td></tr>
+<tr><td>c01</td><td>4.0</td><td>off</td><td>curriculum_mse</td><td>small_bias</td><td>uniform</td><td>2.000000</td><td>1.995969</td><td>4.031e-03</td><td>3.782e-02</td><td>0.7534</td></tr>
+<tr><td>c01</td><td>4.0</td><td>on</td><td>curriculum_mse</td><td>small_bias</td><td>uniform</td><td>2.250000</td><td>2.258412</td><td>8.412e-03</td><td>4.410e-02</td><td>0.5530</td></tr>
+<tr><td>c01</td><td>12.0</td><td>on</td><td>curriculum_mse</td><td>small_bias</td><td>uniform</td><td>2.083333</td><td>2.083599</td><td>2.658e-04</td><td>4.031e-02</td><td>1.3677</td></tr>
+<tr><td>c02</td><td>0.0</td><td>off</td><td>curriculum_mse</td><td>small_bias</td><td>energy_weighted</td><td>2.000000</td><td>1.999982</td><td>1.781e-05</td><td>4.038e-02</td><td>1.8236</td></tr>
+<tr><td>c02</td><td>4.0</td><td>off</td><td>curriculum_mse</td><td>small_bias</td><td>energy_weighted</td><td>2.000000</td><td>1.996004</td><td>3.996e-03</td><td>3.847e-02</td><td>0.6924</td></tr>
+<tr><td>c02</td><td>4.0</td><td>on</td><td>curriculum_mse</td><td>small_bias</td><td>energy_weighted</td><td>2.250000</td><td>2.257579</td><td>7.579e-03</td><td>4.463e-02</td><td>0.6044</td></tr>
+<tr><td>c02</td><td>12.0</td><td>on</td><td>curriculum_mse</td><td>small_bias</td><td>energy_weighted</td><td>2.083333</td><td>2.083598</td><td>2.650e-04</td><td>4.021e-02</td><td>1.3705</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Per-Case Time Evolution</h2>
+  
+<section class="case">
+  <h3>Case: combo=c01, d=0.0, coulomb=off</h3>
+  <p><strong>Ground truth reference:</strong> Exact non-interacting E0 = 2 (E_gt = 2.000000)</p>
+  <div class="grid">
+    <figure>
+      <img src="c01_d0p0_off_energy.png" alt="Energy plot c01_d0p0_off" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c01_d0p0_off_error.png" alt="Error plot c01_d0p0_off" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c01_d0p0_off_evolution.gif" alt="Animation c01_d0p0_off" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+<section class="case">
+  <h3>Case: combo=c01, d=4.0, coulomb=off</h3>
+  <p><strong>Ground truth reference:</strong> Exact non-interacting E0 = 2 (E_gt = 2.000000)</p>
+  <div class="grid">
+    <figure>
+      <img src="c01_d4p0_off_energy.png" alt="Energy plot c01_d4p0_off" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c01_d4p0_off_error.png" alt="Error plot c01_d4p0_off" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c01_d4p0_off_evolution.gif" alt="Animation c01_d4p0_off" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+<section class="case">
+  <h3>Case: combo=c01, d=4.0, coulomb=on</h3>
+  <p><strong>Ground truth reference:</strong> Separated-dot asymptotic E0 ≈ 2 + 1/d (E_gt = 2.250000)</p>
+  <div class="grid">
+    <figure>
+      <img src="c01_d4p0_on_energy.png" alt="Energy plot c01_d4p0_on" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c01_d4p0_on_error.png" alt="Error plot c01_d4p0_on" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c01_d4p0_on_evolution.gif" alt="Animation c01_d4p0_on" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+<section class="case">
+  <h3>Case: combo=c01, d=12.0, coulomb=on</h3>
+  <p><strong>Ground truth reference:</strong> Separated-dot asymptotic E0 ≈ 2 + 1/d (E_gt = 2.083333)</p>
+  <div class="grid">
+    <figure>
+      <img src="c01_d12p0_on_energy.png" alt="Energy plot c01_d12p0_on" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c01_d12p0_on_error.png" alt="Error plot c01_d12p0_on" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c01_d12p0_on_evolution.gif" alt="Animation c01_d12p0_on" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+<section class="case">
+  <h3>Case: combo=c02, d=0.0, coulomb=off</h3>
+  <p><strong>Ground truth reference:</strong> Exact non-interacting E0 = 2 (E_gt = 2.000000)</p>
+  <div class="grid">
+    <figure>
+      <img src="c02_d0p0_off_energy.png" alt="Energy plot c02_d0p0_off" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c02_d0p0_off_error.png" alt="Error plot c02_d0p0_off" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c02_d0p0_off_evolution.gif" alt="Animation c02_d0p0_off" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+<section class="case">
+  <h3>Case: combo=c02, d=4.0, coulomb=off</h3>
+  <p><strong>Ground truth reference:</strong> Exact non-interacting E0 = 2 (E_gt = 2.000000)</p>
+  <div class="grid">
+    <figure>
+      <img src="c02_d4p0_off_energy.png" alt="Energy plot c02_d4p0_off" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c02_d4p0_off_error.png" alt="Error plot c02_d4p0_off" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c02_d4p0_off_evolution.gif" alt="Animation c02_d4p0_off" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+<section class="case">
+  <h3>Case: combo=c02, d=4.0, coulomb=on</h3>
+  <p><strong>Ground truth reference:</strong> Separated-dot asymptotic E0 ≈ 2 + 1/d (E_gt = 2.250000)</p>
+  <div class="grid">
+    <figure>
+      <img src="c02_d4p0_on_energy.png" alt="Energy plot c02_d4p0_on" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c02_d4p0_on_error.png" alt="Error plot c02_d4p0_on" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c02_d4p0_on_evolution.gif" alt="Animation c02_d4p0_on" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+<section class="case">
+  <h3>Case: combo=c02, d=12.0, coulomb=on</h3>
+  <p><strong>Ground truth reference:</strong> Separated-dot asymptotic E0 ≈ 2 + 1/d (E_gt = 2.083333)</p>
+  <div class="grid">
+    <figure>
+      <img src="c02_d12p0_on_energy.png" alt="Energy plot c02_d12p0_on" />
+      <figcaption>Energy trajectory with MC uncertainty and ground-truth line.</figcaption>
+    </figure>
+    <figure>
+      <img src="c02_d12p0_on_error.png" alt="Error plot c02_d12p0_on" />
+      <figcaption>Absolute error decay on log scale.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="c02_d12p0_on_evolution.gif" alt="Animation c02_d12p0_on" />
+    <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
+  </figure>
+</section>
+
+</body>
+</html>

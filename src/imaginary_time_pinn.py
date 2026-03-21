@@ -117,6 +117,12 @@ class PINNConfig:
     g_n_freq: int = 6  # Fourier frequencies for τ
     use_spectral: bool = True  # use SpectralG (preferred) vs FiLM
     g_modes: int = 3  # number of spectral modes
+    no_vmc_train: bool = False  # use untrained Slater-only reference instead of VMC phase
+    # PINN training variants
+    loss_style: str = "curriculum_mse"  # curriculum_mse, mse, huber, logcosh
+    tau_sampling: str = "small_bias"  # small_bias, uniform, two_stage
+    x_sampling: str = "uniform"  # uniform, energy_weighted
+    tau_small_bias_power: float = 1.5
 
 
 # ============================================================
@@ -250,6 +256,38 @@ class GroundStateWF(nn.Module):
         return log_sd + f_pinn.squeeze(-1)
 
 
+class SlaterOnlyWF(nn.Module):
+    """Reference wavefunction using only the closed-shell Slater determinant."""
+
+    def __init__(self, n_particles, dim, omega, C_occ, spin, params, well_sep: float = 0.0):
+        super().__init__()
+        self.n_particles = n_particles
+        self.dim = dim
+        self.omega = omega
+        self.register_buffer("C_occ", C_occ)
+        self.register_buffer("spin", spin)
+        self.params = params
+        self.well_sep = well_sep
+
+    def forward(self, x):
+        B = x.shape[0]
+        spin = self.spin.expand(B, -1)
+        x_eff = x
+        # For separated dots, recenter each electron around its nearest well
+        # so the reference determinant remains physically sensible without VMC.
+        if self.well_sep > 1e-10 and self.n_particles >= 2 and self.dim >= 1:
+            x_eff = x.clone()
+            x_eff[:, 0, 0] = x_eff[:, 0, 0] + self.well_sep / 2
+            x_eff[:, 1, 0] = x_eff[:, 1, 0] - self.well_sep / 2
+        _, log_sd = slater_determinant_closed_shell(
+            x_eff,
+            self.C_occ,
+            params=self.params,
+            spin=spin,
+        )
+        return log_sd
+
+
 def setup_sd(n_particles, dim, omega, E_ref):
     n_occ = n_particles // 2
     nx = max(2, int(math.ceil(math.sqrt(2 * n_occ))))
@@ -375,6 +413,29 @@ def train_vmc(cfg: PINNConfig):
     E_err = E_L.detach().std().item() / math.sqrt(2000)
     print(f"  VMC converged: E_0 = {E_final:.5f} +/- {E_err:.5f}  (ref={cfg.E_ref:.5f})")
     return wf, E_final
+
+
+def estimate_energy(wf: nn.Module, cfg: PINNConfig, n_eval: int = 2000) -> tuple[float, float]:
+    """Estimate local energy and error bar for a provided reference wf."""
+    with torch.no_grad():
+        x, _ = mcmc_sample(wf, n_eval, cfg.n_particles, cfg.dim, cfg.omega, cfg.well_sep, 500, 0.4)
+    x_g = x.detach().requires_grad_(True)
+    lp = wf(x_g)
+    grad = torch.autograd.grad(lp.sum(), x_g, create_graph=True)[0]
+    B = x_g.shape[0]
+    lap = torch.zeros(B, device=DEVICE, dtype=DTYPE)
+    for i in range(cfg.n_particles):
+        for j in range(cfg.dim):
+            g2 = torch.autograd.grad(
+                grad[:, i, j].sum(), x_g, create_graph=True, retain_graph=True
+            )[0]
+            lap += g2[:, i, j]
+    T = -0.5 * (lap + (grad**2).sum(dim=(1, 2)))
+    V = compute_potential(x_g, cfg.omega, cfg.well_sep, cfg.smooth_T, cfg.coulomb)
+    E_L = T + V
+    E_mean = E_L.detach().mean().item()
+    E_err = E_L.detach().std().item() / math.sqrt(n_eval)
+    return E_mean, E_err
 
 
 # ============================================================
@@ -736,6 +797,10 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
 
     perturbation_fn, ic_desc = make_perturbation_fn(cfg)
     print(f"  Initial condition: {ic_desc}, amplitude={cfg.ic_amplitude}")
+    print(
+        "  PINN styles: "
+        f"loss={cfg.loss_style}, tau_sampling={cfg.tau_sampling}, x_sampling={cfg.x_sampling}"
+    )
 
     optimizer = optim.Adam(g_net.parameters(), lr=cfg.lr_pde)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
@@ -747,22 +812,59 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
     grad_pool = precomputed["grad_log_psi0"]
     pool_size = x_pool.shape[0]
 
+    if cfg.x_sampling == "energy_weighted":
+        with torch.no_grad():
+            w = (E_L0_pool - E_L0_pool.mean()).abs() + 1e-8
+            x_sample_probs = w / w.sum()
+    elif cfg.x_sampling == "uniform":
+        x_sample_probs = None
+    else:
+        raise ValueError(f"Unknown x_sampling: {cfg.x_sampling}")
+
     print_every = max(cfg.n_epochs_pde // 20, 1)
     history = {"pde": [], "ic": [], "bc": [], "total": [], "gaps": []}
 
     for epoch in range(cfg.n_epochs_pde):
         # --- Random batch ---
-        idx = torch.randint(pool_size, (cfg.batch_pde,))
+        if x_sample_probs is None:
+            idx = torch.randint(pool_size, (cfg.batch_pde,))
+        else:
+            idx = torch.multinomial(x_sample_probs, cfg.batch_pde, replacement=True)
         x_batch = x_pool[idx]
         E_L0_batch = E_L0_pool[idx]
         grad_batch = grad_pool[idx]
 
-        # --- Random τ (biased to small) ---
-        tau_pde = torch.rand(cfg.batch_pde, dtype=DTYPE, device=DEVICE) ** 1.5 * cfg.tau_max
+        # --- Random τ sampling ---
+        if cfg.tau_sampling == "small_bias":
+            tau_pde = (
+                torch.rand(cfg.batch_pde, dtype=DTYPE, device=DEVICE)
+                ** cfg.tau_small_bias_power
+                * cfg.tau_max
+            )
+        elif cfg.tau_sampling == "uniform":
+            tau_pde = torch.rand(cfg.batch_pde, dtype=DTYPE, device=DEVICE) * cfg.tau_max
+        elif cfg.tau_sampling == "two_stage":
+            tau_small = (
+                torch.rand(cfg.batch_pde, dtype=DTYPE, device=DEVICE)
+                ** cfg.tau_small_bias_power
+                * cfg.tau_max
+            )
+            tau_uniform = torch.rand(cfg.batch_pde, dtype=DTYPE, device=DEVICE) * cfg.tau_max
+            chooser = torch.rand(cfg.batch_pde, dtype=DTYPE, device=DEVICE)
+            tau_pde = torch.where(chooser < 0.7, tau_small, tau_uniform)
+        else:
+            raise ValueError(f"Unknown tau_sampling: {cfg.tau_sampling}")
 
         # --- PDE loss ---
         residual, g_pde, E_L = pde_fn(g_net, x_batch, tau_pde, E_L0_batch, grad_batch, E_ref)
-        L_pde = (residual**2).mean()
+        if cfg.loss_style in {"curriculum_mse", "mse"}:
+            L_pde = (residual**2).mean()
+        elif cfg.loss_style == "huber":
+            L_pde = F.smooth_l1_loss(residual, torch.zeros_like(residual), beta=0.1)
+        elif cfg.loss_style == "logcosh":
+            L_pde = (F.softplus(2.0 * residual) - residual - math.log(2.0)).mean()
+        else:
+            raise ValueError(f"Unknown loss_style: {cfg.loss_style}")
 
         # --- IC loss: g(x, 0) ≈ p(x) ---
         tau_zero = torch.zeros(cfg.batch_pde, dtype=DTYPE, device=DEVICE)
@@ -778,10 +880,14 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
         # --- Regularisation ---
         L_reg = (g_pde**2).mean()
 
-        # --- Curriculum ---
-        progress = epoch / max(cfg.n_epochs_pde - 1, 1)
-        w_ic = cfg.lambda_ic * max(1.0 - 0.5 * progress, 0.3)
-        w_pde = 1.0 + 9.0 * min(progress * 2, 1.0)  # ramp to 10× PDE weight
+        # --- Optional curriculum ---
+        if cfg.loss_style == "curriculum_mse":
+            progress = epoch / max(cfg.n_epochs_pde - 1, 1)
+            w_ic = cfg.lambda_ic * max(1.0 - 0.5 * progress, 0.3)
+            w_pde = 1.0 + 9.0 * min(progress * 2, 1.0)  # ramp to 10x PDE weight
+        else:
+            w_ic = cfg.lambda_ic
+            w_pde = 1.0
 
         loss = w_pde * L_pde + w_ic * L_ic + cfg.lambda_bc * L_bc + cfg.lambda_reg * L_reg
 
@@ -1171,14 +1277,35 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     print(f"  {coul_str}: d={cfg.well_sep:.1f}, ω={cfg.omega:.1f}, E_ref={cfg.E_ref:.5f}")
     print(f"{'='*65}")
 
-    # Phase 1: VMC
+    # Phase 1: reference state (trained VMC or Slater-only)
     t0 = time.time()
-    print("\n  Phase 1: VMC ground state...")
-    ground_wf, E_vmc = train_vmc(cfg)
+    if cfg.no_vmc_train:
+        print("\n  Phase 1: Slater-only reference (no VMC training)...")
+        C_occ, spin, params = setup_sd(cfg.n_particles, cfg.dim, cfg.omega, cfg.E_ref)
+        ground_wf = SlaterOnlyWF(
+            cfg.n_particles,
+            cfg.dim,
+            cfg.omega,
+            C_occ,
+            spin,
+            params,
+            well_sep=cfg.well_sep,
+        ).to(DEVICE)
+        E_vmc, E_err = estimate_energy(ground_wf, cfg, n_eval=2000)
+        print(f"  Reference energy: E = {E_vmc:.5f} +/- {E_err:.5f}")
+    else:
+        print("\n  Phase 1: VMC ground state...")
+        ground_wf, E_vmc = train_vmc(cfg)
     t_vmc = time.time() - t0
     print(f"  Phase 1 time: {t_vmc:.0f}s")
 
-    E_ref = E_vmc if cfg.well_sep > 0.01 else cfg.E_ref
+    if cfg.no_vmc_train:
+        if cfg.coulomb:
+            E_ref = 3.0 if cfg.well_sep <= 1e-10 else 2.0 + 1.0 / max(cfg.well_sep, 1e-10)
+        else:
+            E_ref = 2.0
+    else:
+        E_ref = E_vmc if cfg.well_sep > 0.01 else cfg.E_ref
     print(f"  Using E_ref = {E_ref:.5f}")
 
     # Phase 2: pre-compute
@@ -1313,6 +1440,10 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         "E_ref": E_ref,
         "E_vmc": E_vmc,
         "coulomb": cfg.coulomb,
+        "no_vmc_train": cfg.no_vmc_train,
+        "loss_style": cfg.loss_style,
+        "tau_sampling": cfg.tau_sampling,
+        "x_sampling": cfg.x_sampling,
         "trajectory": traj,
         "fit_single": fit_s,
         "fit_double": fit_d,
