@@ -1,0 +1,272 @@
+{
+  "generated": "2026-03-31",
+  "description": "Authoritative evidence table for old vs improved training comparison",
+  "evaluator_notes": {
+    "IS": "Importance sampling. Reliable when ESS_median > 1000. Used for old models.",
+    "MH": "Metropolis-Hastings, burn_in=300 or 100, step_scale=0.25. Used for improved models where IS collapsed. Note: MH has inconsistent convergence for models with high accept rate (old model bias); results flagged as uncertain for N=2 comparisons.",
+    "training_ESS": "ESS measured during training (last 20 epochs). Low training ESS indicates training was on nearly degenerate samples."
+  },
+  "rows": [
+    {
+      "group": "N4_old_baseline",
+      "label": "N=4 old ctnn s201",
+      "N": 4,
+      "sep": 4.0,
+      "arch": "ctnn",
+      "loss": "reinforce_hybrid",
+      "bf_hidden": 32,
+      "epochs": 20000,
+      "seed": 201,
+      "result_dir": "20260330_131511_g4_n4_double_2_2_ctnn_s201",
+      "E_mean": 7.049011,
+      "virial_pct": 3.46,
+      "evaluator": "IS",
+      "IS_ESS_median": 3351,
+      "training_ESS_median": 856,
+      "confidence": "HIGH"
+    },
+    {
+      "group": "N4_old_baseline",
+      "label": "N=4 old unified s204",
+      "N": 4,
+      "sep": 4.0,
+      "arch": "unified",
+      "loss": "reinforce_hybrid",
+      "bf_hidden": 32,
+      "epochs": 20000,
+      "seed": 204,
+      "result_dir": "20260330_125345_g5_n4_double_2_2_unified_s204",
+      "E_mean": 7.046414,
+      "virial_pct": 4.05,
+      "evaluator": "IS",
+      "IS_ESS_median": 3409,
+      "training_ESS_median": null,
+      "confidence": "HIGH"
+    },
+    {
+      "group": "N4_improved",
+      "label": "N=4 improved ctnn s305",
+      "N": 4,
+      "sep": 4.0,
+      "arch": "ctnn",
+      "loss": "fd_colloc",
+      "bf_hidden": 64,
+      "epochs": 30000,
+      "seed": 305,
+      "result_dir": "20260331_004615_impr_n4_ctnn_s305",
+      "E_mean": 6.995779,
+      "virial_pct": 13.1,
+      "evaluator": "MH_burn300",
+      "IS_ESS_median": 4,
+      "training_ESS_median": 22,
+      "confidence": "LOW - training ESS collapsed, post-training IS ESS=4"
+    },
+    {
+      "group": "N4_improved",
+      "label": "N=4 improved unified s306",
+      "N": 4,
+      "sep": 4.0,
+      "arch": "unified",
+      "loss": "fd_colloc",
+      "bf_hidden": 64,
+      "epochs": 30000,
+      "seed": 306,
+      "result_dir": "20260330_231223_impr_n4_unified_s306",
+      "E_mean": 6.99517,
+      "virial_pct": 13.0,
+      "evaluator": "MH_burn300",
+      "IS_ESS_median": 9,
+      "training_ESS_median": null,
+      "confidence": "LOW - training ESS collapsed, post-training IS ESS=9"
+    },
+    {
+      "group": "N2_sep4_old_baseline",
+      "label": "N=2 old ctnn s401 (sep=4.0)",
+      "N": 2,
+      "sep": 4.0,
+      "arch": "ctnn",
+      "loss": "reinforce_hybrid",
+      "bf_hidden": 32,
+      "epochs": 20000,
+      "seed": 401,
+      "result_dir": "20260331_171637_baseline_n2_sep4_old_s401",
+      "E_mean": 2.279885,
+      "virial_pct": 18.74,
+      "evaluator": "MH_burn100",
+      "IS_ESS_median": null,
+      "training_ESS_median": 1254,
+      "confidence": "UNCERTAIN - MH accept rate 0.748 may indicate slow mixing"
+    },
+    {
+      "group": "N2_sep4_old_baseline",
+      "label": "N=2 old ctnn s402 (sep=4.0)",
+      "N": 2,
+      "sep": 4.0,
+      "arch": "ctnn",
+      "loss": "reinforce_hybrid",
+      "bf_hidden": 32,
+      "epochs": 20000,
+      "seed": 402,
+      "result_dir": "20260331_171904_baseline_n2_sep4_old_s402",
+      "E_mean": 2.281602,
+      "virial_pct": 19.41,
+      "evaluator": "MH_burn100",
+      "IS_ESS_median": null,
+      "training_ESS_median": null,
+      "confidence": "UNCERTAIN - MH accept rate 0.748 may indicate slow mixing"
+    },
+    {
+      "group": "N2_sep4_improved",
+      "label": "N=2 improved ctnn s301 (sep=4.0)",
+      "N": 2,
+      "sep": 4.0,
+      "arch": "ctnn",
+      "loss": "fd_colloc",
+      "bf_hidden": 64,
+      "epochs": 30000,
+      "seed": 301,
+      "result_dir": "20260330_204447_impr_n2_ctnn_s301",
+      "E_mean": 2.248471,
+      "virial_pct": 8.85,
+      "evaluator": "MH_burn300",
+      "IS_ESS_median": 11,
+      "training_ESS_median": 13,
+      "confidence": "LOW - training ESS collapsed; MH accept 0.50 vs IS bias disagreement"
+    },
+    {
+      "group": "N2_sep4_improved",
+      "label": "N=2 improved ctnn s302 (sep=4.0)",
+      "N": 2,
+      "sep": 4.0,
+      "arch": "ctnn",
+      "loss": "fd_colloc",
+      "bf_hidden": 64,
+      "epochs": 30000,
+      "seed": 302,
+      "result_dir": "20260330_204732_impr_n2_ctnn_s302",
+      "E_mean": 2.24849,
+      "virial_pct": 8.73,
+      "evaluator": "MH_burn300",
+      "IS_ESS_median": 11,
+      "training_ESS_median": null,
+      "confidence": "LOW"
+    },
+    {
+      "group": "N2_sep4_improved",
+      "label": "N=2 improved unified s303 (sep=4.0)",
+      "N": 2,
+      "sep": 4.0,
+      "arch": "unified",
+      "loss": "fd_colloc",
+      "bf_hidden": 64,
+      "epochs": 30000,
+      "seed": 303,
+      "result_dir": "20260330_212815_impr_n2_unified_s303",
+      "E_mean": 2.248495,
+      "virial_pct": 8.92,
+      "evaluator": "MH_burn300",
+      "IS_ESS_median": 11,
+      "training_ESS_median": null,
+      "confidence": "LOW"
+    },
+    {
+      "group": "N2_sep4_improved",
+      "label": "N=2 improved unified s304 (sep=4.0)",
+      "N": 2,
+      "sep": 4.0,
+      "arch": "unified",
+      "loss": "fd_colloc",
+      "bf_hidden": 64,
+      "epochs": 30000,
+      "seed": 304,
+      "result_dir": "20260330_213142_impr_n2_unified_s304",
+      "E_mean": 2.248505,
+      "virial_pct": 8.76,
+      "evaluator": "MH_burn300",
+      "IS_ESS_median": 11,
+      "training_ESS_median": null,
+      "confidence": "LOW"
+    },
+    {
+      "group": "N2_sep6_reference",
+      "label": "N=2 old ctnn g6 (sep=6.0)",
+      "N": 2,
+      "sep": 6.0,
+      "arch": "ctnn",
+      "loss": "reinforce_hybrid",
+      "bf_hidden": 32,
+      "epochs": 20000,
+      "seed": 207,
+      "result_dir": "20260330_132836_g6_n2_double_1_1_ctnn_s207",
+      "E_mean": 2.181352,
+      "virial_pct": 12.17,
+      "evaluator": "IS",
+      "IS_ESS_median": 6295,
+      "training_ESS_median": null,
+      "confidence": "HIGH - different physical system from sep=4.0 runs"
+    },
+    {
+      "group": "N2_sep6_reference",
+      "label": "N=2 old unified g7 (sep=6.0)",
+      "N": 2,
+      "sep": 6.0,
+      "arch": "unified",
+      "loss": "reinforce_hybrid",
+      "bf_hidden": 32,
+      "epochs": 20000,
+      "seed": 210,
+      "result_dir": "20260330_133928_g7_n2_double_1_1_unified_s210",
+      "E_mean": 2.178621,
+      "virial_pct": 10.39,
+      "evaluator": "IS",
+      "IS_ESS_median": 2596,
+      "training_ESS_median": null,
+      "confidence": "HIGH - different physical system from sep=4.0 runs"
+    }
+  ],
+  "verdicts": {
+    "N4_comparison": {
+      "old_virial_pct_range": [
+        3.46,
+        4.05
+      ],
+      "improved_virial_pct_range": [
+        13.0,
+        13.1
+      ],
+      "energy_old_range": [
+        7.046,
+        7.049
+      ],
+      "energy_improved_range": [
+        6.995,
+        6.996
+      ],
+      "confidence": "MEDIUM - IS reliable for old, MH for improved",
+      "conclusion": "Improved training produces LOWER energy (better variational bound by ~0.75%) but WORSE virial (~13% vs ~3.5-4%). N=4 training-ESS collapsed from 856 to ~22 with improved setup."
+    },
+    "N2_comparison": {
+      "old_virial_pct_range": [
+        18.7,
+        19.4
+      ],
+      "improved_virial_pct_range": [
+        8.7,
+        8.9
+      ],
+      "energy_old_range": [
+        2.28,
+        2.282
+      ],
+      "energy_improved_range": [
+        2.248,
+        2.249
+      ],
+      "confidence": "LOW - MH calibration uncertain for both; training-ESS collapsed for improved",
+      "conclusion": "Improved training produces LOWER energy (better by ~1.4%) and apparently better virial (~8.8% vs ~18-19%), but these numbers are unreliable due to training-ESS collapse during improved training."
+    },
+    "root_cause_of_unreliability": "The fd_colloc loss combined with bf_hidden=64 causes training-time ESS collapse: improved N=2 trained on ESS~13/step, improved N=4 on ESS~22/step (vs 1254 and 856 for old setup). This means training gradients were computed from near-degenerate samples, making the resulting wavefunctions unreliable regardless of final-energy values.",
+    "overall_verdict": "The improved training setup achieves lower variational energies (~0.75-1.4% improvement) but causes training-time ESS collapse that makes the wavefunction quality uncertain. The virial comparison cannot be made reliably. The primary bug is in the fd_colloc + large-backflow sampling regime: the proposal is not adapted to the wavefunction during training.",
+    "recommended_next_step": "Fix the training-time sampling for fd_colloc: either add sigma_fs adaptation to track the wavefunction's learned geometry, or switch proposal to a warmup schedule that widens as the backflow learns. Until training-ESS is stable (>500 throughout training), the improved models cannot be trusted."
+  }
+}

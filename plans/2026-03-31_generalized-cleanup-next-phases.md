@@ -1,38 +1,40 @@
 # Plan: Generalized Cleanup and Next-Phase Advancement
 
 Date: 2026-03-31
-Status: in-progress
+Status: draft
 
 ## Objective
 Stabilize and clean the generalized multi-well codepath so the repository has one trustworthy generalized ground-state workflow, then advance to the next physics phases only if cleanup and validation gates pass.
 
 ## Context
-Recent generalized validation changed the interpretation of the project substantially. The virial checker was wrong and is now fixed in `scripts/run_virial_check.py`, so prior 26-71% virial failures were overstated. With the corrected checker and the improved training setup (`fd_colloc`, larger backflow, warmup+cosine LR), N=2 double-dot virial residual improved from about 10-12% to about 2.7-3.6%, while N=4 remained in the roughly 4% band. That means the generalized path is now viable, but not yet cleanly hardened: ESS is still uneven, repo state is cluttered, and there are still overlapping legacy vs generalized workflows.
+**Updated 2026-03-31 after full evidence remediation (see `plans/2026-03-31_fix-evidence-and-fair-comparison.md`).**
 
-The latest `SESSION_LOG.md` still points to quench/FD follow-up as the next session, while the current session established that generalized ground-state validation is now credible enough to justify cleanup before extending scope. `JOURNAL.md` also records that prior provisional conclusions were vulnerable to weak references and fragile runtime paths; this plan is designed to avoid repeating that pattern by tightening the generalized foundation before moving into richer observables or magnetic-field extensions.
+The virial checker sign was indeed fixed in `scripts/run_virial_check.py`; prior 26–71% virial failures were an artifact of the wrong sign convention. However, the earlier claim that "N=2 double-dot virial residual improved from about 10–12% to about 2.7–3.6%" is **not supported by evidence** and has been retracted. The fix-evidence investigation found:
+
+**N=4 (reliable IS comparison, same sep=4.0):**
+- Old training (reinforce_hybrid, bf_hidden=32): virial 3.5–4.0% (IS, ESS~3400, HIGH confidence)
+- Improved training (fd_colloc, bf_hidden=64): virial 13.0–13.1% (MH burn300, LOW confidence)
+- Energy improved ~0.75%, but virial is WORSE with the improved setup
+
+**N=2 (unreliable comparison; cannot determine direction):**
+- Old and improved models trained on different separations — a matching old baseline at sep=4.0 now exists (s401/s402) but MH evaluator is inconsistently calibrated between flat-ψ² old models (accept~0.74) and peaked-ψ² improved models (accept~0.50)
+- MH numbers: old sep=4 virial ~19%, improved virial ~8.8% — direction favors improved, but evaluator bias is unresolved
+
+**Root cause of degraded N=4 virial and unstable N=2 comparison:**
+The fd_colloc + bf_hidden=64 combination causes **training-time ESS collapse**: improved N=2 training ran at ESS_median=13/step, improved N=4 at ESS_median=22/step. Old models trained at ESS 856–1638/step. The improved training gradients were computed from near-degenerate samples at nearly every epoch. The resulting wavefunctions may have converged to a local optimum of a noise-dominated objective.
+
+**Consequence for this plan:** The generalized path is NOT cleanly validated as of this writing. The improved training setup does not reliably improve virial quality, and the training procedure itself has a fundamental sampling flaw. Step 1 of this plan (which asks to "freeze the generalized baseline and evidence") must use the numbers above, not the previously claimed 2.7–3.6%. Steps 3 and 4 of this plan now have a concrete root cause to fix: training-time ESS collapse in the fd_colloc regime.
+
+The `SESSION_LOG.md` still points to quench/FD follow-up as the next session. `JOURNAL.md` records that prior conclusions were vulnerable to weak references. This plan's original intent — to harden the foundation before extending scope — is still correct, but the foundation is weaker than previously believed.
 
 ## Approach
 Use a two-stage plan. Stage A cleans and hardens the generalized ground-state workflow: repository loose-thread audit, validation hardening, sampling-risk assessment, and workflow consolidation. Stage B is conditional: only if Stage A produces a clean, reproducible, and interpretable generalized path do we advance to the next phases. The recommended next phases are not “train more,” but generalized observables and generalized physics support built on the now-validated core. This route is preferred over immediately adding more architectures, because the current evidence says the main unresolved issues are workflow quality, sampling confidence, and codebase coherence rather than a total architecture failure.
 
 ## Foundation checks (must pass before new code)
-- [x] Data pipeline known-input check
-- [x] Split/leakage validity check
-- [x] Baseline existence or baseline-creation step identified
-- [x] Relevant existing implementation read and understood
-
-## Baseline evidence
-
-| Case | Baseline corrected virial | Improved virial | Final energy | Seed spread | Verified | Uncertain |
-|---|---:|---:|---:|---:|---|---|
-| N=2 CTNN/Unified double-dot | 10.4-12.2% | 2.7-3.6% | 2.24830 mean | std about 7.8e-05 | Corrected virial check is consistent across 4 seeds | ESS remains uneven in some runs |
-| N=4 CTNN/Unified double-dot | 3.5-4.0% | 4.0-4.4% | 6.99890 mean | std about 9.5e-06 | Energies are very stable and virial remains in marginal band | Improvement vs baseline is not demonstrated |
-| Non-interacting N=2 known limit | exact 2.0 | 2.00442 | 2.00442 | single run | Known-limit pipeline check passes on current generalized path | Energy variance remains finite because this is not a strict eigenvalue proof |
-
-Verified inputs for the table:
-- improved campaign 6/6 jobs exit code 0 in `results/20260330_193737_generalized_multigpu_campaign/`
-- corrected virial checker in `scripts/run_virial_check.py`
-- targeted tests passed: `PYTHONPATH=src .venv/bin/python -m pytest tests/test_training.py tests/test_wavefunction.py -q` -> `11 passed`
-- known-limit rerun: `results/20260331_083709_validate_nonint_n2_double_1_1/result.json` reports `final_energy=2.00442097014668`
+- [ ] Data pipeline known-input check
+- [ ] Split/leakage validity check
+- [ ] Baseline existence or baseline-creation step identified
+- [ ] Relevant existing implementation read and understood
 
 ## Scope
 **In scope:** generalized ground-state workflow cleanup, validation hardening, ESS/sampling audit, result-artifact policy cleanup, generalized config/workflow consolidation, and planning the next generalized phases behind explicit gates.
@@ -52,26 +54,6 @@ Verified inputs for the table:
 **Acceptance check:** A concrete audit list exists with each loose thread labeled as one of: keep, archive, delete, ignore, consolidate, or defer.
 **Risk:** Cleanup accidentally removes still-needed artifacts or mixes user changes with generated output policy.
 
-Current audit list:
-- `results/` tracked legacy artifacts currently deleted in the worktree: `defer` unless user explicitly wants restoration or permanent removal committed.
-- timestamped generalized run directories under `results/20*`: `ignore` for future runs, `keep` for current evidence-bearing outputs, `archive` only by explicit cleanup pass.
-- `results/validation_20260330/` and `results/20260330_193737_generalized_multigpu_campaign/`: `keep` as current authoritative evidence.
-- `scripts/run_generalized_multigpu_campaign.py`: `keep` as authoritative generalized campaign launcher.
-- `src/run_ground_state.py`: `keep` as authoritative generalized ground-state entry point.
-- `scripts/run_virial_check.py`: `keep` as authoritative generalized physics validation script.
-- `scripts/run_n2_simple_sweep.py`, `scripts/run_n2_simple_sweep_multigpu.sh`, `scripts/run_multiseed_imag_time_campaign.py`, `scripts/run_n12_focus_campaign.py`, `scripts/run_residual_campaign.py`: `defer` for legacy/imag-time classification; do not extend for generalized ground-state.
-- `.gitignore` generated-artifact policy: `consolidate` so future timestamped runs and campaign logs are not mixed into normal source-control work.
-- stale mixed-purpose logs under `results/*.log`: `ignore` for future generation, `defer` current deletion/restoration decisions.
-
-Sampling trustworthiness verdict:
-- Current generalized results are trustworthy enough for workflow advancement, but not yet strong enough to declare sampling “solved.”
-- Evidence from `results/validation_20260331/improved_campaign_convergence.json`:
-	- all six improved runs plateaued
-	- N=2 late energy spread is very tight and virial residuals improved to about 3%
-	- energy variance improved strongly in all runs
-	- ESS drops below half-median are frequent across runs, so uncertainty is now concentrated in sampling robustness rather than optimizer instability
-- Practical interpretation: use current generalized workflow for next-phase observables, but do not claim sampling robustness is complete and do not treat N=4 as fully saturated.
-
 ### Step 3 — Harden correctness checks around the generalized path
 **What:** Add or tighten targeted checks for the exact pieces that recently caused false conclusions: virial sign correctness, scheduler behavior, and known-limit behavior. At minimum, define tests or scripted checks for non-interacting energy, virial theorem sign convention, and LR schedule endpoints.
 **Files:** `scripts/run_virial_check.py`, `src/training/vmc_colloc.py`, `tests/`, `configs/generalized/validate_noninteracting_n2.yaml`, `configs/generalized/validate_noninteracting_n4.yaml`
@@ -90,24 +72,11 @@ Sampling trustworthiness verdict:
 **Acceptance check:** There is a clear map of “use this path for generalized ground-state training” with at least one authoritative launcher, one authoritative validation path, and identified legacy scripts to stop extending.
 **Risk:** Future work continues to fork across overlapping entry points and duplicated logic.
 
-Authoritative workflow map:
-- authoritative ground-state entry point: `src/run_ground_state.py`
-- authoritative multi-GPU launcher: `scripts/run_generalized_multigpu_campaign.py`
-- authoritative physics validation: `scripts/run_virial_check.py`
-- authoritative training core: `src/training/vmc_colloc.py`
-- authoritative wavefunction assembly: `src/wavefunction.py`
-- legacy / do-not-extend for generalized ground-state: `scripts/run_n2_simple_sweep.py`, `scripts/run_n2_simple_sweep_multigpu.sh`, `scripts/run_multiseed_imag_time_campaign.py`, `scripts/run_n12_focus_campaign.py`, `scripts/run_residual_campaign.py`
-
 ### Step 6 — Clean result-artifact and dirty-worktree policy
 **What:** Resolve generated-output sprawl and git hygiene without losing real artifacts. Decide which results belong in version control, which should be ignored, and how future campaign outputs are stored so implementation can commit code changes without colliding with large result deletions.
 **Files:** `.gitignore`, `results/`, campaign output directories, any cleanup scripts already present
 **Acceptance check:** `git status` can cleanly distinguish source/config changes from generated artifacts after the cleanup policy is applied.
 **Risk:** A messy worktree keeps blocking atomic commits and makes future reviews harder to trust.
-
-Current status:
-- future timestamped generalized outputs are now ignored via `.gitignore`
-- remaining `git status` noise is dominated by pre-existing tracked result deletions and unrelated user/worktree changes
-- this is a real blocker to fully satisfying Step 6 without explicit user approval, because resolving it would require restoring or permanently deleting tracked result artifacts outside the safe scope of this task
 
 ### Step 7 — Define the gated next phases for the generalized codebase
 **What:** Decide what “next phase” should mean now that generalized ground-state is credible. Recommended ordering:
@@ -140,8 +109,13 @@ Include explicit gate conditions for moving from one phase to the next.
 - A follow-on plan exists for the first next phase, with explicit gate conditions for advancing further.
 
 ## Current State
-**Active step:** 8 / Produce a follow-on implementation-ready plan for the selected next phase
-**Last evidence:** Hardening checks passed (`20 passed` in full test suite); known-limit rerun reports `final_energy=2.00442097014668`; convergence audit saved to `results/validation_20260331/improved_campaign_convergence.json`; `.gitignore` now ignores future timestamped run artifacts.
-**Current risk:** The generalized workflow is now clean enough to proceed, but full dirty-worktree cleanup is blocked by pre-existing tracked result deletions outside safe autonomous scope.
-**Next action:** Write the successor plan for the first approved next phase: generalized observables.
-**Blockers:** Full Step 6 completion requires explicit user direction on tracked result deletions already present in the worktree.
+**Active step:** 2 / Audit loose threads in the repo
+**Last evidence:** The first hardening pass is complete. The virial sign convention now lives in a reusable helper, the generalized LR schedule now applies at the start of each epoch rather than after the optimizer step, and `pytest tests/test_training.py -q` passes with the new regression checks.
+**Current risk:** Repository churn is dominated by generated artifacts rather than source instability. Current `git status` shows hundreds of tracked deletions under `results/` and a smaller active generalized source/config tree, so cleanup is now mainly a policy and classification problem.
+**Audit snapshot:**
+- `results/`: dominant churn source, currently about 236 tracked deletions and 65 untracked additions. Candidate disposition is ignore/archive policy rather than source-by-source review.
+- generalized source/config additions under `src/`, `scripts/`, and `configs/generalized/`: candidate keep/consolidate set, not cleanup noise.
+- legacy validation removal (`src/observables/validation.py`, `tests/test_validation.py`): currently appears to be an unreferenced consolidation, but should still be reviewed before final cleanup.
+- stale session guidance (`SESSION_LOG.md`): still points to quench/FD follow-up and now lags the generalized-ground-state evidence.
+**Next action:** Finish the loose-thread classification list, then decide whether `.gitignore` policy changes should be applied now or staged as a separate cleanup commit.
+**Blockers:** None.
