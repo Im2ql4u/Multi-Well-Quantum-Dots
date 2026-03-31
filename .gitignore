@@ -33,3 +33,9 @@ build/
 results/imag_time_pinn/pinn_sweep_*.png
 results/imag_time_runs/*_tiny/
 results/imag_time_runs/strategy_search_*/search.log
+results/*_tmux.log
+results/improved_campaign_*.log
+results/[0-9]*
+
+# ML-Agents installer backups
+.agentic-backup/

@@ -1,0 +1,83 @@
+base_config: campaign_base_improved.yaml
+
+# Improved campaign: fd_colloc loss (variance minimisation) + larger backflow (bf_hidden=64)
+# + cosine LR schedule with warmup (500ep warmup, cosine to lr/100).
+# 30k epochs (vs 20k baseline). Two seeds per arch to check stability.
+#
+# Target: virial violation < 6% (vs 10-12% with reinforce_hybrid baseline).
+# GPUs 2 and 4 are idle.
+
+jobs:
+  # ----- N=2 double-dot (the key problematic case) -----
+  - name: impr_n2_ctnn_s301
+    seed: 301
+    overrides:
+      system:
+        type: double_dot
+        n_left: 1
+        n_right: 1
+        separation: 4.0
+        omega: 1.0
+      architecture:
+        arch_type: ctnn
+
+  - name: impr_n2_ctnn_s302
+    seed: 302
+    overrides:
+      system:
+        type: double_dot
+        n_left: 1
+        n_right: 1
+        separation: 4.0
+        omega: 1.0
+      architecture:
+        arch_type: ctnn
+
+  - name: impr_n2_unified_s303
+    seed: 303
+    overrides:
+      system:
+        type: double_dot
+        n_left: 1
+        n_right: 1
+        separation: 4.0
+        omega: 1.0
+      architecture:
+        arch_type: unified
+
+  - name: impr_n2_unified_s304
+    seed: 304
+    overrides:
+      system:
+        type: double_dot
+        n_left: 1
+        n_right: 1
+        separation: 4.0
+        omega: 1.0
+      architecture:
+        arch_type: unified
+
+  # ----- N=4 double-dot (currently 3.5-4% — verify improved run stays there) -----
+  - name: impr_n4_ctnn_s305
+    seed: 305
+    overrides:
+      system:
+        type: double_dot
+        n_left: 2
+        n_right: 2
+        separation: 4.0
+        omega: 1.0
+      architecture:
+        arch_type: ctnn
+
+  - name: impr_n4_unified_s306
+    seed: 306
+    overrides:
+      system:
+        type: double_dot
+        n_left: 2
+        n_right: 2
+        separation: 4.0
+        omega: 1.0
+      architecture:
+        arch_type: unified
