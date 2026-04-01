@@ -318,7 +318,7 @@ for row in t: print(f\"{row['name']}: virial={row['virial_pct']:.1f}%, E={row['e
 ## Current State
 **Active phase:** 2 — Non-Interacting Validation on GPU
 **Active step:** 2.1 — Full Phase 1 non-interacting baselines (IS, reinforce_hybrid)
-**Last evidence:** `.venv/bin/python -c "import torch; assert torch.cuda.is_available(); print(f'GPUs: {torch.cuda.device_count()}')" && nvidia-smi --query-gpu=index,memory.used,memory.total --format=csv,noheader && which tmux` -> `GPUs: 8`, GPUs 0/1/5/6 have ~4.2-4.4 GiB used and `tmux` is available at `/usr/bin/tmux`
-**Current risk:** The environment is ready, but the MH training path still has no full 10k-epoch GPU evidence; all confidence remains from smoke tests and unit tests.
-**Next action:** Launch `scripts/run_noninteracting_validation.py --all-phase1 --epochs 10000` on a less-loaded GPU to establish the exact-energy IS baseline before the MH runs
-**Blockers:** None
+**Last evidence:** `/usr/bin/time -f 'SANITY_ELAPSED=%E' env PYTHONPATH=src .venv/bin/python scripts/run_noninteracting_validation.py --all-phase1 --epochs 5 --device cuda:1 --output-dir results/validation_20260401_p1_is_sanity` -> completed in `SANITY_ELAPSED=0:12.44`; 1.1_n2 stayed finite with ESS about 824→852 and energy about 2.16→2.13; 1.1_n4 stayed finite with energy about 6.17→6.30; 1.2_n2 stayed finite with energy about 2.05→2.06; 1.2_n4 stayed finite but sat near energy about 4.26→4.24 with ESS collapsing as low as 2.4 before recovering to about 230.
+**Current risk:** The plan's acceptance target for non-interacting N=4 double-well appears to be wrong. The current plan expects about 6.0, but the system definition `double_dot(N_L=2, N_R=2, sep=4.0, coulomb=false)` physically suggests two doubly occupied ground orbitals (2 per well), i.e. total energy about 4.0, not 6.0. If that is true, the plan would falsely classify a correct run as failure.
+**Next action:** Resolve the N=4 double-well analytical target and update the Phase 2 acceptance criterion before launching the full 10k-epoch baseline run.
+**Blockers:** Phase 2.1 acceptance is ambiguous because the exact target for 1.2_n4 in the confirmed plan is likely incorrect.
