@@ -317,8 +317,8 @@ for row in t: print(f\"{row['name']}: virial={row['virial_pct']:.1f}%, E={row['e
 
 ## Current State
 **Active phase:** 1 — Housekeeping
-**Active step:** 1.1 — Commit code changes
-**Last evidence:** none yet
-**Current risk:** The MH sampler has never been run for a full training (10k+ epochs on GPU). All current confidence is from 20-epoch CPU smoke tests.
-**Next action:** Stage and commit the 11 code/config/doc changes separately from result deletions
+**Active step:** 1.2 — Update SESSION_LOG.md
+**Last evidence:** `git add ... && git commit -m "fix(generalized): checkpoint source changes before mcmc validation" && git --no-pager log --oneline -1` -> `6203fd8 (HEAD -> main) fix(generalized): checkpoint source changes before mcmc validation`
+**Current risk:** SESSION_LOG still points to quench/FD follow-up, so a fresh session would start from the wrong branch.
+**Next action:** Rewrite SESSION_LOG to point at this confirmed MCMC validation plan and Phase 2 as the next execution target
 **Blockers:** None
