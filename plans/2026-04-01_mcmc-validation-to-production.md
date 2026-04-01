@@ -316,9 +316,9 @@ for row in t: print(f\"{row['name']}: virial={row['virial_pct']:.1f}%, E={row['e
 - Git tag marking the validated state
 
 ## Current State
-**Active phase:** 1 — Housekeeping
-**Active step:** 1.2 — Update SESSION_LOG.md
-**Last evidence:** `git add ... && git commit -m "fix(generalized): checkpoint source changes before mcmc validation" && git --no-pager log --oneline -1` -> `6203fd8 (HEAD -> main) fix(generalized): checkpoint source changes before mcmc validation`
-**Current risk:** SESSION_LOG still points to quench/FD follow-up, so a fresh session would start from the wrong branch.
-**Next action:** Rewrite SESSION_LOG to point at this confirmed MCMC validation plan and Phase 2 as the next execution target
+**Active phase:** 2 — Non-Interacting Validation on GPU
+**Active step:** 2.1 — Full Phase 1 non-interacting baselines (IS, reinforce_hybrid)
+**Last evidence:** `.venv/bin/python -c "import torch; assert torch.cuda.is_available(); print(f'GPUs: {torch.cuda.device_count()}')" && nvidia-smi --query-gpu=index,memory.used,memory.total --format=csv,noheader && which tmux` -> `GPUs: 8`, GPUs 0/1/5/6 have ~4.2-4.4 GiB used and `tmux` is available at `/usr/bin/tmux`
+**Current risk:** The environment is ready, but the MH training path still has no full 10k-epoch GPU evidence; all confidence remains from smoke tests and unit tests.
+**Next action:** Launch `scripts/run_noninteracting_validation.py --all-phase1 --epochs 10000` on a less-loaded GPU to establish the exact-energy IS baseline before the MH runs
 **Blockers:** None
