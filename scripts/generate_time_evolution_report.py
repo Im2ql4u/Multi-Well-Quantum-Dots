@@ -8,7 +8,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -39,7 +39,41 @@ def latest_strategy_dir(root: Path) -> Path:
     return dirs[0]
 
 
-def ground_truth_energy(coulomb: bool, distance: float) -> tuple[float, str]:
+def _gt_key(distance: float, coulomb: bool) -> Tuple[float, bool]:
+    return (round(float(distance), 8), bool(coulomb))
+
+
+def load_ed_ground_truth(path: Path) -> Dict[Tuple[float, bool], dict]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    out: Dict[Tuple[float, bool], dict] = {}
+    if "results" in data:
+        for row in data.get("results", []):
+            k = _gt_key(row.get("distance", 0.0), row.get("coulomb", False))
+            out[k] = row
+    elif "summary" in data:
+        for row in data.get("summary", []):
+            k = _gt_key(row.get("distance", 0.0), row.get("coulomb", False))
+            out[k] = row
+    return out
+
+
+def ground_truth_energy(
+    coulomb: bool,
+    distance: float,
+    ed_gt: Dict[Tuple[float, bool], dict] | None = None,
+) -> tuple[float, str]:
+    if ed_gt is not None:
+        rec = ed_gt.get(_gt_key(distance, coulomb))
+        if rec is not None:
+            # Converged file may contain converged=true and uncertainty E0_unc.
+            if rec.get("E0") is not None:
+                if rec.get("converged") is False:
+                    return float(rec["E0"]), "FD diagonalization (not fully converged)"
+                unc = rec.get("E0_unc")
+                if unc is not None:
+                    return float(rec["E0"]), f"FD diagonalization E0 (unc ±{float(unc):.3e})"
+                return float(rec["E0"]), "Finite-difference diagonalization E0"
+
     if not coulomb:
         return 2.0, "Exact non-interacting E0 = 2"
     if distance <= 1e-12:
@@ -52,7 +86,7 @@ def read_case_rows(score_file: Path) -> list[dict]:
         return list(csv.DictReader(f, delimiter="\t"))
 
 
-def read_case_jsons(row: dict) -> list[CaseData]:
+def read_case_jsons(row: dict, ed_gt: Dict[Tuple[float, bool], dict] | None = None) -> list[CaseData]:
     run_dir = Path(row["run_dir"])
     combo = row["combo"]
     loss = row["loss"]
@@ -71,7 +105,7 @@ def read_case_jsons(row: dict) -> list[CaseData]:
         energy = np.array([float(t["E"]) for t in traj], dtype=float)
         energy_err = np.array([float(t.get("E_err", 0.0)) for t in traj], dtype=float)
         d = float(result["d"])
-        e_gt, gt_label = ground_truth_energy(coulomb=coulomb, distance=d)
+        e_gt, gt_label = ground_truth_energy(coulomb=coulomb, distance=d, ed_gt=ed_gt)
 
         cases.append(
             CaseData(
@@ -234,7 +268,14 @@ def render_summary_plot(rows: list[dict], out_dir: Path) -> str:
     return path.name
 
 
-def write_html(search_dir: Path, rows: list[dict], summary_plot: str, out_html: Path) -> None:
+def write_html(
+    search_dir: Path,
+    rows: list[dict],
+    summary_plot: str,
+    out_html: Path,
+    gt_mode: str,
+    gt_source: str,
+) -> None:
     generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def fmt_decay(v: float | None) -> str:
@@ -259,6 +300,41 @@ def write_html(search_dir: Path, rows: list[dict], summary_plot: str, out_html: 
 
     blocks = []
     for r in rows:
+        # Check for density GIF artifacts
+        density_section = ""
+        density_dir = out_html.parent if out_html else Path(".")
+        onebody_gif = r.get("onebody_gif", "")
+        pair_gif = r.get("pair_gif", "")
+        comparison_png = r.get("comparison_png", "")
+
+        if onebody_gif or pair_gif or comparison_png:
+            parts = []
+            if comparison_png:
+                parts.append(f"""
+    <figure>
+      <img src=\"{comparison_png}\" alt=\"Density comparison {r['slug']}\" />
+      <figcaption>One-body density: perturbed state (tau=0) vs ground state (tau=tau_max).</figcaption>
+    </figure>""")
+            gif_parts = []
+            if onebody_gif:
+                gif_parts.append(f"""
+      <figure>
+        <img src=\"{onebody_gif}\" alt=\"One-body density {r['slug']}\" />
+        <figcaption>One-body density rho_1(x,y) evolving over imaginary time.</figcaption>
+      </figure>""")
+            if pair_gif:
+                gif_parts.append(f"""
+      <figure>
+        <img src=\"{pair_gif}\" alt=\"Pair correlation {r['slug']}\" />
+        <figcaption>Pair correlation g(r_12) evolving over imaginary time.</figcaption>
+      </figure>""")
+            if gif_parts:
+                parts.append(f"""
+    <div class=\"grid\">{''.join(gif_parts)}
+    </div>""")
+            density_section = f"""
+  <h4>Physical Densities</h4>{''.join(parts)}"""
+
         block = f"""
 <section class=\"case\">
   <h3>Case: combo={r['combo']}, d={r['distance']:.1f}, coulomb={'on' if r['coulomb'] else 'off'}</h3>
@@ -276,7 +352,7 @@ def write_html(search_dir: Path, rows: list[dict], summary_plot: str, out_html: 
   <figure>
     <img src=\"{r['animation']}\" alt=\"Animation {r['slug']}\" />
     <figcaption>Animation of E(tau) approaching ground truth over imaginary time.</figcaption>
-  </figure>
+  </figure>{density_section}
 </section>
 """
         blocks.append(block)
@@ -309,8 +385,8 @@ def write_html(search_dir: Path, rows: list[dict], summary_plot: str, out_html: 
 
   <div class=\"panel\">
     <h2>Summary</h2>
-    <p>This report compares measured PINN imaginary-time trajectories against ground-truth references:
-    exact non-interacting $E_0=2$, and separated-dot interacting approximation $E_0\approx2+1/d$.</p>
+    <p>This report compares measured PINN imaginary-time trajectories against ground-truth references.</p>
+    <p><strong>Ground-truth mode:</strong> {gt_mode} ({gt_source})</p>
     <img src=\"{summary_plot}\" alt=\"Summary final error\" />
     <table>
       <thead>
@@ -338,6 +414,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate time-evolution plots/animations and HTML report.")
     parser.add_argument("--search-dir", type=str, default="", help="Path to strategy_search_* directory")
     parser.add_argument("--out-dir", type=str, default="", help="Output directory (default: <search-dir>/time_evolution_report)")
+    parser.add_argument(
+        "--ed-ground-truth",
+        type=str,
+        default="",
+        help="Path to ed_ground_truth.json. If provided, E0 uses diagonalization results.",
+    )
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parent.parent
@@ -352,10 +434,21 @@ def main() -> None:
     out_dir = Path(args.out_dir) if args.out_dir else (search_dir / "time_evolution_report")
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    ed_gt: Dict[Tuple[float, bool], dict] | None = None
+    gt_mode = "asymptotic"
+    gt_source = "non-interacting exact + interacting 2+1/d approximation"
+    if args.ed_ground_truth:
+        ed_path = Path(args.ed_ground_truth)
+        if not ed_path.exists():
+            raise FileNotFoundError(f"Missing ED ground-truth JSON: {ed_path}")
+        ed_gt = load_ed_ground_truth(ed_path)
+        gt_mode = "finite-difference diagonalization"
+        gt_source = str(ed_path)
+
     rows = read_case_rows(score_file)
     all_cases: List[CaseData] = []
     for row in rows:
-        all_cases.extend(read_case_jsons(row))
+        all_cases.extend(read_case_jsons(row, ed_gt=ed_gt))
 
     if not all_cases:
         raise RuntimeError("No case data found from strategy score rows")
@@ -365,7 +458,14 @@ def main() -> None:
 
     summary_plot = render_summary_plot(report_rows, out_dir)
     out_html = out_dir / "time_evolution_report.html"
-    write_html(search_dir=search_dir, rows=report_rows, summary_plot=summary_plot, out_html=out_html)
+    write_html(
+        search_dir=search_dir,
+        rows=report_rows,
+        summary_plot=summary_plot,
+        out_html=out_html,
+        gt_mode=gt_mode,
+        gt_source=gt_source,
+    )
 
     print(f"Report generated: {out_html}")
     print(f"Artifacts directory: {out_dir}")

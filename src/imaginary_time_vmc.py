@@ -1273,6 +1273,22 @@ def run_single(cfg: VMCConfig, tag="") -> dict:
 
     plot_results(traj, fits, cfg, E_ref, RESULTS_DIR, tag)
 
+    # Save checkpoint for post-hoc density analysis
+    from dataclasses import asdict
+
+    ckpt_path = RESULTS_DIR / f"{tag}checkpoint.pt"
+    torch.save(
+        {
+            "wf_state": wf.state_dict(),
+            "config": asdict(cfg),
+            "E_ref": E_ref,
+            "E_vmc": E_vmc,
+            "strategy": "vmc",
+        },
+        ckpt_path,
+    )
+    print(f"  Checkpoint saved: {ckpt_path}")
+
     result = {
         "d": cfg.well_sep,
         "omega": cfg.omega,
@@ -1295,6 +1311,7 @@ def run_single(cfg: VMCConfig, tag="") -> dict:
         "t_eval": t_eval,
         "ic_type": cfg.ic_type,
         "n_params": sum(p.numel() for p in wf.parameters()),
+        "checkpoint": str(ckpt_path),
     }
     return result
 

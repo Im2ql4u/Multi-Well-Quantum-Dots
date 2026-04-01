@@ -10,7 +10,7 @@ import torch
 from config import SystemConfig
 from observables.diagnostics import summarize_training_diagnostics
 from training.collocation import colloc_fd_loss, rayleigh_hybrid_loss, weak_form_local_energy
-from training.sampling import adapt_sigma_fs, importance_resample
+from training.sampling import adapt_sigma_fs, importance_resample, mcmc_resample
 
 
 @dataclass(frozen=True)
@@ -34,6 +34,10 @@ class GroundStateTrainingConfig:
     logw_clip_q: float = 0.0
     langevin_steps: int = 0
     langevin_step_size: float = 0.01
+    sampler: str = "is"
+    mh_steps: int = 10
+    mh_step_scale: float = 0.25
+    mh_decorrelation: int = 1
     grad_clip: float = 1.0
     print_every: int = 10
     seed: int | None = 0
@@ -64,25 +68,31 @@ def _apply_seed(seed: int | None) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def _make_lr_lambda(train_cfg: GroundStateTrainingConfig):
-    warmup_epochs = max(0, train_cfg.lr_warmup_epochs)
-    min_factor = float(train_cfg.lr_min_factor)
-    decay_epochs = max(1, train_cfg.epochs - warmup_epochs)
+def lr_schedule_factor(
+    epoch: int,
+    *,
+    total_epochs: int,
+    warmup_epochs: int,
+    min_factor: float,
+) -> float:
+    if total_epochs <= 0:
+        raise ValueError("total_epochs must be positive.")
+    if warmup_epochs < 0:
+        raise ValueError("warmup_epochs must be non-negative.")
+    if min_factor <= 0.0:
+        raise ValueError("min_factor must be positive.")
 
-    def _lr_lambda(epoch: int) -> float:
-        if warmup_epochs > 0 and epoch < warmup_epochs:
-            return min_factor + (1.0 - min_factor) * (epoch / warmup_epochs)
-        t = epoch - warmup_epochs
-        return min_factor + 0.5 * (1.0 - min_factor) * (1.0 + math.cos(math.pi * t / decay_epochs))
+    warmup = min(warmup_epochs, total_epochs)
+    if warmup > 0 and epoch < warmup:
+        return min_factor + (1.0 - min_factor) * (epoch / warmup)
 
-    return _lr_lambda
+    decay_steps = max(1, total_epochs - warmup)
+    if decay_steps == 1:
+        return min_factor
 
-
-def _build_lr_scheduler(
-    optimizer: torch.optim.Optimizer,
-    train_cfg: GroundStateTrainingConfig,
-) -> torch.optim.lr_scheduler.LambdaLR:
-    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=_make_lr_lambda(train_cfg))
+    t = epoch - warmup
+    progress = t / (decay_steps - 1)
+    return min_factor + 0.5 * (1.0 - min_factor) * (1.0 + math.cos(math.pi * progress))
 
 
 def train_ground_state(
@@ -99,7 +109,6 @@ def train_ground_state(
         torch.cuda.reset_peak_memory_stats(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg.lr)
-    scheduler = _build_lr_scheduler(optimizer, train_cfg)
 
     history: dict[str, list[float]] = {
         "loss": [],
@@ -111,25 +120,60 @@ def train_ground_state(
     def psi_log_fn(x: torch.Tensor) -> torch.Tensor:
         return model(x)
 
+    if train_cfg.sampler not in ("is", "mh"):
+        raise ValueError(f"Unknown sampler '{train_cfg.sampler}', expected 'is' or 'mh'.")
+
+    x_prev: torch.Tensor | None = None
+    mh_scale = float(train_cfg.mh_step_scale)
+
     sigma_fs = adapt_sigma_fs(system.omega, train_cfg.sigma_fs)
     for epoch in range(train_cfg.epochs):
-        x, ess = importance_resample(
-            psi_log_fn,
-            n_keep=train_cfg.n_coll,
-            n_elec=system.n_particles,
-            dim=system.dim,
-            omega=system.omega,
-            device=device,
-            dtype=dtype,
-            n_cand_mult=train_cfg.n_cand_mult,
-            sigma_fs=sigma_fs,
-            min_pair_cutoff=train_cfg.min_pair_cutoff,
-            weight_temp=train_cfg.weight_temp,
-            logw_clip_q=train_cfg.logw_clip_q,
-            langevin_steps=train_cfg.langevin_steps,
-            langevin_step_size=train_cfg.langevin_step_size,
-            system=system,
+        current_lr_factor = lr_schedule_factor(
+            epoch,
+            total_epochs=train_cfg.epochs,
+            warmup_epochs=train_cfg.lr_warmup_epochs,
+            min_factor=float(train_cfg.lr_min_factor),
         )
+        current_lr = train_cfg.lr * current_lr_factor
+        for group in optimizer.param_groups:
+            group["lr"] = current_lr
+
+        if train_cfg.sampler == "is":
+            x, ess = importance_resample(
+                psi_log_fn,
+                n_keep=train_cfg.n_coll,
+                n_elec=system.n_particles,
+                dim=system.dim,
+                omega=system.omega,
+                device=device,
+                dtype=dtype,
+                n_cand_mult=train_cfg.n_cand_mult,
+                sigma_fs=sigma_fs,
+                min_pair_cutoff=train_cfg.min_pair_cutoff,
+                weight_temp=train_cfg.weight_temp,
+                logw_clip_q=train_cfg.logw_clip_q,
+                langevin_steps=train_cfg.langevin_steps,
+                langevin_step_size=train_cfg.langevin_step_size,
+                system=system,
+            )
+        else:
+            x, accept_rate, mh_scale = mcmc_resample(
+                psi_log_fn,
+                x_prev,
+                train_cfg.n_coll,
+                n_elec=system.n_particles,
+                dim=system.dim,
+                omega=system.omega,
+                device=device,
+                dtype=dtype,
+                system=system,
+                sigma_fs=sigma_fs,
+                mh_steps=train_cfg.mh_steps,
+                mh_step_scale=mh_scale,
+                mh_decorrelation=train_cfg.mh_decorrelation,
+            )
+            x_prev = x
+            ess = float(accept_rate)
 
         optimizer.zero_grad(set_to_none=True)
         if train_cfg.loss_type == "weak_form":
@@ -187,7 +231,6 @@ def train_ground_state(
         if train_cfg.grad_clip > 0.0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), train_cfg.grad_clip)
         optimizer.step()
-        scheduler.step()
 
         history["loss"].append(float(loss.item()))
         history["energy"].append(float(energy))
@@ -200,12 +243,13 @@ def train_ground_state(
                 mem_alloc_gb = torch.cuda.memory_allocated(device) / 1e9
                 mem_peak_gb = torch.cuda.max_memory_allocated(device) / 1e9
                 gpu_mem_msg = f" gpu_mem={mem_alloc_gb:.3f}GB peak={mem_peak_gb:.3f}GB"
-            current_lr = optimizer.param_groups[0]["lr"]
             print(
                 f"epoch={epoch:04d} loss={loss.item():.6f} energy={energy:.6f} e_var={energy_var:.6f} ess={ess:.1f} grad_norm={grad_norm:.3e} lr={current_lr:.2e}{gpu_mem_msg}"
             )
 
-    diagnostics = summarize_training_diagnostics(history, n_coll=train_cfg.n_coll)
+    diagnostics = summarize_training_diagnostics(
+        history, n_coll=train_cfg.n_coll, sampler=train_cfg.sampler
+    )
 
     return {
         "history": history,

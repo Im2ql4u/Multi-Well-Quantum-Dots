@@ -63,7 +63,7 @@ _ACTIVATIONS = {
 # Reference DMC energies
 # ---------------------------------------------------------------------
 DMC_ENERGIES: dict[int, dict[float, float]] = {
-    2: {0.001: 1, 0.01: 0.07384, 0.1: 0.44079, 0.28: 1.02164, 0.5: 1.65977, 1.0: 3.00000},
+    2: {0.001: 0.013778, 0.01: 0.07384, 0.1: 0.44079, 0.28: 1.02164, 0.5: 1.65977, 1.0: 3.00000},
     6: {0.001: 1, 0.01: 0.8, 0.1: 3.55385, 0.28: 7.60019, 0.5: 11.78484, 1.0: 20.15932},
     12: {0.001: 1, 0.01: 2.0, 0.1: 12.26984, 0.28: 25.63577, 0.5: 39.15960, 1.0: 65.70010},
     20: {
@@ -126,6 +126,182 @@ class CuspCfg:
 
     n_pairs: int = 2  # how many disjoint near-cusp pairs to force
     eps_max_sigma: float = 0.08  # max pair separation in units of 1/sqrt(omega)
+
+
+@dataclass(frozen=True)
+class WellSpec:
+    """Specification for a single confinement well."""
+
+    center: tuple[float, ...]
+    omega: float
+    n_particles: int
+
+    def __post_init__(self) -> None:
+        if self.omega <= 0.0:
+            raise ValueError(f"WellSpec.omega must be positive, got {self.omega}.")
+        if self.n_particles < 0:
+            raise ValueError(
+                f"WellSpec.n_particles must be non-negative, got {self.n_particles}."
+            )
+        if len(self.center) == 0:
+            raise ValueError("WellSpec.center must contain at least one coordinate.")
+
+
+@dataclass(frozen=True)
+class SystemConfig:
+    """Physics-level system configuration for generalized multi-well runs."""
+
+    wells: tuple[WellSpec, ...]
+    dim: int = 2
+    coulomb: bool = True
+    smooth_T: float = 0.2
+    B_magnitude: float = 0.0
+    B_direction: tuple[float, ...] = (0.0, 0.0, 1.0)
+    g_factor: float = 2.0
+    mu_B: float = 1.0
+    zeeman_electron1_only: bool = False
+
+    def __post_init__(self) -> None:
+        if self.dim <= 0:
+            raise ValueError(f"SystemConfig.dim must be positive, got {self.dim}.")
+        if not self.wells:
+            raise ValueError("SystemConfig requires at least one WellSpec.")
+        if self.smooth_T <= 0.0:
+            raise ValueError(
+                f"SystemConfig.smooth_T must be positive, got {self.smooth_T}."
+            )
+        if len(self.B_direction) != max(3, self.dim):
+            raise ValueError(
+                "SystemConfig.B_direction must have length 3 for magnetic-field orientation."
+            )
+        for well in self.wells:
+            if len(well.center) != self.dim:
+                raise ValueError(
+                    "WellSpec.center dimensionality does not match SystemConfig.dim: "
+                    f"{len(well.center)} != {self.dim}."
+                )
+
+    @property
+    def n_particles(self) -> int:
+        return sum(well.n_particles for well in self.wells)
+
+    @property
+    def n_wells(self) -> int:
+        return len(self.wells)
+
+    @property
+    def omega(self) -> float:
+        omegas = {float(well.omega) for well in self.wells}
+        if len(omegas) != 1:
+            raise ValueError(
+                "SystemConfig.omega is only defined when all wells share one omega."
+            )
+        return omegas.pop()
+
+    @property
+    def magnetic_field_vector(self) -> tuple[float, float, float]:
+        scale = float(self.B_magnitude)
+        bx, by, bz = self.B_direction[:3]
+        return (scale * bx, scale * by, scale * bz)
+
+    @classmethod
+    def single_dot(cls, N: int, omega: float, dim: int = 2) -> "SystemConfig":
+        return cls(
+            wells=(WellSpec(center=tuple(0.0 for _ in range(dim)), omega=omega, n_particles=N),),
+            dim=dim,
+        )
+
+    @classmethod
+    def double_dot(
+        cls,
+        N_L: int,
+        N_R: int,
+        sep: float,
+        omega: float = 1.0,
+        dim: int = 2,
+    ) -> "SystemConfig":
+        left = [0.0 for _ in range(dim)]
+        right = [0.0 for _ in range(dim)]
+        left[0] = -0.5 * float(sep)
+        right[0] = 0.5 * float(sep)
+        return cls(
+            wells=(
+                WellSpec(center=tuple(left), omega=omega, n_particles=N_L),
+                WellSpec(center=tuple(right), omega=omega, n_particles=N_R),
+            ),
+            dim=dim,
+        )
+
+    @classmethod
+    def triple_dot(
+        cls,
+        Ns: list[int] | tuple[int, int, int],
+        spacing: float,
+        omega: float = 1.0,
+        dim: int = 2,
+    ) -> "SystemConfig":
+        if len(Ns) != 3:
+            raise ValueError(f"SystemConfig.triple_dot expects 3 occupancies, got {len(Ns)}.")
+        wells = []
+        for offset, n_particles in zip((-1.0, 0.0, 1.0), Ns):
+            center = [0.0 for _ in range(dim)]
+            center[0] = offset * float(spacing)
+            wells.append(WellSpec(center=tuple(center), omega=omega, n_particles=int(n_particles)))
+        return cls(wells=tuple(wells), dim=dim)
+
+    @classmethod
+    def custom(
+        cls,
+        wells: list[WellSpec] | tuple[WellSpec, ...],
+        dim: int = 2,
+        **kwargs: Any,
+    ) -> "SystemConfig":
+        return cls(wells=tuple(wells), dim=dim, **kwargs)
+
+    @classmethod
+    def from_legacy(cls, legacy_cfg: Any) -> "SystemConfig":
+        dim = int(getattr(legacy_cfg, "dim"))
+        omega = float(getattr(legacy_cfg, "omega"))
+        n_particles = int(getattr(legacy_cfg, "n_particles"))
+        well_sep = float(getattr(legacy_cfg, "well_sep", 0.0))
+        smooth_T = float(getattr(legacy_cfg, "smooth_T", 0.2))
+        coulomb = bool(getattr(legacy_cfg, "coulomb", True))
+        magnetic_B = float(getattr(legacy_cfg, "magnetic_B", 0.0))
+        g_factor = float(getattr(legacy_cfg, "g_factor", 2.0))
+        mu_B = float(getattr(legacy_cfg, "mu_B", 1.0))
+        zeeman_electron1_only = bool(getattr(legacy_cfg, "zeeman_electron1_only", False))
+
+        if well_sep <= 1e-10:
+            wells = (
+                WellSpec(
+                    center=tuple(0.0 for _ in range(dim)),
+                    omega=omega,
+                    n_particles=n_particles,
+                ),
+            )
+        else:
+            left_count = (n_particles + 1) // 2
+            right_count = n_particles - left_count
+            left = [0.0 for _ in range(dim)]
+            right = [0.0 for _ in range(dim)]
+            left[0] = -0.5 * well_sep
+            right[0] = 0.5 * well_sep
+            wells = (
+                WellSpec(center=tuple(left), omega=omega, n_particles=left_count),
+                WellSpec(center=tuple(right), omega=omega, n_particles=right_count),
+            )
+
+        return cls(
+            wells=wells,
+            dim=dim,
+            coulomb=coulomb,
+            smooth_T=smooth_T,
+            B_magnitude=abs(magnetic_B),
+            B_direction=(0.0, 0.0, 1.0 if magnetic_B >= 0.0 else -1.0),
+            g_factor=g_factor,
+            mu_B=mu_B,
+            zeeman_electron1_only=zeeman_electron1_only,
+        )
 
 
 # ===================== existing =====================

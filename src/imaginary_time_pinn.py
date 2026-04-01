@@ -46,7 +46,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-os.environ["CUDA_MANUAL_DEVICE"] = "0"
+os.environ.setdefault("CUDA_MANUAL_DEVICE", "0")
 
 import matplotlib
 
@@ -64,8 +64,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config
 from functions.Slater_Determinant import slater_determinant_closed_shell
 from PINN import PINN, CTNNBackflowNet
+from potential import compute_potential_legacy_compatible
 
-DEVICE = torch.device("cpu")
+_manual = os.environ.get("CUDA_MANUAL_DEVICE")
+if _manual is not None and torch.cuda.is_available():
+    DEVICE = torch.device(f"cuda:{_manual}" if _manual.isdigit() else _manual)
+elif torch.cuda.is_available():
+    DEVICE = torch.device("cuda:0")
+else:
+    DEVICE = torch.device("cpu")
 DTYPE = torch.float64
 torch.set_default_dtype(DTYPE)
 torch.set_num_threads(4)
@@ -86,6 +93,11 @@ class PINNConfig:
     smooth_T: float = 0.2
     E_ref: float = 3.0
     coulomb: bool = True  # set False for non-interacting test
+    magnetic_B_initial: float = 0.0  # magnetic field for VMC ground state prep (usually 0)
+    magnetic_B: float = 0.0  # magnetic field for imaginary-time evolution (sudden quench)
+    g_factor: float = 2.0
+    mu_B: float = 1.0
+    zeeman_electron1_only: bool = False
     tau_max: float = 5.0
     # Phase 1: VMC
     n_epochs_vmc: int = 800
@@ -118,6 +130,7 @@ class PINNConfig:
     use_spectral: bool = True  # use SpectralG (preferred) vs FiLM
     g_modes: int = 3  # number of spectral modes
     no_vmc_train: bool = False  # use untrained Slater-only reference instead of VMC phase
+    seed: int | None = None  # RNG seed for reproducibility; None = non-deterministic
     # PINN training variants
     loss_style: str = "curriculum_mse"  # curriculum_mse, mse, huber, logcosh
     tau_sampling: str = "small_bias"  # small_bias, uniform, two_stage
@@ -129,35 +142,35 @@ class PINNConfig:
 # Potential energy
 # ============================================================
 def compute_potential(
-    x: torch.Tensor, omega: float, well_sep: float, smooth_T: float = 0.2, coulomb: bool = True
+    x: torch.Tensor,
+    omega: float,
+    well_sep: float,
+    smooth_T: float = 0.2,
+    coulomb: bool = True,
+    magnetic_B: float = 0.0,
+    spin: torch.Tensor | None = None,
+    g_factor: float = 2.0,
+    mu_B: float = 1.0,
+    zeeman_electron1_only: bool = False,
 ) -> torch.Tensor:
-    B, N, d = x.shape
-    if well_sep <= 1e-10:
-        V_ext = 0.5 * omega**2 * (x**2).sum(dim=(1, 2))
-    else:
-        R_L = torch.zeros(d, dtype=x.dtype, device=x.device)
-        R_R = torch.zeros(d, dtype=x.dtype, device=x.device)
-        R_L[0] = -well_sep / 2
-        R_R[0] = +well_sep / 2
-        V_L = 0.5 * omega**2 * ((x - R_L) ** 2).sum(dim=-1)
-        V_R = 0.5 * omega**2 * ((x - R_R) ** 2).sum(dim=-1)
-        T = smooth_T
-        V_per_particle = -T * torch.logaddexp(-V_L / T, -V_R / T)
-        V_ext = V_per_particle.sum(dim=1)
-
-    V_coul = torch.zeros(B, device=x.device, dtype=x.dtype)
-    if coulomb:
-        for i in range(N):
-            for j in range(i + 1, N):
-                rij = torch.sqrt(((x[:, i] - x[:, j]) ** 2).sum(dim=-1) + 1e-12)
-                V_coul += 1.0 / rij
-
-    return V_ext + V_coul
+    return compute_potential_legacy_compatible(
+        x,
+        omega=omega,
+        well_sep=well_sep,
+        smooth_T=smooth_T,
+        coulomb=coulomb,
+        magnetic_B=magnetic_B,
+        spin=spin,
+        g_factor=g_factor,
+        mu_B=mu_B,
+        zeeman_electron1_only=zeeman_electron1_only,
+    )
 
 
 # ============================================================
 # MCMC sampling
 # ============================================================
+@torch.no_grad()
 def mcmc_sample(
     log_psi_fn, n_samples, n_particles, dim, omega, well_sep=0.0, n_warmup=300, step_size=0.5
 ):
@@ -368,7 +381,19 @@ def train_vmc(cfg: PINNConfig):
                 )[0]
                 lap += g2[:, i, j]
         T = -0.5 * (lap + (grad**2).sum(dim=(1, 2)))
-        V = compute_potential(x_g, cfg.omega, cfg.well_sep, cfg.smooth_T, cfg.coulomb)
+        spin_batch = wf.spin.expand(B, -1)
+        V = compute_potential(
+            x_g,
+            cfg.omega,
+            cfg.well_sep,
+            cfg.smooth_T,
+            cfg.coulomb,
+            magnetic_B=cfg.magnetic_B_initial,  # Use initial field for VMC prep
+            spin=spin_batch,
+            g_factor=cfg.g_factor,
+            mu_B=cfg.mu_B,
+            zeeman_electron1_only=cfg.zeeman_electron1_only,
+        )
         E_L = T + V
         E_mean = E_L.mean()
         loss = ((E_L - E_mean.detach()) ** 2).mean()
@@ -407,7 +432,19 @@ def train_vmc(cfg: PINNConfig):
             )[0]
             lap += g2[:, i, j]
     T = -0.5 * (lap + (grad**2).sum(dim=(1, 2)))
-    V = compute_potential(x_g, cfg.omega, cfg.well_sep, cfg.smooth_T, cfg.coulomb)
+    spin_batch = wf.spin.expand(B, -1)
+    V = compute_potential(
+        x_g,
+        cfg.omega,
+        cfg.well_sep,
+        cfg.smooth_T,
+        cfg.coulomb,
+        magnetic_B=cfg.magnetic_B_initial,  # Use initial field for VMC evaluation
+        spin=spin_batch,
+        g_factor=cfg.g_factor,
+        mu_B=cfg.mu_B,
+        zeeman_electron1_only=cfg.zeeman_electron1_only,
+    )
     E_L = T + V
     E_final = E_L.detach().mean().item()
     E_err = E_L.detach().std().item() / math.sqrt(2000)
@@ -431,7 +468,19 @@ def estimate_energy(wf: nn.Module, cfg: PINNConfig, n_eval: int = 2000) -> tuple
             )[0]
             lap += g2[:, i, j]
     T = -0.5 * (lap + (grad**2).sum(dim=(1, 2)))
-    V = compute_potential(x_g, cfg.omega, cfg.well_sep, cfg.smooth_T, cfg.coulomb)
+    spin_batch = wf.spin.expand(B, -1)
+    V = compute_potential(
+        x_g,
+        cfg.omega,
+        cfg.well_sep,
+        cfg.smooth_T,
+        cfg.coulomb,
+        magnetic_B=cfg.magnetic_B_initial,
+        spin=spin_batch,
+        g_factor=cfg.g_factor,
+        mu_B=cfg.mu_B,
+        zeeman_electron1_only=cfg.zeeman_electron1_only,
+    )
     E_L = T + V
     E_mean = E_L.detach().mean().item()
     E_err = E_L.detach().std().item() / math.sqrt(n_eval)
@@ -465,12 +514,41 @@ def precompute_ground_state(ground_wf: GroundStateWF, cfg: PINNConfig) -> dict:
             lap += g2[:, i, j]
 
     T = -0.5 * (lap + (grad_lp**2).sum(dim=(1, 2)))
-    V = compute_potential(x_g, cfg.omega, cfg.well_sep, cfg.smooth_T, cfg.coulomb)
+    spin_batch = ground_wf.spin.expand(B, -1)
+    V = compute_potential(
+        x_g,
+        cfg.omega,
+        cfg.well_sep,
+        cfg.smooth_T,
+        cfg.coulomb,
+        magnetic_B=cfg.magnetic_B_initial,  # Use initial field for precomputation
+        spin=spin_batch,
+        g_factor=cfg.g_factor,
+        mu_B=cfg.mu_B,
+        zeeman_electron1_only=cfg.zeeman_electron1_only,
+    )
     E_L0 = (T + V).detach()
+
+    deltaV = torch.zeros_like(E_L0)
+    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
+        V_evol = compute_potential(
+            x_g,
+            cfg.omega,
+            cfg.well_sep,
+            cfg.smooth_T,
+            cfg.coulomb,
+            magnetic_B=cfg.magnetic_B,
+            spin=spin_batch,
+            g_factor=cfg.g_factor,
+            mu_B=cfg.mu_B,
+            zeeman_electron1_only=cfg.zeeman_electron1_only,
+        )
+        deltaV = (V_evol - V).detach()
 
     result = {
         "x": x_g.detach(),  # (n, N, d)
         "E_L0": E_L0,  # (n,)
+        "deltaV": deltaV,  # (n,) quench correction V_evolution - V_initial
         "grad_log_psi0": grad_lp.detach(),  # (n, N, d)
         "acc": acc,
     }
@@ -478,6 +556,10 @@ def precompute_ground_state(ground_wf: GroundStateWF, cfg: PINNConfig) -> dict:
         f"  <E_L^(0)> = {E_L0.mean():.5f} +/- {E_L0.std().item()/math.sqrt(n):.5f}, "
         f"acc = {acc:.2f}"
     )
+    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
+        print(
+            f"  <ΔV_quench> = {deltaV.mean():.5f} +/- {deltaV.std().item()/math.sqrt(n):.5f}"
+        )
     return result
 
 
@@ -546,22 +628,41 @@ class TauConditionedG(nn.Module):
 # Spectral decomposition network  (physics-informed, preferred)
 # ============================================================
 class SpectralG(nn.Module):
-    """g(x, τ) = Σ_{k=1}^K f_k(x) · exp(-α_k τ)
+    """g(x, τ) = f_0(x) + Σ_{k=1}^K f_k(x) · exp(-α_k τ)
 
     Physics-informed spectral decomposition:
-      - f_k(x): small spatial MLPs (learned mode functions)
+      - f_0(x): constant mode (permanent ground-state correction)
+      - f_k(x): decaying spatial MLPs (transient excited-state modes)
       - α_k: learnable decay rates → gap_k = α_k directly!
       - τ-derivative is analytical (no autograd for τ)
       - Ordered: α_1 < α_2 < ... by construction
+
+    At τ→∞:  g → f_0(x), the steady-state correction to ψ₀
+    At τ=0:   g = f_0(x) + Σ f_k(x), enforced ≈ 0 by IC loss
     """
 
-    def __init__(self, n_particles, dim, n_modes=3, hidden=32, n_layers=2, **kw):
+    def __init__(self, n_particles, dim, n_modes=3, hidden=32, n_layers=2,
+                 const_hidden=None, const_layers=None, **kw):
         super().__init__()
         self.n_modes = n_modes
         self.n_particles = n_particles
         self.dim = dim
         input_dim = n_particles * dim
 
+        # Constant mode f_0(x) — the permanent ground-state correction
+        # Intentionally small: the correction is smooth and we need to
+        # average over E_L noise, not memorise it.
+        ch = const_hidden or max(hidden // 3, 16)
+        cl = const_layers if const_layers is not None else 1
+        clayers = [nn.Linear(input_dim, ch), nn.GELU()]
+        for _ in range(cl - 1):
+            clayers.extend([nn.Linear(ch, ch), nn.GELU()])
+        clayers.append(nn.Linear(ch, 1))
+        nn.init.zeros_(clayers[-1].weight)
+        nn.init.zeros_(clayers[-1].bias)
+        self.const_net = nn.Sequential(*clayers)
+
+        # Decaying modes f_k(x) · exp(-α_k τ)
         self.mode_nets = nn.ModuleList()
         for k in range(n_modes):
             layers_list = [nn.Linear(input_dim, hidden), nn.GELU()]
@@ -591,18 +692,29 @@ class SpectralG(nn.Module):
         B = x.shape[0]
         x_flat = x.reshape(B, -1)
         alphas = self._get_alphas()
-        g = torch.zeros(B, device=x.device, dtype=x.dtype)
+        g = self.const_net(x_flat).squeeze(-1)  # constant mode f_0(x)
         for k in range(self.n_modes):
             fk = self.mode_nets[k](x_flat).squeeze(-1)
             g = g + fk * torch.exp(-alphas[k] * tau)
         return g
 
     def forward_decomposed(self, x, tau):
-        """Return per-mode contributions: list of (fk, exp(-α_k τ), α_k)."""
+        """Return per-mode contributions.
+
+        Returns list of (fk, decay, alpha_k) where:
+          - mode 0: (f_0, 1.0, 0.0) — constant mode
+          - mode k>0: (f_k, exp(-α_k τ), α_k) — decaying modes
+        """
         B = x.shape[0]
         x_flat = x.reshape(B, -1)
         alphas = self._get_alphas()
         modes = []
+        # Constant mode: decay=1, alpha=0 (∂/∂τ contribution = 0)
+        f0 = self.const_net(x_flat).squeeze(-1)
+        ones = torch.ones(B, device=x.device, dtype=x.dtype)
+        zero_alpha = torch.tensor(0.0, device=x.device, dtype=x.dtype)
+        modes.append((f0, ones, zero_alpha))
+        # Decaying modes
         for k in range(self.n_modes):
             fk = self.mode_nets[k](x_flat).squeeze(-1)
             decay = torch.exp(-alphas[k] * tau)
@@ -612,22 +724,34 @@ class SpectralG(nn.Module):
     def get_gaps(self):
         return self._get_alphas().detach()
 
+    def get_const_mode_rms(self, x):
+        """RMS of f_0(x) on given samples."""
+        B = x.shape[0]
+        x_flat = x.reshape(B, -1)
+        with torch.no_grad():
+            f0 = self.const_net(x_flat).squeeze(-1)
+        return f0.pow(2).mean().sqrt().item()
+
     def count_params(self):
         n = sum(p.numel() for p in self.parameters())
-        print(f"  g_θ Spectral ({self.n_modes} modes): {n:,} parameters")
+        n_const = sum(p.numel() for p in self.const_net.parameters())
+        print(f"  g_θ Spectral ({self.n_modes} modes + constant): "
+              f"{n:,} parameters ({n_const:,} in f_0)")
         return n
 
 
 # ============================================================
 # Efficient PDE residual for SpectralG
 # ============================================================
-def compute_pde_residual_spectral(g_net: SpectralG, x, tau, E_L0, grad_log_psi0, E_ref):
+def compute_pde_residual_spectral(
+    g_net: SpectralG, x, tau, E_L0, grad_log_psi0, E_ref, deltaV=None
+):
     """PDE residual for spectral form. τ-derivative is analytical.
 
-    For g = Σ_k f_k · exp(-α_k τ):
-      ∂_τ g = -Σ_k α_k f_k exp(-α_k τ)
-      ∇g = Σ_k ∇f_k exp(-α_k τ)
-      ∇²g = Σ_k ∇²f_k exp(-α_k τ)
+    For g = f_0(x) + Σ_k f_k · exp(-α_k τ):
+      ∂_τ g = -Σ_k α_k f_k exp(-α_k τ)  (constant mode contributes 0)
+      ∇g = ∇f_0 + Σ_k ∇f_k exp(-α_k τ)
+      ∇²g = ∇²f_0 + Σ_k ∇²f_k exp(-α_k τ)
     """
     B, N, d = x.shape
     x = x.detach().requires_grad_(True)
@@ -666,8 +790,11 @@ def compute_pde_residual_spectral(g_net: SpectralG, x, tau, E_L0, grad_log_psi0,
     # |∇g|²
     gradg_sq = (grad_g**2).sum(dim=(1, 2))
 
-    # E_L = E_L^(0) - ½∇²g - ∇logψ_0·∇g - ½|∇g|²
-    E_L = E_L0 - 0.5 * lap_g - cross - 0.5 * gradg_sq
+    if deltaV is None:
+        deltaV = torch.zeros_like(E_L0)
+
+    # E_L (post-quench H) = E_L^(0) + ΔV - ½∇²g - ∇logψ_0·∇g - ½|∇g|²
+    E_L = E_L0 + deltaV - 0.5 * lap_g - cross - 0.5 * gradg_sq
 
     # Residual: ∂_τ g + (E_L - E_ref) = 0
     residual = dg_dtau + (E_L - E_ref)
@@ -718,7 +845,7 @@ def make_perturbation_fn(cfg: PINNConfig):
 # ============================================================
 # PDE residual computation
 # ============================================================
-def compute_pde_residual(g_net, x, tau, E_L0, grad_log_psi0, E_ref):
+def compute_pde_residual(g_net, x, tau, E_L0, grad_log_psi0, E_ref, deltaV=None):
     """Compute PDE residual, g values, and E_L for a batch.
 
     PDE: ∂_τ g + (E_L - E_0) = 0
@@ -754,8 +881,11 @@ def compute_pde_residual(g_net, x, tau, E_L0, grad_log_psi0, E_ref):
     # |∇g|²
     gradg_sq = (dg_dx**2).sum(dim=(1, 2))
 
-    # E_L(x, τ) = E_L^(0) - ½∇²g - ∇logψ_0·∇g - ½|∇g|²
-    E_L = E_L0 - 0.5 * lap_g - cross - 0.5 * gradg_sq
+    if deltaV is None:
+        deltaV = torch.zeros_like(E_L0)
+
+    # E_L(x, τ; H_quench) = E_L^(0) + ΔV - ½∇²g - ∇logψ_0·∇g - ½|∇g|²
+    E_L = E_L0 + deltaV - 0.5 * lap_g - cross - 0.5 * gradg_sq
 
     # Residual: ∂_τ g + (E_L - E_ref) = 0
     residual = dg_dtau + (E_L - E_ref)
@@ -809,6 +939,7 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
 
     x_pool = precomputed["x"]
     E_L0_pool = precomputed["E_L0"]
+    deltaV_pool = precomputed.get("deltaV", torch.zeros_like(E_L0_pool))
     grad_pool = precomputed["grad_log_psi0"]
     pool_size = x_pool.shape[0]
 
@@ -832,6 +963,7 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
             idx = torch.multinomial(x_sample_probs, cfg.batch_pde, replacement=True)
         x_batch = x_pool[idx]
         E_L0_batch = E_L0_pool[idx]
+        deltaV_batch = deltaV_pool[idx]
         grad_batch = grad_pool[idx]
 
         # --- Random τ sampling ---
@@ -856,7 +988,9 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
             raise ValueError(f"Unknown tau_sampling: {cfg.tau_sampling}")
 
         # --- PDE loss ---
-        residual, g_pde, E_L = pde_fn(g_net, x_batch, tau_pde, E_L0_batch, grad_batch, E_ref)
+        residual, g_pde, E_L = pde_fn(
+            g_net, x_batch, tau_pde, E_L0_batch, grad_batch, E_ref, deltaV_batch
+        )
         if cfg.loss_style in {"curriculum_mse", "mse"}:
             L_pde = (residual**2).mean()
         elif cfg.loss_style == "huber":
@@ -933,6 +1067,9 @@ def evaluate_trajectory(g_net, precomputed: dict, cfg: PINNConfig, E_ref: float)
     with torch.no_grad():
         x_eval = precomputed["x"][: cfg.n_samples_eval]
         E_L0_eval = precomputed["E_L0"][: cfg.n_samples_eval]
+        deltaV_eval = precomputed.get("deltaV", torch.zeros_like(precomputed["E_L0"]))[
+            : cfg.n_samples_eval
+        ]
         grad_eval = precomputed["grad_log_psi0"][: cfg.n_samples_eval]
 
     n = x_eval.shape[0]
@@ -957,7 +1094,7 @@ def evaluate_trajectory(g_net, precomputed: dict, cfg: PINNConfig, E_ref: float)
 
         cross = (grad_eval * dg_dx.detach()).sum(dim=(1, 2))
         gradg_sq = (dg_dx.detach() ** 2).sum(dim=(1, 2))
-        E_L = E_L0_eval - 0.5 * lap_g.detach() - cross - 0.5 * gradg_sq
+        E_L = E_L0_eval + deltaV_eval - 0.5 * lap_g.detach() - cross - 0.5 * gradg_sq
 
         # Importance weights: |ψ(x,τ)|²/|ψ_0(x)|² = exp(2g)
         g_vals = g.detach()
@@ -967,8 +1104,8 @@ def evaluate_trajectory(g_net, precomputed: dict, cfg: PINNConfig, E_ref: float)
         w = w / w.sum()
         n_eff = 1.0 / (w**2).sum().item()
 
-        E_L_np = E_L.detach().numpy()
-        w_np = w.numpy()
+        E_L_np = E_L.detach().cpu().numpy()
+        w_np = w.detach().cpu().numpy()
         E_mean = float(np.sum(w_np * E_L_np))
         E_var = float(np.sum(w_np * (E_L_np - E_mean) ** 2))
         E_err = float(np.sqrt(E_var / max(n_eff, 1.0)))
@@ -1272,9 +1409,27 @@ def plot_results(traj, fit_s, fit_d, cfg, E_ref, save_dir, tag=""):
 # Run single configuration
 # ============================================================
 def run_single(cfg: PINNConfig, tag="") -> dict:
+    # Seed all RNGs if seed is specified
+    if cfg.seed is not None:
+        import random
+        random.seed(cfg.seed)
+        np.random.seed(cfg.seed)
+        torch.manual_seed(cfg.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(cfg.seed)
+        print(f"  [RNG] Seeded all generators with seed={cfg.seed}")
+
     coul_str = "interacting" if cfg.coulomb else "NON-interacting"
     print(f"\n{'='*65}")
     print(f"  {coul_str}: d={cfg.well_sep:.1f}, ω={cfg.omega:.1f}, E_ref={cfg.E_ref:.5f}")
+    if abs(cfg.magnetic_B_initial) > 1e-14 or abs(cfg.magnetic_B) > 1e-14:
+        zmode = "electron1" if cfg.zeeman_electron1_only else "all-electrons"
+        print(
+            f"  magnetic: B_initial={cfg.magnetic_B_initial:.4f} (VMC), B_evolution={cfg.magnetic_B:.4f} (PINN)"
+        )
+        print(
+            f"            g={cfg.g_factor:.3f}, mu_B={cfg.mu_B:.3f}, zeeman={zmode}"
+        )
     print(f"{'='*65}")
 
     # Phase 1: reference state (trained VMC or Slater-only)
@@ -1434,9 +1589,34 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
 
     plot_results(traj, fit_s, fit_d, cfg, E_ref, RESULTS_DIR, tag)
 
+    # Save checkpoint for post-hoc density analysis
+    from dataclasses import asdict
+
+    ckpt_path = RESULTS_DIR / f"{tag}checkpoint.pt"
+    torch.save(
+        {
+            "ground_wf_state": ground_wf.state_dict(),
+            "g_net_state": g_net.state_dict(),
+            "config": asdict(cfg),
+            "E_ref": E_ref,
+            "E_vmc": E_vmc,
+            "precomputed_x": precomputed_eval["x"],
+            "precomputed_E_L0": precomputed_eval["E_L0"],
+            "precomputed_deltaV": precomputed_eval.get("deltaV"),
+            "precomputed_grad": precomputed_eval["grad_log_psi0"],
+        },
+        ckpt_path,
+    )
+    print(f"  Checkpoint saved: {ckpt_path}")
+
     return {
         "d": cfg.well_sep,
         "omega": cfg.omega,
+        "magnetic_B_initial": cfg.magnetic_B_initial,
+        "magnetic_B": cfg.magnetic_B,
+        "g_factor": cfg.g_factor,
+        "mu_B": cfg.mu_B,
+        "zeeman_electron1_only": cfg.zeeman_electron1_only,
         "E_ref": E_ref,
         "E_vmc": E_vmc,
         "coulomb": cfg.coulomb,
@@ -1458,6 +1638,7 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         "t_pinn": t_pinn,
         "t_eval": t_eval,
         "ic_type": cfg.ic_type,
+        "checkpoint": str(ckpt_path),
     }
 
 
@@ -1585,6 +1766,136 @@ def full_test():
     _save(result, RESULTS_DIR / "pinn_full.json")
 
 
+def sudden_quench_B_sweep():
+    """Sweep magnetic field with sudden quench: GS prepared without B, then evolved with B."""
+    print("\n" + "=" * 70)
+    print("SUDDEN QUENCH B-SWEEP: d=0, ω=1.0")
+    print("Protocol: GS prep with B_initial=0, evolve with B_evolution=[0.0, 0.1, 0.2, 0.3]")
+    print("=" * 70)
+    all_results = []
+    for B_evol in [0.0, 0.1, 0.2, 0.3]:
+        cfg = PINNConfig(
+            omega=1.0,
+            well_sep=0.0,
+            magnetic_B_initial=0.0,      # No field for VMC prep
+            magnetic_B=B_evol,           # Field turned on during evolution
+            E_ref=3.0,
+            coulomb=True,
+            tau_max=4.0,
+            n_epochs_vmc=600,
+            n_samples_vmc=512,
+            lr_vmc=3e-3,
+            n_precompute=8192,
+            n_epochs_pde=10000,
+            batch_pde=256,
+            lr_pde=1e-3,
+            ic_amplitude=1.0,
+            ic_type="dipole",
+            lambda_ic=80.0,
+            lambda_bc=0.5,
+            lambda_reg=0.005,
+            n_tau_eval=40,
+            n_samples_eval=8000,
+            use_backflow=True,
+            use_spectral=True,
+            g_modes=3,
+            g_hidden=32,
+            g_layers=2,
+        )
+        result = run_single(cfg, tag=f"quench_B{B_evol:.1f}_")
+        all_results.append(result)
+    _save(all_results, RESULTS_DIR / "pinn_sudden_quench_B.json")
+
+    # Summary table
+    print("\n" + "=" * 70)
+    print("SUDDEN QUENCH B-SWEEP SUMMARY")
+    print("=" * 70)
+    print(f"  {'B_evol':>8s}  {'E_vmc':>8s}  {'gap_exp':>8s}  {'gap_ll':>8s}  {'gap_best':>9s}")
+    print(f"  {'-'*8}  {'-'*8}  {'-'*8}  {'-'*8}  {'-'*9}")
+    for r in all_results:
+        B_val = r.get("magnetic_B", float("nan"))
+        ge = r.get("fit_single", {}).get("gap", float("nan"))
+        gl = r.get("fit_log_linear", {}).get("gap", float("nan"))
+        gb = r.get("fit_best", {}).get("gap", float("nan"))
+        print(f"  {B_val:8.4f}  {r['E_vmc']:8.4f}  {ge:8.4f}  {gl:8.4f}  {gb:9.4f}")
+    print("=" * 70)
+
+
+def build_quench_config(B_evol: float, profile: str = "full") -> PINNConfig:
+    """Build config for sudden-quench run at a single B value."""
+    if profile == "fast":
+        return PINNConfig(
+            omega=1.0,
+            well_sep=0.0,
+            magnetic_B_initial=0.0,
+            magnetic_B=float(B_evol),
+            E_ref=3.0,
+            coulomb=True,
+            tau_max=2.0,
+            n_epochs_vmc=250,
+            n_samples_vmc=256,
+            lr_vmc=3e-3,
+            n_precompute=3072,
+            n_epochs_pde=3000,
+            batch_pde=192,
+            lr_pde=1e-3,
+            ic_amplitude=1.0,
+            ic_type="dipole",
+            lambda_ic=80.0,
+            lambda_bc=0.5,
+            lambda_reg=0.005,
+            n_tau_eval=30,
+            n_samples_eval=4000,
+            use_backflow=True,
+            use_spectral=True,
+            g_modes=3,
+            g_hidden=32,
+            g_layers=2,
+        )
+
+    return PINNConfig(
+        omega=1.0,
+        well_sep=0.0,
+        magnetic_B_initial=0.0,
+        magnetic_B=float(B_evol),
+        E_ref=3.0,
+        coulomb=True,
+        tau_max=4.0,
+        n_epochs_vmc=600,
+        n_samples_vmc=512,
+        lr_vmc=3e-3,
+        n_precompute=8192,
+        n_epochs_pde=10000,
+        batch_pde=256,
+        lr_pde=1e-3,
+        ic_amplitude=1.0,
+        ic_type="dipole",
+        lambda_ic=80.0,
+        lambda_bc=0.5,
+        lambda_reg=0.005,
+        n_tau_eval=40,
+        n_samples_eval=8000,
+        use_backflow=True,
+        use_spectral=True,
+        g_modes=3,
+        g_hidden=32,
+        g_layers=2,
+    )
+
+
+def run_quench_single_B(B_evol: float, profile: str = "full") -> dict:
+    """Run sudden-quench pipeline for one B value and save dedicated JSON."""
+    cfg = build_quench_config(B_evol, profile=profile)
+    btag = f"{B_evol:.2f}".replace(".", "p")
+    profile_tag = "fast" if profile == "fast" else "full"
+    tag = f"quench_single_{profile_tag}_B{btag}_"
+    result = run_single(cfg, tag=tag)
+    out = RESULTS_DIR / f"pinn_quench_single_{profile_tag}_B{btag}.json"
+    _save(result, out)
+    print(f"Saved single-B quench result: {out}")
+    return result
+
+
 def sweep_distances():
     print("\n" + "=" * 70)
     print("SWEEP: ω=1.0, d=[0, 1, 2, 4]")
@@ -1691,6 +2002,14 @@ if __name__ == "__main__":
     p.add_argument("--test_free", action="store_true", help="Non-interacting validation")
     p.add_argument("--tiny", action="store_true", help="Quick interacting test")
     p.add_argument("--full", action="store_true", help="Converged interacting test")
+    p.add_argument("--quench", action="store_true", help="Sudden quench B-field sweep")
+    p.add_argument("--quench_B", type=float, default=None, help="Run sudden quench for one B")
+    p.add_argument(
+        "--quench_profile",
+        choices=["full", "fast"],
+        default="full",
+        help="Config profile for --quench_B",
+    )
     p.add_argument("--sweep", action="store_true", help="Distance sweep")
     p.add_argument("--rerun_d4", action="store_true", help="Rerun d=4 with better settings")
     args = p.parse_args()
@@ -1701,6 +2020,10 @@ if __name__ == "__main__":
         tiny_test()
     elif args.full:
         full_test()
+    elif args.quench_B is not None:
+        run_quench_single_B(args.quench_B, profile=args.quench_profile)
+    elif args.quench:
+        sudden_quench_B_sweep()
     elif args.sweep:
         sweep_distances()
     elif args.rerun_d4:
