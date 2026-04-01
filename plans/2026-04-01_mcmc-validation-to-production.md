@@ -78,8 +78,8 @@ for d in sorted(pathlib.Path('results/validation_20260401_p1_is').iterdir()):
     print(f\"{d.name}: E={E:.4f}\")
 "
 ```
-→ Expected: 1.1_n2 E ≈ 2.00 (±0.05), 1.1_n4 E ≈ 6.00 (±0.15), 1.2_n2 E ≈ 2.00 (±0.05), 1.2_n4 E ≈ 6.00 (±0.15). All complete without error.
-**Risk:** Single-well N=4 shell-filling may differ from naive 6ω if the basis/LCAO setup is incorrect for 4 electrons in one well. If energy is wrong, this is a foundation bug — stop and debug before continuing.
+→ Expected: 1.1_n2 E ≈ 2.00 (±0.05), 1.1_n4 E ≈ 6.00 (±0.15), 1.2_n2 E ≈ 2.00 (±0.05), 1.2_n4 E ≈ 4.00 (±0.15). All complete without error.
+**Risk:** Double-well N=4 was initially written as ≈6.0 in the draft plan, but the system definition `double_dot(N_L=2, N_R=2, sep=4.0, omega=1.0)` corresponds to two doubly occupied ground orbitals, so the correct non-interacting target is ≈4.0. If the run misses that target materially, this is a foundation bug — stop and debug before continuing.
 
 ### Step 2.2 — Phase 1 with fd_colloc + IS (reproduce ESS failure mode)
 **What:** Run 1.2_n2 with fd_colloc + bf_hidden=64 + IS, 10k epochs. Purpose: confirm whether ESS collapses even for non-interacting case (diagnostic from MCMC plan Step 1.3).
@@ -318,7 +318,7 @@ for row in t: print(f\"{row['name']}: virial={row['virial_pct']:.1f}%, E={row['e
 ## Current State
 **Active phase:** 2 — Non-Interacting Validation on GPU
 **Active step:** 2.1 — Full Phase 1 non-interacting baselines (IS, reinforce_hybrid)
-**Last evidence:** `/usr/bin/time -f 'SANITY_ELAPSED=%E' env PYTHONPATH=src .venv/bin/python scripts/run_noninteracting_validation.py --all-phase1 --epochs 5 --device cuda:1 --output-dir results/validation_20260401_p1_is_sanity` -> completed in `SANITY_ELAPSED=0:12.44`; 1.1_n2 stayed finite with ESS about 824→852 and energy about 2.16→2.13; 1.1_n4 stayed finite with energy about 6.17→6.30; 1.2_n2 stayed finite with energy about 2.05→2.06; 1.2_n4 stayed finite but sat near energy about 4.26→4.24 with ESS collapsing as low as 2.4 before recovering to about 230.
-**Current risk:** The plan's acceptance target for non-interacting N=4 double-well appears to be wrong. The current plan expects about 6.0, but the system definition `double_dot(N_L=2, N_R=2, sep=4.0, coulomb=false)` physically suggests two doubly occupied ground orbitals (2 per well), i.e. total energy about 4.0, not 6.0. If that is true, the plan would falsely classify a correct run as failure.
-**Next action:** Resolve the N=4 double-well analytical target and update the Phase 2 acceptance criterion before launching the full 10k-epoch baseline run.
-**Blockers:** Phase 2.1 acceptance is ambiguous because the exact target for 1.2_n4 in the confirmed plan is likely incorrect.
+**Last evidence:** `PYTHONPATH=src .venv/bin/python - <<'PY' ... SystemConfig.double_dot(N_L=2, N_R=2, sep=4.0, omega=1.0) ... print('expected_noninteracting_energy=', sum(w.n_particles * w.omega for w in sys.wells))` -> `expected_noninteracting_energy= 4.0`
+**Current risk:** The full 10k-epoch Step 2.1 runs are long enough that they should be launched in parallel on separate GPUs and monitored; double-well ESS may still be weak even in the baseline setup.
+**Next action:** Launch the four Step 2.1 baseline cases in parallel on GPUs 0, 1, 5, and 6 with isolated output directories and live logs.
+**Blockers:** None
