@@ -177,7 +177,9 @@ done
 - **GPU contention:** Monitor `nvidia-smi`. Fall back to sequential runs.
 
 ## Current State
-**Active phase:** 1 — Commit Recovery
-**Active step:** 1.1 — Stage and commit recovered files
-**Last evidence:** 22 tests passing, 6 skipped. `run_ground_state.py` smoke test completed.
+**Active phase:** 2 — Non-Interacting Validation on GPU
+**Active step:** 2.1 — Create validation YAML configs
+**Last evidence:** `PYTHONPATH=src .venv/bin/python -m pytest tests/ -v --tb=short` -> `22 passed, 6 skipped`; `PYTHONPATH=src .venv/bin/python src/run_ground_state.py --config /tmp/smoke_ctnn.yaml` and `/tmp/smoke_unified.yaml` both completed with finite losses and saved outputs.
+**Current risk:** Architecture dispatch is now implemented, but non-interacting exact-energy checks (Phase 2) have not yet been run at full length.
+**Next action:** Create Phase 2 validation configs and launch IS/MH validation runs on available GPUs.
 **Blockers:** None.

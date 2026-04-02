@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import math
-
 import torch
 import torch.nn as nn
 
+from PINN import BackflowNet, CTNNBackflowNet, PINN
 from config import SystemConfig, _lookup_dmc_energy
 
 
@@ -53,7 +52,11 @@ def setup_closed_shell_system(
 
 
 class GroundStateWF(nn.Module):
-    """Slater-Jastrow-like wavefunction with learnable one-body and pair correlations."""
+    """Ground-state log-wavefunction with architecture dispatch.
+
+    This wraps the stable PINN correlator and optionally applies a backflow
+    coordinate transform before evaluating log-psi.
+    """
 
     def __init__(
         self,
@@ -70,38 +73,62 @@ class GroundStateWF(nn.Module):
         use_backflow: bool = True,
     ) -> None:
         super().__init__()
-        del C_occ, spin, params, arch_type, pinn_hidden, pinn_layers
-        del bf_hidden, bf_layers, use_backflow
+        del C_occ, params
         self.system = system
 
-        # Learnable envelope parameters
-        self.raw_alpha = nn.Parameter(
-            torch.tensor(math.log(math.e - 1.0), dtype=torch.float64)
+        self.arch_type = str(arch_type).lower()
+        if self.arch_type not in {"pinn", "ctnn", "unified"}:
+            raise ValueError(
+                f"Unknown arch_type '{arch_type}'. Expected one of: pinn, ctnn, unified."
+            )
+
+        if spin.ndim != 1 or spin.numel() != system.n_particles:
+            raise ValueError(
+                "GroundStateWF expects a 1D spin template with length system.n_particles."
+            )
+        self.register_buffer("spin_template", spin.detach().clone().to(torch.long), persistent=False)
+
+        self.pinn = PINN(
+            n_particles=system.n_particles,
+            d=system.dim,
+            omega=system.omega,
+            hidden_dim=max(int(pinn_hidden), 16),
+            n_layers=max(int(pinn_layers), 1),
+            act="gelu",
         )
-        self.raw_beta = nn.Parameter(torch.tensor(0.0, dtype=torch.float64))
 
-        # One-body network: maps per-particle features -> scalar correction
-        self.one_body = nn.Sequential(
-            nn.Linear(system.dim + 1, 32),
-            nn.Tanh(),
-            nn.Linear(32, 32),
-            nn.Tanh(),
-            nn.Linear(32, 1),
-        ).double()
-
-        # Pair network: maps inter-particle distance -> pair correction
-        self.pair_body = nn.Sequential(
-            nn.Linear(1, 16),
-            nn.Tanh(),
-            nn.Linear(16, 1),
-        ).double()
-
-        # Xavier initialization
-        for mod in (self.one_body, self.pair_body):
-            for layer in mod:
-                if isinstance(layer, nn.Linear):
-                    nn.init.xavier_uniform_(layer.weight, gain=0.1)
-                    nn.init.zeros_(layer.bias)
+        self.backflow: nn.Module | None = None
+        if use_backflow:
+            bf_width = max(int(bf_hidden), 16)
+            bf_depth = max(int(bf_layers), 2)
+            if self.arch_type == "pinn":
+                self.backflow = BackflowNet(
+                    d=system.dim,
+                    msg_hidden=bf_width,
+                    msg_layers=bf_depth,
+                    hidden=bf_width,
+                    layers=bf_depth,
+                    use_spin=True,
+                    same_spin_only=False,
+                    out_bound="tanh",
+                    bf_scale_init=0.05,
+                    zero_init_last=True,
+                )
+            else:
+                # Use CTNN message passing for both ctnn and unified modes.
+                self.backflow = CTNNBackflowNet(
+                    d=system.dim,
+                    msg_hidden=bf_width,
+                    msg_layers=bf_depth,
+                    hidden=bf_width,
+                    layers=bf_depth,
+                    use_spin=True,
+                    same_spin_only=False,
+                    out_bound="tanh",
+                    bf_scale_init=0.05,
+                    zero_init_last=True,
+                    omega=system.omega,
+                )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.ndim != 3:
@@ -112,30 +139,15 @@ class GroundStateWF(nn.Module):
                 f", D={self.system.dim}, got {tuple(x.shape)}"
             )
 
-        # Learnable Gaussian envelope
-        alpha = torch.nn.functional.softplus(self.raw_alpha) + 0.1
-        beta = torch.tanh(self.raw_beta)
+        spin = self.spin_template.to(device=x.device)
+        x_eval = x
+        if self.backflow is not None:
+            dx = self.backflow(x, spin=spin)
+            if not torch.isfinite(dx).all():
+                raise RuntimeError("Non-finite backflow displacement in GroundStateWF.")
+            x_eval = x + dx
 
-        # One-body: Gaussian envelope
-        r2 = torch.sum(x * x, dim=(-1, -2))
-        log_one_body = -0.5 * alpha * r2
-
-        # One-body NN correction
-        x_feat = torch.cat(
-            [x, torch.sum(x * x, dim=-1, keepdim=True)], dim=-1
-        )
-        one_corr = self.one_body(x_feat).squeeze(-1).sum(dim=-1)
-
-        # Pair correlations
-        (i, j) = torch.triu_indices(
-            self.system.n_particles, self.system.n_particles, offset=1, device=x.device
-        )
-        rij = x[:, i, :] - x[:, j, :]
-        r = torch.sqrt(torch.sum(rij * rij, dim=-1) + 1e-10)
-        jastrow = torch.sum(r / (1.0 + r), dim=-1)
-        pair_corr = self.pair_body(r.unsqueeze(-1)).squeeze(-1).sum(dim=-1)
-
-        log_psi = log_one_body + beta * jastrow + 0.05 * one_corr + 0.05 * pair_corr
+        log_psi = self.pinn(x_eval, spin=spin).squeeze(-1)
         if not torch.isfinite(log_psi).all():
             raise RuntimeError("Non-finite log_psi in GroundStateWF forward pass.")
         return log_psi
@@ -144,4 +156,25 @@ class GroundStateWF(nn.Module):
 class SlaterOnlyWF(GroundStateWF):
     """Compatibility alias for legacy scripts expecting this symbol."""
 
-    pass
+    def __init__(
+        self,
+        system: SystemConfig,
+        C_occ: torch.Tensor,
+        spin: torch.Tensor,
+        params: dict,
+        *,
+        pinn_hidden: int = 32,
+        pinn_layers: int = 2,
+    ) -> None:
+        super().__init__(
+            system,
+            C_occ,
+            spin,
+            params,
+            arch_type="pinn",
+            pinn_hidden=pinn_hidden,
+            pinn_layers=pinn_layers,
+            bf_hidden=32,
+            bf_layers=2,
+            use_backflow=False,
+        )
