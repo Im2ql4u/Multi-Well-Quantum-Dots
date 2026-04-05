@@ -39,6 +39,7 @@ class GroundStateTrainingConfig:
     mh_step_scale: float = 0.25
     mh_decorrelation: int = 1
     grad_clip: float = 1.0
+    reinforce_clip_width: float = 5.0
     print_every: int = 10
     seed: int | None = 0
     device: str = "cpu"
@@ -138,8 +139,9 @@ def train_ground_state(
         for group in optimizer.param_groups:
             group["lr"] = current_lr
 
+        is_weights: torch.Tensor | None = None
         if train_cfg.sampler == "is":
-            x, ess = importance_resample(
+            x, ess, is_weights = importance_resample(
                 psi_log_fn,
                 n_keep=train_cfg.n_coll,
                 n_elec=system.n_particles,
@@ -155,6 +157,7 @@ def train_ground_state(
                 langevin_steps=train_cfg.langevin_steps,
                 langevin_step_size=train_cfg.langevin_step_size,
                 system=system,
+                return_weights=True,
             )
         else:
             x, accept_rate, mh_scale = mcmc_resample(
@@ -175,6 +178,20 @@ def train_ground_state(
             x_prev = x
             ess = float(accept_rate)
 
+        def weighted_mean(values: torch.Tensor) -> torch.Tensor:
+            if is_weights is None:
+                return values.mean()
+            w = is_weights / is_weights.sum().clamp_min(1e-12)
+            return torch.sum(w * values)
+
+        def weighted_var(values: torch.Tensor) -> float:
+            vals = values.detach()
+            if is_weights is None:
+                return float(torch.var(vals, unbiased=False).item())
+            w = is_weights / is_weights.sum().clamp_min(1e-12)
+            mean = torch.sum(w * vals)
+            return float(torch.sum(w * (vals - mean) * (vals - mean)).item())
+
         optimizer.zero_grad(set_to_none=True)
         if train_cfg.loss_type == "weak_form":
             e_weak = weak_form_local_energy(
@@ -184,11 +201,11 @@ def train_ground_state(
                 params=params,
                 system=system,
             )
-            loss = e_weak.mean()
-            energy = float(loss.item())
+            loss = weighted_mean(e_weak)
+            energy = float(loss.detach().item())
             local_energy_samples = e_weak.detach()
         elif train_cfg.loss_type == "reinforce_hybrid":
-            loss, energy, e_eff, _ = rayleigh_hybrid_loss(
+            _, _, e_eff, _ = rayleigh_hybrid_loss(
                 psi_log_fn,
                 x,
                 omega=system.omega,
@@ -196,9 +213,11 @@ def train_ground_state(
                 system=system,
                 direct_weight=train_cfg.direct_weight,
             )
+            loss = weighted_mean(e_eff)
+            energy = float(loss.detach().item())
             local_energy_samples = e_eff
         elif train_cfg.loss_type == "fd_colloc":
-            loss, energy, e_loc, _ = colloc_fd_loss(
+            _, _, e_loc, _ = colloc_fd_loss(
                 psi_log_fn,
                 x,
                 omega=system.omega,
@@ -206,11 +225,33 @@ def train_ground_state(
                 system=system,
                 h=train_cfg.fd_h,
             )
+            loss = weighted_mean(e_loc)
+            energy = float(loss.detach().item())
+            local_energy_samples = e_loc
+        elif train_cfg.loss_type == "reinforce":
+            # Forward pass to get log_psi (carries gradient).
+            log_psi = model(x)
+            # Local energy WITHOUT gradient graph (detached).
+            with torch.no_grad():
+                _, _, e_loc, _ = colloc_fd_loss(
+                    psi_log_fn, x, omega=system.omega, params=params,
+                    system=system, h=train_cfg.fd_h,
+                )
+            # MAD-based outlier clipping (matches old code's clip_el).
+            clip_w = float(train_cfg.reinforce_clip_width)
+            if clip_w > 0:
+                med = e_loc.median()
+                mad = (e_loc - med).abs().median().clamp_min(1e-8)
+                e_loc = e_loc.clamp(med - clip_w * mad, med + clip_w * mad)
+            E_mean = e_loc.mean()
+            # REINFORCE: gradient flows only through log_psi.
+            loss = 2.0 * ((e_loc - E_mean) * log_psi).mean()
+            energy = float(E_mean.item())
             local_energy_samples = e_loc
         else:
             raise ValueError(f"Unknown loss_type '{train_cfg.loss_type}'.")
 
-        energy_var = float(torch.var(local_energy_samples, unbiased=False).item())
+        energy_var = weighted_var(local_energy_samples)
 
         if not torch.isfinite(loss):
             raise RuntimeError(
