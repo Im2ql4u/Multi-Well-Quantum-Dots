@@ -52,6 +52,34 @@ def test_importance_resample_returns_requested_batch_without_mcmc() -> None:
     assert ess > 0.0
 
 
+def test_importance_resample_can_return_normalized_weights() -> None:
+    system = SystemConfig.single_dot(N=2, omega=1.0)
+    x, ess, w = importance_resample(
+        _gaussian_logpsi,
+        n_keep=32,
+        n_elec=2,
+        dim=2,
+        omega=1.0,
+        device="cpu",
+        dtype=torch.float64,
+        n_cand_mult=4,
+        sigma_fs=_DEFAULT_SIGMA_FS,
+        min_pair_cutoff=0.0,
+        weight_temp=1.0,
+        logw_clip_q=0.0,
+        langevin_steps=0,
+        langevin_step_size=0.01,
+        system=system,
+        return_weights=True,
+    )
+    assert x.shape == (32, 2, 2)
+    assert w.shape == (32,)
+    assert torch.isfinite(w).all()
+    assert torch.all(w > 0)
+    torch.testing.assert_close(w.sum(), torch.tensor(1.0, dtype=w.dtype), atol=1e-10, rtol=1e-10)
+    assert ess > 0.0
+
+
 @pytest.mark.skip(reason="sample_multiwell was refactored out; no longer exists in codebase")
 def test_sample_multiwell_returns_finite_samples_and_logq() -> None:
     pass

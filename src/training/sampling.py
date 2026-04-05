@@ -93,14 +93,26 @@ def importance_resample(
     langevin_steps: int,
     langevin_step_size: float,
     system: SystemConfig,
-) -> tuple[torch.Tensor, float]:
+    return_weights: bool = False,
+) -> tuple[torch.Tensor, float] | tuple[torch.Tensor, float, torch.Tensor]:
     del n_elec, dim, n_cand_mult, sigma_fs, min_pair_cutoff
-    del logw_clip_q, langevin_steps, langevin_step_size
+    del langevin_steps, langevin_step_size
 
     x = _sample_multiwell_init(n_keep, system=system, device=device, dtype=dtype)
     with torch.no_grad():
         logw = 2.0 * psi_log_fn(x) / max(float(weight_temp), 1e-08)
+        clip_q = float(logw_clip_q)
+        if 0.0 < clip_q < 0.5:
+            lo = torch.quantile(logw, clip_q)
+            hi = torch.quantile(logw, 1.0 - clip_q)
+            logw = torch.clamp(logw, min=lo, max=hi)
         logw = logw - torch.logsumexp(logw, dim=0)
         w = torch.exp(logw)
         ess = 1.0 / torch.sum(w * w)
+        idx = torch.multinomial(w, n_keep, replacement=True)
+        x = x[idx]
+        w_sel = w[idx]
+        w_sel = w_sel / w_sel.sum().clamp_min(1e-12)
+    if return_weights:
+        return x, float(ess.item()), w_sel
     return x, float(ess.item())

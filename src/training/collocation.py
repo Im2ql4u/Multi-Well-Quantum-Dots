@@ -45,8 +45,11 @@ def _laplacian_over_psi_fd(
             xm[:, i, j] = xm[:, i, j] - h
             lp = psi_log_fn(xp)
             lm = psi_log_fn(xm)
-            ratio_p = torch.exp(lp - log_psi0)
-            ratio_m = torch.exp(lm - log_psi0)
+            # Clamp exponent arguments to avoid overflow/underflow blow-ups.
+            dlp = torch.clamp(lp - log_psi0, min=-50.0, max=50.0)
+            dlm = torch.clamp(lm - log_psi0, min=-50.0, max=50.0)
+            ratio_p = torch.exp(dlp)
+            ratio_m = torch.exp(dlm)
             lap = lap + (ratio_p - 2 + ratio_m) / h2
     return lap
 
