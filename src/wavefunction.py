@@ -5,6 +5,15 @@ import torch.nn as nn
 
 from PINN import BackflowNet, CTNNBackflowNet, PINN
 from config import SystemConfig, _lookup_dmc_energy
+from functions.Slater_Determinant import evaluate_basis_functions_torch
+
+
+def _min_ho_shell_2d(n_orb: int) -> int:
+    """Minimum HO shell S so (S+1)(S+2)/2 >= n_orb in 2D."""
+    S = 0
+    while (S + 1) * (S + 2) // 2 < n_orb:
+        S += 1
+    return S
 
 
 def resolve_reference_energy(
@@ -36,7 +45,21 @@ def setup_closed_shell_system(
     if system.n_particles % 2 != 0:
         raise ValueError("Closed-shell setup requires an even number of particles.")
     n_orb = system.n_particles // 2
-    C_occ = torch.eye(n_orb, device=device, dtype=dtype)
+    dim = system.dim
+
+    # Determine HO basis size for the Slater determinant.
+    if dim == 2:
+        S = _min_ho_shell_2d(n_orb)
+        nx = ny = S + 1
+        n_basis = nx * ny
+    elif dim == 1:
+        nx = n_orb
+        ny = 1
+        n_basis = nx
+    else:
+        raise ValueError(f"Unsupported dim={dim} for closed-shell setup.")
+
+    C_occ = torch.eye(n_basis, n_orb, device=device, dtype=dtype)
     spin = torch.tensor([0] * n_orb + [1] * n_orb, device=device, dtype=torch.int64)
     if E_ref == "auto":
         e_ref_val = float(system.n_particles)
@@ -45,8 +68,10 @@ def setup_closed_shell_system(
     params = {
         "E_ref": e_ref_val,
         "n_particles": int(system.n_particles),
-        "dim": int(system.dim),
+        "dim": int(dim),
         "omega": float(system.omega),
+        "nx": nx,
+        "ny": ny,
     }
     return (C_occ, spin, params)
 
@@ -73,8 +98,9 @@ class GroundStateWF(nn.Module):
         use_backflow: bool = True,
     ) -> None:
         super().__init__()
-        del C_occ, params
         self.system = system
+        self.register_buffer("C_occ", C_occ.detach().clone())
+        self.sd_params = dict(params)  # For Slater determinant basis evaluation
 
         self.arch_type = str(arch_type).lower()
         if self.arch_type not in {"pinn", "ctnn", "unified"}:
@@ -111,7 +137,7 @@ class GroundStateWF(nn.Module):
                     use_spin=True,
                     same_spin_only=False,
                     out_bound="tanh",
-                    bf_scale_init=0.05,
+                    bf_scale_init=0.01,
                     zero_init_last=True,
                 )
             else:
@@ -125,10 +151,58 @@ class GroundStateWF(nn.Module):
                     use_spin=True,
                     same_spin_only=False,
                     out_bound="tanh",
-                    bf_scale_init=0.05,
+                    bf_scale_init=0.01,
                     zero_init_last=True,
                     omega=system.omega,
                 )
+
+    def _evaluate_ho_basis_2d(self, x: torch.Tensor) -> torch.Tensor:
+        """Evaluate 2D HO basis as outer product of 1D bases."""
+        nx = self.sd_params["nx"]
+        ny = self.sd_params["ny"]
+        omega_p = {"omega": float(self.system.omega)}
+        phi_x = evaluate_basis_functions_torch(x[..., 0], nx, params=omega_p)
+        phi_y = evaluate_basis_functions_torch(x[..., 1], ny, params=omega_p)
+        prod = phi_x.unsqueeze(-1) * phi_y.unsqueeze(-2)  # (B,N,nx,ny)
+        return prod.reshape(x.shape[0], x.shape[1], nx * ny)
+
+    def _log_slater_det(self, x: torch.Tensor, spin: torch.Tensor) -> torch.Tensor:
+        """Compute log|SD| via LCAO for single- or multi-well systems."""
+        B, N, d = x.shape
+        n_basis = self.C_occ.shape[0]
+
+        # Evaluate HO basis at each well center and sum (LCAO).
+        Phi = torch.zeros(B, N, n_basis, device=x.device, dtype=x.dtype)
+        for well in self.system.wells:
+            center = torch.tensor(
+                well.center, device=x.device, dtype=x.dtype
+            ).view(1, 1, d)
+            x_shifted = x - center
+            if d == 2:
+                Phi = Phi + self._evaluate_ho_basis_2d(x_shifted)
+            elif d == 1:
+                omega_p = {"omega": float(self.system.omega)}
+                Phi = Phi + evaluate_basis_functions_torch(
+                    x_shifted.squeeze(-1), self.sd_params["nx"], params=omega_p
+                )
+            else:
+                raise ValueError(f"Unsupported dim={d}")
+
+        # Slater matrix: (B, N, n_occ)
+        Psi = torch.matmul(Phi, self.C_occ)
+
+        # Split by spin and compute log|det| for each block.
+        spin_1d = spin if spin.ndim == 1 else spin[0]
+        idx_up = (spin_1d == 0).nonzero(as_tuple=True)[0]
+        idx_down = (spin_1d == 1).nonzero(as_tuple=True)[0]
+
+        Psi_up = Psi[:, idx_up, :]    # (B, n_occ, n_occ)
+        Psi_down = Psi[:, idx_down, :]  # (B, n_occ, n_occ)
+
+        _, log_up = torch.linalg.slogdet(Psi_up)
+        _, log_down = torch.linalg.slogdet(Psi_down)
+
+        return log_up + log_down
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.ndim != 3:
@@ -147,7 +221,12 @@ class GroundStateWF(nn.Module):
                 raise RuntimeError("Non-finite backflow displacement in GroundStateWF.")
             x_eval = x + dx
 
-        log_psi = self.pinn(x_eval, spin=spin).squeeze(-1)
+        # Slater determinant envelope (includes Gaussian, excited orbitals,
+        # antisymmetry, and multi-center LCAO for double dots).
+        log_sd = self._log_slater_det(x, spin)
+
+        correlator = self.pinn(x_eval, spin=spin).squeeze(-1)
+        log_psi = log_sd + correlator
         if not torch.isfinite(log_psi).all():
             raise RuntimeError("Non-finite log_psi in GroundStateWF forward pass.")
         return log_psi
