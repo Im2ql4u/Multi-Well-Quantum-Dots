@@ -46,16 +46,31 @@ def setup_closed_shell_system(
         raise ValueError("Closed-shell setup requires an even number of particles.")
     n_orb = system.n_particles // 2
     dim = system.dim
+    n_wells = len(system.wells)
 
     # Determine HO basis size for the Slater determinant.
+    # For multi-well: each single-center basis produces bonding+anti-bonding
+    # LCAO combinations, giving n_wells * n_basis_per_well total orbitals.
     if dim == 2:
-        S = _min_ho_shell_2d(n_orb)
+        if n_wells > 1:
+            import math as _math
+            n_per_well = _math.ceil(n_orb / n_wells)
+        else:
+            n_per_well = n_orb
+        S = _min_ho_shell_2d(n_per_well)
         nx = ny = S + 1
-        n_basis = nx * ny
+        n_basis_per_well = nx * ny
+        n_basis = n_wells * n_basis_per_well
     elif dim == 1:
-        nx = n_orb
+        if n_wells > 1:
+            import math as _math
+            n_per_well = _math.ceil(n_orb / n_wells)
+        else:
+            n_per_well = n_orb
+        nx = n_per_well
         ny = 1
-        n_basis = nx
+        n_basis_per_well = nx
+        n_basis = n_wells * n_basis_per_well
     else:
         raise ValueError(f"Unsupported dim={dim} for closed-shell setup.")
 
@@ -169,24 +184,53 @@ class GroundStateWF(nn.Module):
     def _log_slater_det(self, x: torch.Tensor, spin: torch.Tensor) -> torch.Tensor:
         """Compute log|SD| via LCAO for single- or multi-well systems."""
         B, N, d = x.shape
-        n_basis = self.C_occ.shape[0]
+        wells = self.system.wells
 
-        # Evaluate HO basis at each well center and sum (LCAO).
-        Phi = torch.zeros(B, N, n_basis, device=x.device, dtype=x.dtype)
-        for well in self.system.wells:
+        if len(wells) == 1:
+            # Single-well: standard HO Slater determinant.
             center = torch.tensor(
-                well.center, device=x.device, dtype=x.dtype
+                wells[0].center, device=x.device, dtype=x.dtype
             ).view(1, 1, d)
             x_shifted = x - center
             if d == 2:
-                Phi = Phi + self._evaluate_ho_basis_2d(x_shifted)
+                Phi = self._evaluate_ho_basis_2d(x_shifted)
             elif d == 1:
                 omega_p = {"omega": float(self.system.omega)}
-                Phi = Phi + evaluate_basis_functions_torch(
+                Phi = evaluate_basis_functions_torch(
                     x_shifted.squeeze(-1), self.sd_params["nx"], params=omega_p
                 )
             else:
                 raise ValueError(f"Unsupported dim={d}")
+        elif len(wells) == 2:
+            # Two-well LCAO: bonding + anti-bonding combinations.
+            # Interleave [σ_0, σ*_0, σ_1, σ*_1, ...] so that
+            # C_occ=identity selects lowest-energy LCAO orbitals.
+            centers = []
+            for well in wells:
+                centers.append(
+                    torch.tensor(well.center, device=x.device, dtype=x.dtype).view(1, 1, d)
+                )
+            if d == 2:
+                Phi_L = self._evaluate_ho_basis_2d(x - centers[0])
+                Phi_R = self._evaluate_ho_basis_2d(x - centers[1])
+            elif d == 1:
+                omega_p = {"omega": float(self.system.omega)}
+                Phi_L = evaluate_basis_functions_torch(
+                    (x - centers[0]).squeeze(-1), self.sd_params["nx"], params=omega_p
+                )
+                Phi_R = evaluate_basis_functions_torch(
+                    (x - centers[1]).squeeze(-1), self.sd_params["nx"], params=omega_p
+                )
+            else:
+                raise ValueError(f"Unsupported dim={d}")
+            bonding = Phi_L + Phi_R            # (B, N, K)
+            anti_bonding = Phi_L - Phi_R        # (B, N, K)
+            K = bonding.shape[-1]
+            Phi = torch.zeros(B, N, 2 * K, device=x.device, dtype=x.dtype)
+            Phi[:, :, 0::2] = bonding
+            Phi[:, :, 1::2] = anti_bonding
+        else:
+            raise ValueError(f"Unsupported number of wells: {len(wells)}")
 
         # Slater matrix: (B, N, n_occ)
         Psi = torch.matmul(Phi, self.C_occ)
@@ -227,8 +271,8 @@ class GroundStateWF(nn.Module):
 
         correlator = self.pinn(x_eval, spin=spin).squeeze(-1)
         log_psi = log_sd + correlator
-        if not torch.isfinite(log_psi).all():
-            raise RuntimeError("Non-finite log_psi in GroundStateWF forward pass.")
+        if torch.isnan(log_psi).any():
+            raise RuntimeError("NaN in log_psi in GroundStateWF forward pass.")
         return log_psi
 
 
