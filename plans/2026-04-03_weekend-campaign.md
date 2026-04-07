@@ -278,8 +278,8 @@ This avoids manual tmux management for 12+ runs.
 
 ## Current State
 **Active phase:** Phase 2 (interacting architecture comparison)
-**Active step:** Phase 2 integrity patch + long-run re-test (virial evaluator parity, then 12h interacting run)
-**Last evidence:** Existing long N=4 runs are optimization-stable but virial checks fail and were shown sensitive to evaluator potential mismatch and MH equilibration.
-**Current risk:** Without Hamiltonian parity in evaluation and explicit MH warmup, virial pass/fail remains untrustworthy.
-**Next action:** Patch `scripts/run_virial_check.py` to use training-consistent potential + configurable MH warmup, validate against known checkpoints, then launch a new 12h N=4 Coulomb run with stronger MH mixing.
+**Active step:** Phase 2 long re-test in progress (12h N=4 Coulomb run with stronger MH mixing)
+**Last evidence:** `scripts/run_virial_check.py` now matches training Hamiltonian and includes MH warmup; parity check on `arch_n4_pinn_s401_20260406_224854` gives `E=6.240875` with `virial=24.16%` (still fail but now trustworthy). New run `p2fix_n4_12h_s901` is live and reached `epoch=1000` with finite metrics.
+**Current risk:** Virial remains far from <5% even after evaluator parity fix, indicating model/training objective mismatch rather than pure diagnostic artifact.
+**Next action:** Let `p2fix_n4_12h_s901` run to completion (~12h), then rerun parity virial diagnostics and compare against prior long runs to decide whether this training adjustment helps.
 **Blockers:** None
