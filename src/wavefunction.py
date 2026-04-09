@@ -284,7 +284,7 @@ class GroundStateWF(nn.Module):
         spin = self.spin_template.to(device=x.device)
         x_eval = x
         if self.backflow is not None:
-            dx = self.backflow(x, spin=spin)
+            dx = self.backflow(x, spin=spin, well_id=self.well_id)
             if not torch.isfinite(dx).all():
                 raise RuntimeError("Non-finite backflow displacement in GroundStateWF.")
             x_eval = x + dx

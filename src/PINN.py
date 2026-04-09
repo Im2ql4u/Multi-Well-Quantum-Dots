@@ -358,6 +358,8 @@ class BackflowNet(nn.Module):
 
         # positive learnable scale via softplus
         self.bf_scale_raw = nn.Parameter(torch.tensor(math.log(math.exp(bf_scale_init) - 1.0)))
+        self.w_intra = nn.Parameter(torch.ones(1))
+        self.w_inter = nn.Parameter(torch.ones(1))
         # zero-init last ψ layer to start Δx≈0 (identity backflow)
         if zero_init_last:
             last = self.psi[-1]  # Linear
@@ -392,13 +394,21 @@ class BackflowNet(nn.Module):
             return m_ij.max(dim=2).values
         raise ValueError(f"Unknown aggregation '{self.aggregation}'")
 
-    def forward(self, x: torch.Tensor, spin: torch.Tensor | None = None) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        spin: torch.Tensor | None = None,
+        well_id: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """
         x: (B, N, d), spin optional: (N,) or (B, N) with {0,1}
         returns Δx: (B, N, d)
         """
         B, N, d = x.shape
         assert d == self.d
+        param = next(self.parameters())
+        if param.device != x.device or param.dtype != x.dtype:
+            self.to(device=x.device, dtype=x.dtype)
 
         # Pairwise deltas and norms
         r = x.unsqueeze(2) - x.unsqueeze(1)  # (B,N,N,d)
@@ -425,6 +435,23 @@ class BackflowNet(nn.Module):
         # Remove self-messages
         eye = torch.eye(N, device=x.device, dtype=x.dtype).view(1, N, N, 1)
         weight = weight * (1.0 - eye)
+
+        if well_id is not None:
+            well_id = well_id.to(device=x.device, dtype=torch.long)
+            if well_id.ndim == 1:
+                well_id = well_id.view(1, N).expand(B, N)
+            elif well_id.shape != (B, N):
+                raise ValueError(
+                    f"well_id must have shape (N,) or (B,N), got {tuple(well_id.shape)}"
+                )
+            wi = well_id.view(B, N, 1, 1).expand(B, N, N, 1)
+            wj = well_id.view(B, 1, N, 1).expand(B, N, N, 1)
+            same_well = (wi == wj).to(x.dtype)
+            well_weight = (
+                same_well * self.w_intra.to(dtype=x.dtype, device=x.device)
+                + (1.0 - same_well) * self.w_inter.to(dtype=x.dtype, device=x.device)
+            )
+            weight = weight * well_weight
 
         # Message pass + aggregate
         m_ij = self.phi(msg_in) * weight  # (B,N,N,H)
@@ -606,7 +633,12 @@ class CTNNBackflowNet(nn.Module):
 
     # ---------- forward pass ----------
 
-    def forward(self, x: torch.Tensor, spin: torch.Tensor | None = None) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        spin: torch.Tensor | None = None,
+        well_id: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """
         x:    (B, N, d)
         spin: (N,) or (B, N) with {0,1}, optional
@@ -616,6 +648,9 @@ class CTNNBackflowNet(nn.Module):
         """
         B, N, d = x.shape
         assert d == self.d
+        param = next(self.parameters())
+        if param.device != x.device or param.dtype != x.dtype:
+            self.to(device=x.device, dtype=x.dtype)
         x = x * (self.omega**0.5)
         # -------- node input features --------
         if self.use_spin and spin is not None:

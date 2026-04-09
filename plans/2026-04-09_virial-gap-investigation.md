@@ -418,9 +418,9 @@ If there's an interaction: the combined effect is non-additive.
 - Overall: At least one variant with virial < 10% (stretch: < 5%) across 2 seeds
 
 ## Current State
-**Active phase:** Phase 2 - Well-Aware Architecture: Pair Features (completed)
-**Active step:** phase reflection gate before Phase 3
-**Last evidence:** `PYTHONPATH=src .venv/bin/python scripts/run_virial_check.py --result-dirs results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 results/p2wa_*` -> virial: baseline old 16.05%, baseline rerun 13.94%, well-aware s901 15.11%, well-aware s902 13.20%
-**Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** proceed to Phase 3 with emphasis on backflow well-awareness (PINN-only well features gave mixed seed-dependent effect and no robust >2% absolute gain across seeds)
-**Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional
+**Active phase:** Phase 3 - Well-Aware Backflow + Combined (in progress)
+**Active step:** Step 3.2 - Same modification for CTNNBackflowNet
+**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "import torch; from PINN import BackflowNet; bf = BackflowNet(...); x = torch.randn(4,4,2,dtype=torch.float64); spin = torch.tensor([0,0,1,1]); well_id = torch.tensor([0,0,1,1]); dx = bf(x, spin=spin, well_id=well_id); print('dx shape:', dx.shape, 'mean:', dx.abs().mean().item()); assert torch.isfinite(dx).all(); print('PASS')"` -> `dx shape: torch.Size([4, 4, 2]) mean: 0.0`, `PASS`
+**Current risk:** CTNNBackflowNet still lacks actual well-aware edge weighting logic (signature support only)
+**Next action:** implement Step 3.2 edge weighting in CTNNBackflowNet and run its acceptance check
+**Blockers:** None
