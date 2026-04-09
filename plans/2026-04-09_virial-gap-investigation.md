@@ -419,8 +419,8 @@ If there's an interaction: the combined effect is non-additive.
 
 ## Current State
 **Active phase:** Phase 2 - Well-Aware Architecture: Pair Features
-**Active step:** 2.2 - Add well-aware pair features to PINN
-**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "...setup_closed_shell_system...GroundStateWF..."` -> `well_id: tensor([0, 0, 1, 1])` and `model well_id buffer: tensor([0, 0, 1, 1])`
+**Active step:** 2.3 - Config flag and backward compatibility
+**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "...m = GroundStateWF(...); x = torch.randn(...); lp = m(x); loss = lp.mean(); loss.backward(); ..."` -> finite `log_psi` values (shape `[4]`), `grad_norm=2.9107`, `PASS`
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** implement same-well vs inter-well pair splitting in `PINN.forward` and pass `well_id` from `GroundStateWF`
+**Next action:** add `use_well_features` config flag and preserve backward-compatible behavior when disabled
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional

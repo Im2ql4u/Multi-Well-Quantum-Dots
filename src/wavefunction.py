@@ -190,6 +190,9 @@ class GroundStateWF(nn.Module):
                     omega=system.omega,
                 )
 
+        # Keep module params aligned with the basis tensor dtype/device.
+        self.to(device=C_occ.device, dtype=C_occ.dtype)
+
     def _evaluate_ho_basis_2d(self, x: torch.Tensor) -> torch.Tensor:
         """Evaluate 2D HO basis as outer product of 1D bases."""
         nx = self.sd_params["nx"]
@@ -288,7 +291,7 @@ class GroundStateWF(nn.Module):
         # antisymmetry, and multi-center LCAO for double dots).
         log_sd = self._log_slater_det(x, spin)
 
-        correlator = self.pinn(x_eval, spin=spin).squeeze(-1)
+        correlator = self.pinn(x_eval, spin=spin, well_id=self.well_id).squeeze(-1)
         log_psi = log_sd + correlator
         if torch.isnan(log_psi).any():
             raise RuntimeError("NaN in log_psi in GroundStateWF forward pass.")

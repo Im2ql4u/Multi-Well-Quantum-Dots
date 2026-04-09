@@ -75,12 +75,12 @@ class PINN(nn.Module):
         self.phi = self._build_mlp(self.d, hidden_dim, self.dL, n_layers, self.act)
         self.psi_in_dim = 6
         self.psi = self._build_mlp(self.psi_in_dim, hidden_dim, self.dL, n_layers, self.act)
-        # inputs: mean φ (dL) + pooled ψ (dL) + safe extras (2) = 2*dL + 2
-        self.rho = self._build_mlp(2 * self.dL + 2, hidden_dim, 1, 2, self.act)
+        # inputs: mean φ (dL) + intra ψ (dL) + inter ψ (dL) + safe extras (2)
+        self.rho = self._build_mlp(3 * self.dL + 2, hidden_dim, 1, 2, self.act)
 
         # optional norms (off by default)
         self.psi_norm = nn.LayerNorm(self.dL, elementwise_affine=True)
-        self.rho_norm = nn.LayerNorm(2 * self.dL + 2, elementwise_affine=True)
+        self.rho_norm = nn.LayerNorm(3 * self.dL + 2, elementwise_affine=True)
 
         self._initialize_weights(init)
 
@@ -171,7 +171,12 @@ class PINN(nn.Module):
         return r2 / (r2 + rg * rg)
 
     # ----- forward -----
-    def forward(self, x: torch.Tensor, spin: torch.Tensor | None = None) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        spin: torch.Tensor | None = None,
+        well_id: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """
         x : (B,N,d)  -> used for NN features (phi/psi/extras)
         cusp_coords : (B,N,d) or None; if provided, cusp distances are computed
@@ -200,14 +205,32 @@ class PINN(nn.Module):
         # optional short-range gate
         gate = self._short_range_gate(r)  # (B,P,1)
         psi_out = psi_out * gate
-        psi_mean = psi_out.mean(dim=1)  # (B,dL)  (or your attn)
+        if well_id is None:
+            same_well = torch.ones(B, psi_out.shape[1], 1, device=x.device, dtype=x.dtype)
+        else:
+            well_id = well_id.to(device=x.device, dtype=torch.long)
+            if well_id.ndim == 1:
+                well_id = well_id.unsqueeze(0).expand(B, -1)
+            if well_id.shape != (B, N):
+                raise ValueError(
+                    f"well_id must have shape (B,N) or (N,), got {tuple(well_id.shape)}"
+                )
+            wi = well_id[:, self.idx_i]
+            wj = well_id[:, self.idx_j]
+            same_well = (wi == wj).to(x.dtype).unsqueeze(-1)
+
+        inter_well = 1.0 - same_well
+        intra_denom = same_well.sum(dim=1).clamp_min(1.0)
+        inter_denom = inter_well.sum(dim=1).clamp_min(1.0)
+        psi_intra = (psi_out * same_well).sum(dim=1) / intra_denom
+        psi_inter = (psi_out * inter_well).sum(dim=1) / inter_denom
 
         # SAFE extras only
         r2_mean = (x_scaled**2).mean(dim=(1, 2), keepdim=False).unsqueeze(-1)  # (B,1)
         extras = torch.cat([r2_mean, s1_mean], dim=1)  # (B,2)
 
         # readout
-        rho_in = torch.cat([phi_mean, psi_mean, extras], dim=1)  # (B,2*dL+2)
+        rho_in = torch.cat([phi_mean, psi_intra, psi_inter, extras], dim=1)  # (B,3*dL+2)
         out = self.rho(rho_in)  # (B,1)
 
         # --- Analytic cusp uses *physical* coords by default ---
