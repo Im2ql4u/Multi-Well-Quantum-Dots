@@ -419,8 +419,8 @@ If there's an interaction: the combined effect is non-additive.
 
 ## Current State
 **Active phase:** Phase 1 - Sampling & Loss Sanity Checks
-**Active step:** 1.3 - Run loss A/B experiments + baseline rerun
-**Last evidence:** `for f in configs/phase1_sanity/*.yaml; do echo "$f:"; grep loss_type "$f"; done` -> fdcolloc file has `loss_type: fd_colloc`, weakform file has `loss_type: weak_form`; fairness check confirms key training controls unchanged (`same_else: True`)
+**Active step:** 1.4 - Virial comparison for Phase 1
+**Last evidence:** `ls results/p1san_*/result.json | wc -l` -> 3 completed runs; summaries: reinforce(seed903) E=7.039588 var=0.007590, weak_form(seed901) E=7.694271 var=3.279935, fd_colloc(seed901) E=8.954605 var=3.990321
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** launch three Phase-1 runs in parallel (fd_colloc, weak_form, reinforce seed-903) and collect result.json artifacts
+**Next action:** run `scripts/run_virial_check.py` on baseline + all `p1san_*` outputs and assess whether loss choice changes virial materially
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional

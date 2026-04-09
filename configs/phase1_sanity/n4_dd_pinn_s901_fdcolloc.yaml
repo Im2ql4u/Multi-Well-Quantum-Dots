@@ -35,5 +35,5 @@ training:
   grad_clip: 1.0
   print_every: 400
   seed: 901
-  device: cuda:2
+  device: cuda:0
   dtype: float64
