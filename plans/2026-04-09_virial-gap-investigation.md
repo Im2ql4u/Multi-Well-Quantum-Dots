@@ -419,8 +419,8 @@ If there's an interaction: the combined effect is non-additive.
 
 ## Current State
 **Active phase:** Phase 3 - Well-Aware Backflow + Combined (in progress)
-**Active step:** Step 3.2 - Same modification for CTNNBackflowNet
-**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "import torch; from PINN import BackflowNet; bf = BackflowNet(...); x = torch.randn(4,4,2,dtype=torch.float64); spin = torch.tensor([0,0,1,1]); well_id = torch.tensor([0,0,1,1]); dx = bf(x, spin=spin, well_id=well_id); print('dx shape:', dx.shape, 'mean:', dx.abs().mean().item()); assert torch.isfinite(dx).all(); print('PASS')"` -> `dx shape: torch.Size([4, 4, 2]) mean: 0.0`, `PASS`
-**Current risk:** CTNNBackflowNet still lacks actual well-aware edge weighting logic (signature support only)
-**Next action:** implement Step 3.2 edge weighting in CTNNBackflowNet and run its acceptance check
+**Active step:** Step 3.3 - A/B experiments: 4 architecture variants
+**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "import torch; from PINN import CTNNBackflowNet; bf = CTNNBackflowNet(...); x = torch.randn(4,4,2,dtype=torch.float64); spin = torch.tensor([0,0,1,1]); well_id = torch.tensor([0,0,1,1]); dx = bf(x, spin=spin, well_id=well_id); print('dx shape:', dx.shape, 'mean:', dx.abs().mean().item()); assert torch.isfinite(dx).all(); print('PASS')"` -> `dx shape: torch.Size([4, 4, 2]) mean: 0.0`, `PASS`
+**Current risk:** Experiment matrix may under-detect effects with a single seed in the initial 2x2 run
+**Next action:** create four Phase 3 config files for factorial A/B and validate their architecture flags before launch
 **Blockers:** None

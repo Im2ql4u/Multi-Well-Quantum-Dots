@@ -592,6 +592,8 @@ class CTNNBackflowNet(nn.Module):
 
         # positive learnable scale via softplus (same semantics)
         self.bf_scale_raw = nn.Parameter(torch.tensor(math.log(math.exp(bf_scale_init) - 1.0)))
+        self.w_intra = nn.Parameter(torch.ones(1))
+        self.w_inter = nn.Parameter(torch.ones(1))
 
         # zero-init last dx layer to start Δx≈0 (identity backflow)
         if zero_init_last:
@@ -674,6 +676,23 @@ class CTNNBackflowNet(nn.Module):
         edge_in = torch.cat([r, r1, r2], dim=-1)  # (B,N,N,d+2)
         # Initial edge features h_e: (B,N,N,edge_hidden)
         h_e = self.edge_embed(edge_in)
+
+        if well_id is not None:
+            well_id = well_id.to(device=x.device, dtype=torch.long)
+            if well_id.ndim == 1:
+                well_id = well_id.view(1, N).expand(B, N)
+            elif well_id.shape != (B, N):
+                raise ValueError(
+                    f"well_id must have shape (N,) or (B,N), got {tuple(well_id.shape)}"
+                )
+            wi = well_id.view(B, N, 1, 1).expand(B, N, N, 1)
+            wj = well_id.view(B, 1, N, 1).expand(B, N, N, 1)
+            same_well = (wi == wj).to(x.dtype)
+            well_weight = (
+                same_well * self.w_intra.to(dtype=x.dtype, device=x.device)
+                + (1.0 - same_well) * self.w_inter.to(dtype=x.dtype, device=x.device)
+            )
+            h_e = h_e * well_weight
 
         # -------- spin-based edge weights (mask) --------
         if self.use_spin and spin is not None:
