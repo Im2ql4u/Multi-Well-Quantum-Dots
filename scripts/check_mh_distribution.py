@@ -93,6 +93,7 @@ def _load_model(result_dir: Path, device: str) -> tuple[GroundStateWF, SystemCon
         bf_hidden=int(arch_cfg.get("bf_hidden", 32)),
         bf_layers=int(arch_cfg.get("bf_layers", 2)),
         use_well_features=bool(arch_cfg.get("use_well_features", False)),
+        use_well_backflow=bool(arch_cfg.get("use_well_backflow", False)),
         use_backflow=bool(arch_cfg.get("use_backflow", True)),
     )
 

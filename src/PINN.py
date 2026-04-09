@@ -316,6 +316,7 @@ class BackflowNet(nn.Module):
         aggregation: str = "sum",
         use_spin: bool = True,
         same_spin_only: bool = False,
+        use_well_backflow: bool = False,
         out_bound: str = "tanh",
         bf_scale_init: float = 0.05,
         zero_init_last: bool = True,
@@ -324,6 +325,7 @@ class BackflowNet(nn.Module):
         self.d = d
         self.use_spin = use_spin
         self.same_spin_only = same_spin_only
+        self.use_well_backflow = use_well_backflow
         self.aggregation = aggregation
         self.out_bound = out_bound
 
@@ -436,7 +438,7 @@ class BackflowNet(nn.Module):
         eye = torch.eye(N, device=x.device, dtype=x.dtype).view(1, N, N, 1)
         weight = weight * (1.0 - eye)
 
-        if well_id is not None:
+        if self.use_well_backflow and well_id is not None:
             well_id = well_id.to(device=x.device, dtype=torch.long)
             if well_id.ndim == 1:
                 well_id = well_id.view(1, N).expand(B, N)
@@ -505,6 +507,7 @@ class CTNNBackflowNet(nn.Module):
         aggregation: str = "sum",
         use_spin: bool = True,
         same_spin_only: bool = False,
+        use_well_backflow: bool = False,
         out_bound: str = "tanh",
         bf_scale_init: float = 0.05,
         zero_init_last: bool = True,
@@ -514,6 +517,7 @@ class CTNNBackflowNet(nn.Module):
         self.d = d
         self.use_spin = use_spin
         self.same_spin_only = same_spin_only
+        self.use_well_backflow = use_well_backflow
         self.aggregation = aggregation
         self.out_bound = out_bound
         self.omega = omega
@@ -677,7 +681,7 @@ class CTNNBackflowNet(nn.Module):
         # Initial edge features h_e: (B,N,N,edge_hidden)
         h_e = self.edge_embed(edge_in)
 
-        if well_id is not None:
+        if self.use_well_backflow and well_id is not None:
             well_id = well_id.to(device=x.device, dtype=torch.long)
             if well_id.ndim == 1:
                 well_id = well_id.view(1, N).expand(B, N)

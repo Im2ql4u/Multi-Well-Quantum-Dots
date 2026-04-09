@@ -120,6 +120,7 @@ class GroundStateWF(nn.Module):
         bf_hidden: int = 32,
         bf_layers: int = 2,
         use_well_features: bool = False,
+        use_well_backflow: bool = False,
         use_backflow: bool = True,
     ) -> None:
         super().__init__()
@@ -172,6 +173,7 @@ class GroundStateWF(nn.Module):
                     layers=bf_depth,
                     use_spin=True,
                     same_spin_only=False,
+                    use_well_backflow=bool(use_well_backflow),
                     out_bound="tanh",
                     bf_scale_init=0.01,
                     zero_init_last=True,
@@ -186,6 +188,7 @@ class GroundStateWF(nn.Module):
                     layers=bf_depth,
                     use_spin=True,
                     same_spin_only=False,
+                    use_well_backflow=bool(use_well_backflow),
                     out_bound="tanh",
                     bf_scale_init=0.01,
                     zero_init_last=True,

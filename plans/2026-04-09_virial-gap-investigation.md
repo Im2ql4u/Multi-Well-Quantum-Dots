@@ -418,9 +418,9 @@ If there's an interaction: the combined effect is non-additive.
 - Overall: At least one variant with virial < 10% (stretch: < 5%) across 2 seeds
 
 ## Current State
-**Active phase:** Phase 3 - Well-Aware Backflow + Combined (in progress)
-**Active step:** Step 3.3 - A/B experiments: 4 architecture variants
-**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "import torch; from PINN import CTNNBackflowNet; bf = CTNNBackflowNet(...); x = torch.randn(4,4,2,dtype=torch.float64); spin = torch.tensor([0,0,1,1]); well_id = torch.tensor([0,0,1,1]); dx = bf(x, spin=spin, well_id=well_id); print('dx shape:', dx.shape, 'mean:', dx.abs().mean().item()); assert torch.isfinite(dx).all(); print('PASS')"` -> `dx shape: torch.Size([4, 4, 2]) mean: 0.0`, `PASS`
-**Current risk:** Experiment matrix may under-detect effects with a single seed in the initial 2x2 run
-**Next action:** create four Phase 3 config files for factorial A/B and validate their architecture flags before launch
+**Active phase:** Phase 3 - Well-Aware Backflow + Combined (completed)
+**Active step:** phase reflection gate before Phase 4
+**Last evidence:** `PYTHONPATH=src .venv/bin/python scripts/run_virial_check.py --result-dirs results/p3wa_n4_dd_baseline_s901_20260409_181652 results/p3wa_n4_dd_wellpinn_s901_20260409_181814 results/p3wa_n4_dd_wellbf_s901_20260409_181900 results/p3wa_n4_dd_wellpinn_wellbf_s901_20260409_182034 results/p3wa_n4_dd_baseline_s902_20260409_185818` -> virial residuals: baseline s901 14.41%, well-PINN 15.15%, well-BF 15.83%, combined 14.61%, baseline s902 14.18% (all FAIL vs <10%)
+**Current risk:** Well-aware architectural modifications did not reduce virial and may increase residual in some variants; risk that error source is numerical evaluator bias or ansatz class limit
+**Next action:** Phase 3 gate output indicates no architecture win; prepare Phase 4 CTNN comparison or investigate FD-virial convergence check before new architecture expansion
 **Blockers:** None
