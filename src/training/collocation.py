@@ -22,7 +22,8 @@ def _potential_energy(x: torch.Tensor, *, omega: float, system: SystemConfig) ->
     v_conf = torch.sum(v_conf, dim=-1)
     if not system.coulomb:
         return v_conf
-    eps = 1.0 / max(float(omega), 1e-08) ** 0.5
+    # Keep a small softening for numerical stability while staying close to 1/r.
+    eps = 1e-2 / max(float(omega), 1e-08) ** 0.5
     (i, j) = torch.triu_indices(system.n_particles, system.n_particles, offset=1, device=device)
     rij = x[:, i, :] - x[:, j, :]
     r2 = torch.sum(rij * rij, dim=-1)

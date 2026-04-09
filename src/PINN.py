@@ -90,8 +90,9 @@ class PINN(nn.Module):
             self.gamma_apara = 0.0
             self.gamma_para = 0.0
         else:
-            self.gamma_apara = 1.0 / (self.d - 1)
-            self.gamma_para = 1.0 / (self.d + 1)
+            # Kato cusp in d dimensions: gamma_ud = 2/(d-1), gamma_uu = 2/(d+1).
+            self.gamma_apara = 2.0 / (self.d - 1)
+            self.gamma_para = 2.0 / (self.d + 1)
         self.cusp_len = 1.0 / (self.omega**0.5)
 
         # attention defaults
@@ -245,7 +246,7 @@ class PINN(nn.Module):
         gamma = same_spin * gamma_para + (1.0 - same_spin) * gamma_apara  # (B,P,1)
 
         ell = torch.as_tensor(self.cusp_len, dtype=x.dtype, device=x.device).view(1, 1, 1)
-        pair_u = gamma * r_c * torch.exp(-r_c)  # (B,P,1)
+        pair_u = gamma * r_c * torch.exp(-r_c / ell)  # (B,P,1)
         cusp_term = pair_u.sum(dim=1)  # (B,1)
 
         return out + cusp_term
