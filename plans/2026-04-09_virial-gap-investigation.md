@@ -419,8 +419,8 @@ If there's an interaction: the combined effect is non-additive.
 
 ## Current State
 **Active phase:** Phase 1 - Sampling & Loss Sanity Checks
-**Active step:** 1.2 - Loss function A/B config creation
-**Last evidence:** `PYTHONPATH=src .venv/bin/python scripts/check_mh_distribution.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --n-samples 50000 --mh-steps 100 --device cuda:0` -> mean counts [2.00022, 1.99978], exact occupancy rate 0.9931, acceptance 0.6030, well centers near +/-2.14, outputs saved
+**Active step:** 1.3 - Run loss A/B experiments + baseline rerun
+**Last evidence:** `for f in configs/phase1_sanity/*.yaml; do echo "$f:"; grep loss_type "$f"; done` -> fdcolloc file has `loss_type: fd_colloc`, weakform file has `loss_type: weak_form`; fairness check confirms key training controls unchanged (`same_else: True`)
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** Create `fd_colloc` and `weak_form` Phase-1 sanity configs from locked baseline and verify loss-type fields
+**Next action:** launch three Phase-1 runs in parallel (fd_colloc, weak_form, reinforce seed-903) and collect result.json artifacts
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional
