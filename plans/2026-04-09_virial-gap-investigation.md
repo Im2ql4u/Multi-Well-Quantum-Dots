@@ -419,8 +419,8 @@ If there's an interaction: the combined effect is non-additive.
 
 ## Current State
 **Active phase:** Phase 2 - Well-Aware Architecture: Pair Features
-**Active step:** 2.4 - A/B experiment: well-aware PINN vs baseline
-**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "...m_old=GroundStateWF(..., use_well_features=False); m_new=GroundStateWF(..., use_well_features=True); ..."` -> both paths produce finite outputs and `PASS`
+**Active step:** 2.5 - Virial evaluation for Phase 2
+**Last evidence:** `ls results/p2wa_*/result.json | wc -l` -> 3 completed runs; final energies: baseline s901 E=7.038576 (var=0.010267), well-aware s901 E=7.027732 (var=0.003105), well-aware s902 E=7.030108 (var=0.003758)
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** create Phase-2 A/B configs (`p2wa`) and run 3 parallel trainings (baseline, well-aware s901, well-aware s902)
+**Next action:** run virial diagnostics on baseline + `p2wa_*` results to test whether well-aware features reduce virial residual by >2% absolute
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional

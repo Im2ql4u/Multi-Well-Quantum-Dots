@@ -1,0 +1,40 @@
+run_name: p2wa_n4_dd_wellpinn_s901
+allow_missing_dmc: true
+
+system:
+  type: double_dot
+  n_left: 2
+  n_right: 2
+  separation: 4.0
+  omega: 1.0
+  dim: 2
+  coulomb: true
+
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 64
+  bf_layers: 2
+  use_backflow: true
+  use_well_features: true
+
+training:
+  epochs: 6000
+  lr: 0.0003
+  lr_warmup_epochs: 600
+  lr_min_factor: 0.1
+  n_coll: 512
+  n_cand_mult: 8
+  loss_type: reinforce
+  fd_h: 0.01
+  reinforce_clip_width: 3.0
+  sampler: mh
+  mh_steps: 40
+  mh_step_scale: 0.12
+  mh_decorrelation: 2
+  grad_clip: 1.0
+  print_every: 400
+  seed: 901
+  device: cuda:1
+  dtype: float64
