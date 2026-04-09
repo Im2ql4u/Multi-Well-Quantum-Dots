@@ -418,9 +418,9 @@ If there's an interaction: the combined effect is non-additive.
 - Overall: At least one variant with virial < 10% (stretch: < 5%) across 2 seeds
 
 ## Current State
-**Active phase:** Phase 0 - Commit and Baseline Lock
-**Active step:** 0.2 - Record baseline config as canonical reference
-**Last evidence:** `git add src/PINN.py src/training/collocation.py && git diff --cached --stat` -> 2 files changed (6 insertions, 4 deletions); commit `5de3c35` created
+**Active phase:** Phase 0 - Commit and Baseline Lock (completed)
+**Active step:** phase reflection gate before Phase 1
+**Last evidence:** `diff configs/baseline/n4_dd_pinn_s901_baseline.yaml configs/phase2_fix_20260408/n4_pinn_s901_cusp_epsfix_2h.yaml` -> no output (files identical); commits `5de3c35` and `25b3ee0` created
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** Create `configs/baseline/n4_dd_pinn_s901_baseline.yaml` from the phase2 2h seed-901 config and validate with `diff`
+**Next action:** Review Phase 0 outputs and confirm whether to proceed to Phase 1
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional
