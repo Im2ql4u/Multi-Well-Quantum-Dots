@@ -418,9 +418,9 @@ If there's an interaction: the combined effect is non-additive.
 - Overall: At least one variant with virial < 10% (stretch: < 5%) across 2 seeds
 
 ## Current State
-**Active phase:** Phase 0 - Commit and Baseline Lock (completed)
-**Active step:** phase reflection gate before Phase 1
-**Last evidence:** `diff configs/baseline/n4_dd_pinn_s901_baseline.yaml configs/phase2_fix_20260408/n4_pinn_s901_cusp_epsfix_2h.yaml` -> no output (files identical); commits `5de3c35` and `25b3ee0` created
+**Active phase:** Phase 1 - Sampling & Loss Sanity Checks
+**Active step:** 1.2 - Loss function A/B config creation
+**Last evidence:** `PYTHONPATH=src .venv/bin/python scripts/check_mh_distribution.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --n-samples 50000 --mh-steps 100 --device cuda:0` -> mean counts [2.00022, 1.99978], exact occupancy rate 0.9931, acceptance 0.6030, well centers near +/-2.14, outputs saved
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** Review Phase 0 outputs and confirm whether to proceed to Phase 1
+**Next action:** Create `fd_colloc` and `weak_form` Phase-1 sanity configs from locked baseline and verify loss-type fields
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional
