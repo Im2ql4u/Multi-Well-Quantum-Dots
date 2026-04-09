@@ -418,9 +418,9 @@ If there's an interaction: the combined effect is non-additive.
 - Overall: At least one variant with virial < 10% (stretch: < 5%) across 2 seeds
 
 ## Current State
-**Active phase:** Phase 1 - Sampling & Loss Sanity Checks (completed)
-**Active step:** phase reflection gate before Phase 2
-**Last evidence:** `PYTHONPATH=src .venv/bin/python scripts/run_virial_check.py --result-dirs results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 results/p1san_*` -> baseline reinforce virial 14.17%, reinforce(seed903) 14.56%, weak_form 56.45%, fd_colloc 58.17%
+**Active phase:** Phase 2 - Well-Aware Architecture: Pair Features
+**Active step:** 2.2 - Add well-aware pair features to PINN
+**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "...setup_closed_shell_system...GroundStateWF..."` -> `well_id: tensor([0, 0, 1, 1])` and `model well_id buffer: tensor([0, 0, 1, 1])`
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** proceed to Phase 2 with `reinforce` as the only stable loss baseline for fair architecture A/B tests
+**Next action:** implement same-well vs inter-well pair splitting in `PINN.forward` and pass `well_id` from `GroundStateWF`
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional

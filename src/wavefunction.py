@@ -76,6 +76,14 @@ def setup_closed_shell_system(
 
     C_occ = torch.eye(n_basis, n_orb, device=device, dtype=dtype)
     spin = torch.tensor([0] * n_orb + [1] * n_orb, device=device, dtype=torch.int64)
+    well_ids: list[int] = []
+    for well_idx, well in enumerate(system.wells):
+        well_ids.extend([well_idx] * int(well.n_particles))
+    if len(well_ids) != int(system.n_particles):
+        raise ValueError(
+            "Well occupancy does not match system.n_particles when building well_id mapping."
+        )
+    well_id = torch.tensor(well_ids, device=device, dtype=torch.long)
     if E_ref == "auto":
         e_ref_val = float(system.n_particles)
     else:
@@ -87,6 +95,7 @@ def setup_closed_shell_system(
         "omega": float(system.omega),
         "nx": nx,
         "ny": ny,
+        "well_id": well_id,
     }
     return (C_occ, spin, params)
 
@@ -128,6 +137,16 @@ class GroundStateWF(nn.Module):
                 "GroundStateWF expects a 1D spin template with length system.n_particles."
             )
         self.register_buffer("spin_template", spin.detach().clone().to(torch.long), persistent=False)
+        default_well_id = torch.zeros(system.n_particles, device=C_occ.device, dtype=torch.long)
+        well_id = params.get("well_id", default_well_id)
+        if not isinstance(well_id, torch.Tensor):
+            well_id = torch.tensor(well_id, device=C_occ.device, dtype=torch.long)
+        well_id = well_id.detach().clone().to(device=C_occ.device, dtype=torch.long)
+        if well_id.ndim != 1 or well_id.numel() != system.n_particles:
+            raise ValueError(
+                "GroundStateWF expects well_id as a 1D tensor with length system.n_particles."
+            )
+        self.register_buffer("well_id", well_id, persistent=False)
 
         self.pinn = PINN(
             n_particles=system.n_particles,
