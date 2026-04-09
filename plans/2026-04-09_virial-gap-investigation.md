@@ -418,9 +418,9 @@ If there's an interaction: the combined effect is non-additive.
 - Overall: At least one variant with virial < 10% (stretch: < 5%) across 2 seeds
 
 ## Current State
-**Active phase:** Phase 1 - Sampling & Loss Sanity Checks
-**Active step:** 1.4 - Virial comparison for Phase 1
-**Last evidence:** `ls results/p1san_*/result.json | wc -l` -> 3 completed runs; summaries: reinforce(seed903) E=7.039588 var=0.007590, weak_form(seed901) E=7.694271 var=3.279935, fd_colloc(seed901) E=8.954605 var=3.990321
+**Active phase:** Phase 1 - Sampling & Loss Sanity Checks (completed)
+**Active step:** phase reflection gate before Phase 2
+**Last evidence:** `PYTHONPATH=src .venv/bin/python scripts/run_virial_check.py --result-dirs results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 results/p1san_*` -> baseline reinforce virial 14.17%, reinforce(seed903) 14.56%, weak_form 56.45%, fd_colloc 58.17%
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** run `scripts/run_virial_check.py` on baseline + all `p1san_*` outputs and assess whether loss choice changes virial materially
+**Next action:** proceed to Phase 2 with `reinforce` as the only stable loss baseline for fair architecture A/B tests
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional
