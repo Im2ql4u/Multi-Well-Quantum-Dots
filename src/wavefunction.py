@@ -119,6 +119,7 @@ class GroundStateWF(nn.Module):
         pinn_layers: int = 2,
         bf_hidden: int = 32,
         bf_layers: int = 2,
+        use_well_features: bool = False,
         use_backflow: bool = True,
     ) -> None:
         super().__init__()
@@ -155,6 +156,7 @@ class GroundStateWF(nn.Module):
             hidden_dim=max(int(pinn_hidden), 16),
             n_layers=max(int(pinn_layers), 1),
             act="gelu",
+            use_well_features=bool(use_well_features),
         )
 
         self.backflow: nn.Module | None = None

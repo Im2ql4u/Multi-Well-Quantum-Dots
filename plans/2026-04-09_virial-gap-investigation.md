@@ -419,8 +419,8 @@ If there's an interaction: the combined effect is non-additive.
 
 ## Current State
 **Active phase:** Phase 2 - Well-Aware Architecture: Pair Features
-**Active step:** 2.3 - Config flag and backward compatibility
-**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "...m = GroundStateWF(...); x = torch.randn(...); lp = m(x); loss = lp.mean(); loss.backward(); ..."` -> finite `log_psi` values (shape `[4]`), `grad_norm=2.9107`, `PASS`
+**Active step:** 2.4 - A/B experiment: well-aware PINN vs baseline
+**Last evidence:** `PYTHONPATH=src .venv/bin/python -c "...m_old=GroundStateWF(..., use_well_features=False); m_new=GroundStateWF(..., use_well_features=True); ..."` -> both paths produce finite outputs and `PASS`
 **Current risk:** The well-awareness idea may not be sufficient; unknown if problem is architectural or numerical
-**Next action:** add `use_well_features` config flag and preserve backward-compatible behavior when disabled
+**Next action:** create Phase-2 A/B configs (`p2wa`) and run 3 parallel trainings (baseline, well-aware s901, well-aware s902)
 **Blockers:** None — all GPUs free (0,1,2,4,5,6,7 available), code is functional

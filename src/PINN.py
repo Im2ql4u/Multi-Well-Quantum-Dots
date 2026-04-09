@@ -51,6 +51,7 @@ class PINN(nn.Module):
         act: str = "gelu",
         init: str = "xavier",
         use_pair_attn: bool = False,
+        use_well_features: bool = False,
         use_gate: bool = True,
         gate_radius_aho: float = 0.30,
         eps_feat_aho: float = 0.20,
@@ -61,6 +62,7 @@ class PINN(nn.Module):
         self.dL = int(dL)
         self.omega = float(omega)
         self.use_pair_attn = bool(use_pair_attn)
+        self.use_well_features = bool(use_well_features)
         self.use_gate = bool(use_gate)
         self.gate_radius_aho = float(gate_radius_aho)
         self.eps_feat_aho = float(eps_feat_aho)
@@ -75,12 +77,17 @@ class PINN(nn.Module):
         self.phi = self._build_mlp(self.d, hidden_dim, self.dL, n_layers, self.act)
         self.psi_in_dim = 6
         self.psi = self._build_mlp(self.psi_in_dim, hidden_dim, self.dL, n_layers, self.act)
-        # inputs: mean φ (dL) + intra ψ (dL) + inter ψ (dL) + safe extras (2)
-        self.rho = self._build_mlp(3 * self.dL + 2, hidden_dim, 1, 2, self.act)
+        if self.use_well_features:
+            # inputs: mean φ (dL) + intra ψ (dL) + inter ψ (dL) + safe extras (2)
+            rho_in_dim = 3 * self.dL + 2
+        else:
+            # Backward-compatible mode: mean φ (dL) + pooled ψ (dL) + safe extras (2)
+            rho_in_dim = 2 * self.dL + 2
+        self.rho = self._build_mlp(rho_in_dim, hidden_dim, 1, 2, self.act)
 
         # optional norms (off by default)
         self.psi_norm = nn.LayerNorm(self.dL, elementwise_affine=True)
-        self.rho_norm = nn.LayerNorm(3 * self.dL + 2, elementwise_affine=True)
+        self.rho_norm = nn.LayerNorm(rho_in_dim, elementwise_affine=True)
 
         self._initialize_weights(init)
 
@@ -205,32 +212,39 @@ class PINN(nn.Module):
         # optional short-range gate
         gate = self._short_range_gate(r)  # (B,P,1)
         psi_out = psi_out * gate
-        if well_id is None:
-            same_well = torch.ones(B, psi_out.shape[1], 1, device=x.device, dtype=x.dtype)
-        else:
-            well_id = well_id.to(device=x.device, dtype=torch.long)
-            if well_id.ndim == 1:
-                well_id = well_id.unsqueeze(0).expand(B, -1)
-            if well_id.shape != (B, N):
-                raise ValueError(
-                    f"well_id must have shape (B,N) or (N,), got {tuple(well_id.shape)}"
-                )
-            wi = well_id[:, self.idx_i]
-            wj = well_id[:, self.idx_j]
-            same_well = (wi == wj).to(x.dtype).unsqueeze(-1)
+        if self.use_well_features:
+            if well_id is None:
+                same_well = torch.ones(B, psi_out.shape[1], 1, device=x.device, dtype=x.dtype)
+            else:
+                well_id = well_id.to(device=x.device, dtype=torch.long)
+                if well_id.ndim == 1:
+                    well_id = well_id.unsqueeze(0).expand(B, -1)
+                if well_id.shape != (B, N):
+                    raise ValueError(
+                        f"well_id must have shape (B,N) or (N,), got {tuple(well_id.shape)}"
+                    )
+                wi = well_id[:, self.idx_i]
+                wj = well_id[:, self.idx_j]
+                same_well = (wi == wj).to(x.dtype).unsqueeze(-1)
 
-        inter_well = 1.0 - same_well
-        intra_denom = same_well.sum(dim=1).clamp_min(1.0)
-        inter_denom = inter_well.sum(dim=1).clamp_min(1.0)
-        psi_intra = (psi_out * same_well).sum(dim=1) / intra_denom
-        psi_inter = (psi_out * inter_well).sum(dim=1) / inter_denom
+            inter_well = 1.0 - same_well
+            intra_denom = same_well.sum(dim=1).clamp_min(1.0)
+            inter_denom = inter_well.sum(dim=1).clamp_min(1.0)
+            psi_intra = (psi_out * same_well).sum(dim=1) / intra_denom
+            psi_inter = (psi_out * inter_well).sum(dim=1) / inter_denom
+        else:
+            psi_intra = psi_out.mean(dim=1)
+            psi_inter = torch.zeros_like(psi_intra)
 
         # SAFE extras only
         r2_mean = (x_scaled**2).mean(dim=(1, 2), keepdim=False).unsqueeze(-1)  # (B,1)
         extras = torch.cat([r2_mean, s1_mean], dim=1)  # (B,2)
 
         # readout
-        rho_in = torch.cat([phi_mean, psi_intra, psi_inter, extras], dim=1)  # (B,3*dL+2)
+        if self.use_well_features:
+            rho_in = torch.cat([phi_mean, psi_intra, psi_inter, extras], dim=1)
+        else:
+            rho_in = torch.cat([phi_mean, psi_intra, extras], dim=1)
         out = self.rho(rho_in)  # (B,1)
 
         # --- Analytic cusp uses *physical* coords by default ---

@@ -104,6 +104,7 @@ def main() -> None:
         pinn_layers=int(arch_cfg.get("pinn_layers", 2)),
         bf_hidden=int(arch_cfg.get("bf_hidden", 32)),
         bf_layers=int(arch_cfg.get("bf_layers", 2)),
+        use_well_features=bool(arch_cfg.get("use_well_features", False)),
         use_backflow=bool(arch_cfg.get("use_backflow", True)),
     )
 
