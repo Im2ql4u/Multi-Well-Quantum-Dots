@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from config import SystemConfig
 from observables.validation import compute_virial_metrics
+from potential import compute_potential
 from training.collocation import _laplacian_over_psi_autograd, _laplacian_over_psi_fd, _potential_energy
 from training.sampling import importance_resample, mcmc_resample
 from wavefunction import GroundStateWF, resolve_reference_energy, setup_closed_shell_system
@@ -93,6 +94,20 @@ def _compute_local_energy_components(
         raise RuntimeError("Non-finite kinetic term encountered during virial check.")
 
     return (e_loc, t_loc, v_trap, v_int)
+
+
+def _compute_r_dot_grad_v_total(
+    x: torch.Tensor,
+    *,
+    system: SystemConfig,
+    spin: torch.Tensor,
+) -> torch.Tensor:
+    x_req = x.detach().clone().requires_grad_(True)
+    v = compute_potential(x_req, system=system, spin=spin)
+    grad_v = torch.autograd.grad(v.sum(), x_req, create_graph=False, retain_graph=False)[0]
+    if not torch.isfinite(grad_v).all():
+        raise RuntimeError("Non-finite potential gradient in generalized virial evaluation.")
+    return torch.sum(x_req * grad_v, dim=(1, 2)).detach()
 
 
 def _stats(sum_1: float, sum_2: float, n: int) -> tuple[float, float, float]:
@@ -196,12 +211,14 @@ def run_virial_check(
     sum_t = sum_t2 = 0.0
     sum_vt = sum_vt2 = 0.0
     sum_vi = sum_vi2 = 0.0
+    sum_rgv = sum_rgv2 = 0.0
     total = 0
 
     x_prev: torch.Tensor | None = None
     mh_scale = float(mh_step_scale)
     mh_accept_rates: list[float] = []
     ess_vals: list[float] = []
+    spin_dev = spin.to(dev)
 
     print(f"  Running {n_batches} batches (~{batch_size} each), sampler={sampler} ...")
 
@@ -280,6 +297,7 @@ def run_virial_check(
             fd_h=fd_h_eval,
             laplacian_mode=laplacian_mode_eval,
         )
+        r_dot_grad_v = _compute_r_dot_grad_v_total(x_batch, system=system, spin=spin_dev)
 
         # mcmc_resample reuses chain shape from x_prev. Use actual sample count.
         bsz = int(x_batch.shape[0])
@@ -292,6 +310,8 @@ def run_virial_check(
         sum_vt2 += float((v_trap * v_trap).sum().item())
         sum_vi += float(v_int.sum().item())
         sum_vi2 += float((v_int * v_int).sum().item())
+        sum_rgv += float(r_dot_grad_v.sum().item())
+        sum_rgv2 += float((r_dot_grad_v * r_dot_grad_v).sum().item())
         total += bsz
 
         if (bi + 1) % 5 == 0 or bi == n_batches - 1:
@@ -311,12 +331,21 @@ def run_virial_check(
     t_mean, _, t_stderr = _stats(sum_t, sum_t2, total)
     vt_mean, _, vt_stderr = _stats(sum_vt, sum_vt2, total)
     vi_mean, _, vi_stderr = _stats(sum_vi, sum_vi2, total)
+    rgv_mean, _, rgv_stderr = _stats(sum_rgv, sum_rgv2, total)
 
     vir_lhs, vir_rhs, vir_res, vir_rel = compute_virial_metrics(
         T_mean=t_mean,
         V_trap_mean=vt_mean,
         V_int_mean=vi_mean,
         E_mean=e_mean,
+        r_dot_grad_v_mean=rgv_mean,
+    )
+    _, vir_rhs_legacy, vir_res_legacy, vir_rel_legacy = compute_virial_metrics(
+        T_mean=t_mean,
+        V_trap_mean=vt_mean,
+        V_int_mean=vi_mean,
+        E_mean=e_mean,
+        r_dot_grad_v_mean=None,
     )
 
     out: dict[str, Any] = {
@@ -334,10 +363,15 @@ def run_virial_check(
         "V_trap_stderr": vt_stderr,
         "V_int_mean": vi_mean,
         "V_int_stderr": vi_stderr,
+        "r_dot_gradV_mean": rgv_mean,
+        "r_dot_gradV_stderr": rgv_stderr,
         "virial_lhs": vir_lhs,
         "virial_rhs": vir_rhs,
         "virial_residual": vir_res,
         "virial_relative": vir_rel,
+        "virial_rhs_legacy": vir_rhs_legacy,
+        "virial_residual_legacy": vir_res_legacy,
+        "virial_relative_legacy": vir_rel_legacy,
         "mh_accept_rate_mean": float(sum(mh_accept_rates) / len(mh_accept_rates)) if mh_accept_rates else None,
         "mh_warmup_batches": int(mh_warmup_batches),
         "ess_median": float(torch.tensor(sorted(ess_vals)).median().item()) if ess_vals else None,
@@ -348,8 +382,13 @@ def run_virial_check(
     print(f"  T      = {t_mean:.6f} +- {t_stderr:.6f}")
     print(f"  V_trap = {vt_mean:.6f} +- {vt_stderr:.6f}")
     print(f"  V_int  = {vi_mean:.6f} +- {vi_stderr:.6f}")
-    print(f"  Virial: 2T={vir_lhs:.6f}, 2Vt-Vi={vir_rhs:.6f}")
-    print(f"  Virial residual={vir_res:.6f}, relative={100.0*vir_rel:.2f}%")
+    print(f"  r·∇V   = {rgv_mean:.6f} +- {rgv_stderr:.6f}")
+    print(f"  Virial(new): 2T={vir_lhs:.6f}, <r·∇V>={vir_rhs:.6f}")
+    print(f"  Virial(new) residual={vir_res:.6f}, relative={100.0*vir_rel:.2f}%")
+    print(
+        f"  Virial(legacy): 2T={vir_lhs:.6f}, 2Vt-Vi={vir_rhs_legacy:.6f}, "
+        f"residual={vir_res_legacy:.6f}, relative={100.0*vir_rel_legacy:.2f}%"
+    )
     if sampler == "mh":
         print(f"  MH accept mean={out['mh_accept_rate_mean']:.3f}")
     else:
