@@ -275,14 +275,18 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 - N=4 (1+1+1+1) ground state trained (stretch goal)
 
 ## Current State
-**Active phase:** Phase transition gate (Phase 0 -> Phase 1)
-**Active step:** Await user confirmation to start Phase 1 Step 1.1
+**Active phase:** Phase 1 — Exact Diagonalization Reference
+**Active step:** Step 1.2 — Build exact diagonalization for N=2 double dot
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
 - Step 0.2 acceptance check passed on single-well legacy PINN checkpoint after mapped-legacy loader support: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134141_g0_n2_single_pinn --device cuda:0` -> `E≈3.0199`, old virial `1.67%`, new virial `1.66%`, `Delta residual=-0.000373` (old/new formulas agree as expected for single-well).
 - Step 0.3 acceptance check re-run (current evidence): `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈6.9841`, old virial `13.43%`, new virial `2.79%`, `Delta residual=1.1331`.
 - Shared evaluator updated and verified: `PYTHONPATH=src .venv/bin/python scripts/run_virial_check.py --result-dirs results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0 --n-samples 2048` -> generalized virial `1.11%` vs legacy comparator `14.60%`.
+- Phase 1 Step 1.1 acceptance checks executed:
+  - `git log --all --diff-filter=D -- '*qdsensing*'` -> no output (no deletion record in repo history).
+  - `find /itf-fi-ml/home/aleksns/ -maxdepth 4 \( -name '*qdsensing*' -o -name '*diag*nb*' \) 2>/dev/null | head -5` -> only unrelated notebook outside repo; missing notebook not found.
+  - Provenance check: `grep -n 'qdsensingmarch17b.ipynb' results/imag_time_pinn/nb_diagonalization_exec_tmux.log` shows execution start/finish for `src/qdsensingmarch17b.ipynb`, confirming it existed at runtime but is now absent.
 **Current risk:** Legacy CTNN-jastrow replay for `results/20260329_134224_g6_n2_double_1_1_ctnn` remains scientifically untrusted (implausible energy), but the generalized virial computation path is validated on modern and legacy-PINN checkpoints.
-**Next action:** Start Phase 1 Step 1.1 (locate/confirm missing diagonalization notebook) after user confirmation.
-**Blockers:** None for phase transition; legacy CTNN-only replay remains an open uncertainty.
+**Next action:** Implement Step 1.2 by creating a new exact-diagonalization script for N=2 double-dot with optional Zeeman term and run its acceptance checks.
+**Blockers:** Missing `src/qdsensingmarch17b.ipynb` cannot be recovered from current repo or nearby filesystem indices; rebuilding exact diagonalization is required.
