@@ -183,15 +183,23 @@ class PINN(nn.Module):
         x: torch.Tensor,
         spin: torch.Tensor | None = None,
         well_id: torch.Tensor | None = None,
+        cusp_coords: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         x : (B,N,d)  -> used for NN features (phi/psi/extras)
         cusp_coords : (B,N,d) or None; if provided, cusp distances are computed
-                      from these *physical* coords (default: x).
+                      from these physical coordinates (default: x).
         returns: (B,1) = f_NN(x) + u_cusp(cusp_coords)
         """
         B, N, d = x.shape
         assert N == self.n_particles and d == self.d
+
+        if cusp_coords is None:
+            cusp_coords = x
+        if cusp_coords.shape != x.shape:
+            raise ValueError(
+                f"cusp_coords must match x shape {tuple(x.shape)}, got {tuple(cusp_coords.shape)}"
+            )
 
         # --- NN features & pooling use (possibly backflowed) 'x' ---
         x_scaled = x * (self.omega**0.5)
@@ -247,8 +255,8 @@ class PINN(nn.Module):
             rho_in = torch.cat([phi_mean, psi_intra, extras], dim=1)
         out = self.rho(rho_in)  # (B,1)
 
-        # --- Analytic cusp uses *physical* coords by default ---
-        diff = x.unsqueeze(2) - x.unsqueeze(1)  # (B,N,N,d)
+        # --- Analytic cusp uses physical coordinates ---
+        diff = cusp_coords.unsqueeze(2) - cusp_coords.unsqueeze(1)  # (B,N,N,d)
         diff_pairs = diff[:, self.idx_i, self.idx_j, :]  # (B,P,d)
         r2_c = (diff_pairs * diff_pairs).sum(dim=-1, keepdim=True)  # (B,P,1)
         r_c = torch.sqrt(r2_c + torch.finfo(x.dtype).eps)

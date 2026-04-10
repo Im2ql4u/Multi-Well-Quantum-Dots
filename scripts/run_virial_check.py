@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from config import SystemConfig
 from observables.validation import compute_virial_metrics
-from training.collocation import _laplacian_over_psi_fd, _potential_energy
+from training.collocation import _laplacian_over_psi_autograd, _laplacian_over_psi_fd, _potential_energy
 from training.sampling import importance_resample, mcmc_resample
 from wavefunction import GroundStateWF, resolve_reference_energy, setup_closed_shell_system
 
@@ -63,6 +63,7 @@ def _compute_local_energy_components(
     system: SystemConfig,
     *,
     fd_h: float,
+    laplacian_mode: str,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Compute E, T, V_trap, V_int for each sample.
 
@@ -71,7 +72,12 @@ def _compute_local_energy_components(
         E = -0.5 * (∇²ψ / ψ) + V_total
     with T := E - V_total.
     """
-    lap_over_psi = _laplacian_over_psi_fd(psi_log_fn, x, float(fd_h))
+    if laplacian_mode == "fd":
+        lap_over_psi = _laplacian_over_psi_fd(psi_log_fn, x, float(fd_h))
+    elif laplacian_mode == "autograd":
+        lap_over_psi = _laplacian_over_psi_autograd(psi_log_fn, x)
+    else:
+        raise ValueError(f"Unknown laplacian_mode '{laplacian_mode}'. Expected 'fd' or 'autograd'.")
 
     with torch.no_grad():
         # Match training Hamiltonian exactly for evaluator parity.
@@ -110,6 +116,7 @@ def run_virial_check(
     mh_decorrelation: int,
     mh_warmup_batches: int,
     fd_h: float | None,
+    laplacian_mode: str | None,
 ) -> dict[str, Any]:
     cfg_path = result_dir / "config.yaml"
     model_path = result_dir / "model.pt"
@@ -157,7 +164,15 @@ def run_virial_check(
         use_backflow=bool(arch_cfg.get("use_backflow", True)),
     )
     state = torch.load(model_path, map_location=device, weights_only=True)
-    model.load_state_dict(state)
+    load_info = model.load_state_dict(state, strict=False)
+    allowed_missing = {"backflow.w_intra", "backflow.w_inter"}
+    unexpected = list(load_info.unexpected_keys)
+    missing = [k for k in load_info.missing_keys if k not in allowed_missing]
+    if unexpected or missing:
+        raise RuntimeError(
+            "Checkpoint/model mismatch while loading state_dict. "
+            f"Unexpected keys: {unexpected}; Missing keys: {missing}"
+        )
     model.to(dev).to(torch_dtype).eval()
 
     def psi_log_fn(x: torch.Tensor) -> torch.Tensor:
@@ -167,6 +182,10 @@ def run_virial_check(
         fd_h_eval = float(train_cfg.get("fd_h", 0.01))
     else:
         fd_h_eval = float(fd_h)
+    if laplacian_mode is None:
+        laplacian_mode_eval = str(train_cfg.get("laplacian_mode", "fd"))
+    else:
+        laplacian_mode_eval = str(laplacian_mode)
 
     sigma_use = sigma_fs or tuple(float(s) for s in train_cfg.get("sigma_fs", (0.8, 1.3, 2.0)))
 
@@ -259,6 +278,7 @@ def run_virial_check(
             x_batch,
             system,
             fd_h=fd_h_eval,
+            laplacian_mode=laplacian_mode_eval,
         )
 
         # mcmc_resample reuses chain shape from x_prev. Use actual sample count.
@@ -304,6 +324,7 @@ def run_virial_check(
         "sampler": sampler,
         "n_samples": int(total),
         "fd_h_eval": fd_h_eval,
+        "laplacian_mode_eval": laplacian_mode_eval,
         "E_mean": e_mean,
         "E_std": e_std,
         "E_stderr": e_stderr,
@@ -350,6 +371,12 @@ def main() -> None:
     parser.add_argument("--mh-decorrelation", type=int, default=1, help="MH decorrelation multiplier")
     parser.add_argument("--mh-warmup-batches", type=int, default=20, help="Number of MH warmup batches before scoring")
     parser.add_argument("--fd-h", type=float, default=None, help="Override FD step for local energy")
+    parser.add_argument(
+        "--laplacian-mode",
+        choices=("fd", "autograd"),
+        default=None,
+        help="Laplacian backend for local energy evaluation",
+    )
     parser.add_argument("--output", default=None, help="Optional JSON output path")
     args = parser.parse_args()
 
@@ -373,6 +400,7 @@ def main() -> None:
                 mh_decorrelation=int(args.mh_decorrelation),
                 mh_warmup_batches=int(args.mh_warmup_batches),
                 fd_h=args.fd_h,
+                laplacian_mode=args.laplacian_mode,
             )
             results.append(res)
         except Exception as exc:

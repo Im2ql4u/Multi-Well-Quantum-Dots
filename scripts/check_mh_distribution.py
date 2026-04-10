@@ -98,7 +98,15 @@ def _load_model(result_dir: Path, device: str) -> tuple[GroundStateWF, SystemCon
     )
 
     state = torch.load(model_path, map_location=device, weights_only=True)
-    model.load_state_dict(state)
+    load_info = model.load_state_dict(state, strict=False)
+    allowed_missing = {"backflow.w_intra", "backflow.w_inter"}
+    unexpected = list(load_info.unexpected_keys)
+    missing = [k for k in load_info.missing_keys if k not in allowed_missing]
+    if unexpected or missing:
+        raise RuntimeError(
+            "Checkpoint/model mismatch while loading state_dict. "
+            f"Unexpected keys: {unexpected}; Missing keys: {missing}"
+        )
     model.to(torch.device(device)).to(torch_dtype).eval()
 
     return model, system, train_cfg, torch_dtype

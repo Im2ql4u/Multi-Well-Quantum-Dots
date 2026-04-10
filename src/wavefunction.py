@@ -294,9 +294,10 @@ class GroundStateWF(nn.Module):
 
         # Slater determinant envelope (includes Gaussian, excited orbitals,
         # antisymmetry, and multi-center LCAO for double dots).
-        log_sd = self._log_slater_det(x, spin)
+        log_sd = self._log_slater_det(x_eval, spin)
 
-        correlator = self.pinn(x_eval, spin=spin, well_id=self.well_id).squeeze(-1)
+        # Keep Jastrow/cusp tied to physical coordinates; backflow modifies SD coordinates.
+        correlator = self.pinn(x, spin=spin, well_id=self.well_id, cusp_coords=x).squeeze(-1)
         log_psi = log_sd + correlator
         if torch.isnan(log_psi).any():
             raise RuntimeError("NaN in log_psi in GroundStateWF forward pass.")

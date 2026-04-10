@@ -419,8 +419,8 @@ If there's an interaction: the combined effect is non-additive.
 
 ## Current State
 **Active phase:** Phase 3 - Well-Aware Backflow + Combined (completed)
-**Active step:** phase reflection gate before Phase 4
-**Last evidence:** `PYTHONPATH=src .venv/bin/python scripts/run_virial_check.py --result-dirs results/p3wa_n4_dd_baseline_s901_20260409_181652 results/p3wa_n4_dd_wellpinn_s901_20260409_181814 results/p3wa_n4_dd_wellbf_s901_20260409_181900 results/p3wa_n4_dd_wellpinn_wellbf_s901_20260409_182034 results/p3wa_n4_dd_baseline_s902_20260409_185818` -> virial residuals: baseline s901 14.41%, well-PINN 15.15%, well-BF 15.83%, combined 14.61%, baseline s902 14.18% (all FAIL vs <10%)
-**Current risk:** Well-aware architectural modifications did not reduce virial and may increase residual in some variants; risk that error source is numerical evaluator bias or ansatz class limit
-**Next action:** Phase 3 gate output indicates no architecture win; prepare Phase 4 CTNN comparison or investigate FD-virial convergence check before new architecture expansion
+**Active step:** corrective follow-up — backflow target/cusp coordinate fix + analytic Laplacian trial
+**Last evidence:** `PYTHONPATH=src .venv/bin/python src/run_ground_state.py --config configs/phase3_fix_followup/smoke_autograd.yaml` -> Device cuda:1, epoch0 loss=37.442372 energy=-5.270307 e_var=17.244061, epoch1 loss=37.735813 energy=-3.563988 e_var=20.064756, saved `results/smoke_p3fix_autograd_20260410_080049`; and `tmux ls | grep p3fix_` -> 8 active sessions across GPUs 0-7
+**Current risk:** Autograd-Laplacian virial evaluation on legacy baseline was numerically suspicious (`--laplacian-mode autograd` gave virial 302.69% with negative kinetic), so autograd paths require careful post-run validation against FD
+**Next action:** Let the 8-way p3fix sweep run to completion, then run side-by-side virial checks (FD vs autograd) on each result and compare corrected architecture effects
 **Blockers:** None

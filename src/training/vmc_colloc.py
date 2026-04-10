@@ -26,6 +26,7 @@ class GroundStateTrainingConfig:
     n_coll: int = 256
     n_cand_mult: int = 8
     loss_type: str = "weak_form"
+    laplacian_mode: str = "fd"
     direct_weight: float = 0.1
     fd_h: float = 0.01
     min_pair_cutoff: float = 0.0
@@ -123,6 +124,10 @@ def train_ground_state(
 
     if train_cfg.sampler not in ("is", "mh"):
         raise ValueError(f"Unknown sampler '{train_cfg.sampler}', expected 'is' or 'mh'.")
+    if train_cfg.laplacian_mode not in ("fd", "autograd"):
+        raise ValueError(
+            f"Unknown laplacian_mode '{train_cfg.laplacian_mode}', expected 'fd' or 'autograd'."
+        )
 
     x_prev: torch.Tensor | None = None
     mh_scale = float(train_cfg.mh_step_scale)
@@ -200,6 +205,8 @@ def train_ground_state(
                 omega=system.omega,
                 params=params,
                 system=system,
+                h=train_cfg.fd_h,
+                laplacian_mode=train_cfg.laplacian_mode,
             )
             loss = weighted_mean(e_weak)
             energy = float(loss.detach().item())
@@ -212,6 +219,8 @@ def train_ground_state(
                 params=params,
                 system=system,
                 direct_weight=train_cfg.direct_weight,
+                h=train_cfg.fd_h,
+                laplacian_mode=train_cfg.laplacian_mode,
             )
             loss = weighted_mean(e_eff)
             energy = float(loss.detach().item())
@@ -224,6 +233,7 @@ def train_ground_state(
                 params=params,
                 system=system,
                 h=train_cfg.fd_h,
+                laplacian_mode=train_cfg.laplacian_mode,
             )
             loss = weighted_mean(e_loc)
             energy = float(loss.detach().item())
@@ -231,12 +241,30 @@ def train_ground_state(
         elif train_cfg.loss_type == "reinforce":
             # Forward pass to get log_psi (carries gradient).
             log_psi = model(x)
-            # Local energy WITHOUT gradient graph (detached).
-            with torch.no_grad():
+            # Local energy estimate for score-function baseline.
+            # For autograd Laplacian we must build derivatives once, then detach.
+            if train_cfg.laplacian_mode == "autograd":
                 _, _, e_loc, _ = colloc_fd_loss(
-                    psi_log_fn, x, omega=system.omega, params=params,
-                    system=system, h=train_cfg.fd_h,
+                    psi_log_fn,
+                    x,
+                    omega=system.omega,
+                    params=params,
+                    system=system,
+                    h=train_cfg.fd_h,
+                    laplacian_mode=train_cfg.laplacian_mode,
                 )
+                e_loc = e_loc.detach()
+            else:
+                with torch.no_grad():
+                    _, _, e_loc, _ = colloc_fd_loss(
+                        psi_log_fn,
+                        x,
+                        omega=system.omega,
+                        params=params,
+                        system=system,
+                        h=train_cfg.fd_h,
+                        laplacian_mode=train_cfg.laplacian_mode,
+                    )
             # MAD-based outlier clipping (matches old code's clip_el).
             clip_w = float(train_cfg.reinforce_clip_width)
             if clip_w > 0:
