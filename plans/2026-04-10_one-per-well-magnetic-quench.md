@@ -287,6 +287,15 @@ None anticipated — standard implementation path. The exact diag is textbook qu
   - `git log --all --diff-filter=D -- '*qdsensing*'` -> no output (no deletion record in repo history).
   - `find /itf-fi-ml/home/aleksns/ -maxdepth 4 \( -name '*qdsensing*' -o -name '*diag*nb*' \) 2>/dev/null | head -5` -> only unrelated notebook outside repo; missing notebook not found.
   - Provenance check: `grep -n 'qdsensingmarch17b.ipynb' results/imag_time_pinn/nb_diagonalization_exec_tmux.log` shows execution start/finish for `src/qdsensingmarch17b.ipynb`, confirming it existed at runtime but is now absent.
-**Current risk:** Legacy CTNN-jastrow replay for `results/20260329_134224_g6_n2_double_1_1_ctnn` remains scientifically untrusted (implausible energy), but the generalized virial computation path is validated on modern and legacy-PINN checkpoints.
-**Next action:** Implement Step 1.2 by creating a new exact-diagonalization script for N=2 double-dot with optional Zeeman term and run its acceptance checks.
-**Blockers:** Missing `src/qdsensingmarch17b.ipynb` cannot be recovered from current repo or nearby filesystem indices; rebuilding exact diagonalization is required.
+ - Step 1.2 script created and executed:
+   - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --n-max 6 --sep 4.0 --omega 1.0 --B 0.0`
+     -> `E0=2.65539930`, lowest eigenvalues `[2.65539930, 2.80144984, 2.80144984, 2.80144984, 2.88052515]`.
+   - sanity sweep for model behavior:
+     - `... --kappa 0.0 --nx 24 --ny 24` -> `E0=2.63899852`
+     - `... --kappa 1.0 --nx 24 --ny 24` -> `E0=2.65469132`
+   - optional B-field check:
+     - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --n-max 6 --sep 4.0 --omega 1.0 --B 0.5`
+       -> `E0=2.30144984`.
+**Current risk:** Energy scale from the rebuilt DVR+CI model does not yet match the expected VMC anchor (~2.17 at `sep=4`), so physical calibration and known-limit validation (Step 1.3) are still required before using this as a hard reference.
+**Next action:** Execute Step 1.3 (`--validate`) and adjust model/calibration if limits fail.
+**Blockers:** None for Step 1.3; notebook is now present and script path is restored.
