@@ -153,7 +153,7 @@ def test_lr_schedule_factor_is_flat_when_disabled() -> None:
     assert factors == [1.0] * 5
 
 
-def test_compute_virial_metrics_uses_coulomb_minus_sign() -> None:
+def test_compute_virial_metrics_legacy_fallback_uses_coulomb_minus_sign() -> None:
     virial_lhs, virial_rhs, virial_residual, virial_relative = compute_virial_metrics(
         T_mean=0.5,
         V_trap_mean=1.0,
@@ -163,6 +163,21 @@ def test_compute_virial_metrics_uses_coulomb_minus_sign() -> None:
 
     assert virial_lhs == 1.0
     assert virial_rhs == 1.0
+    assert virial_residual == 0.0
+    assert virial_relative == 0.0
+
+
+def test_compute_virial_metrics_generalized_override_path() -> None:
+    virial_lhs, virial_rhs, virial_residual, virial_relative = compute_virial_metrics(
+        T_mean=1.0,
+        V_trap_mean=10.0,
+        V_int_mean=10.0,
+        E_mean=2.0,
+        r_dot_grad_v_mean=2.0,
+    )
+
+    assert virial_lhs == 2.0
+    assert virial_rhs == 2.0
     assert virial_residual == 0.0
     assert virial_relative == 0.0
 
