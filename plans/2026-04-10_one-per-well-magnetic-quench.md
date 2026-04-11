@@ -397,6 +397,19 @@ None anticipated — standard implementation path. The exact diag is textbook qu
  - Comparison vs Step 4.2 VMC full run (`results/p4_n3_1p1p1w_gs_s42_20260411_112549`):
   - VMC `E_final=4.51762223` vs diag reference `~3.32` -> gap `+1.1977` (`~36.1%` high).
   - result artifact: `results/p4_n3_diag_reference_20260411.json`.
-**Current risk:** Step 4.2 N=3 training currently appears physically inconsistent with diagonalization reference; this is likely an implementation/training issue, not a missing reference issue.
-**Next action:** Return to diagnostic loop for Step 4.2 (Layer 2/3): verify odd-N Slater construction and sampling/training settings before attempting N=4.
-**Blockers:** Phase 4 progression to N=4 is blocked by unresolved N=3 energy mismatch.
+ - Step 4.2 diagnostic root cause identified (Layer 2 — implementation):
+  - odd-N Slater setup used only `max(n_up,n_down)` shared spatial orbitals and first-column identity occupancy, which for `N=3` + `>2` wells biased occupancy toward the first well block.
+  - evidence pre-fix (sampled from saved model): nearest-well occupancy fractions were `[0.514, 0.479, 0.007]` (third well effectively empty), matching the anomalously high energy.
+ - Fix implemented:
+  - open-shell orbital bookkeeping now uses separate up/down column sets for odd N.
+  - occupied basis columns are distributed round-robin across wells in setup to avoid first-well collapse.
+  - tests added/updated in `tests/test_wavefunction.py` and passing.
+ - Post-fix validation runs:
+  - Coulomb smoke rerun (`results/smoke_p4_n3_1p1p1w_gs_s42_20260411_114755`) -> `E_final=3.63737891`.
+  - full rerun (`results/p4_n3_1p1p1w_gs_s42_20260411_115650`) -> `E_final=3.63554528`.
+  - post-fix occupancy is balanced `[0.334, 0.332, 0.334]` across three wells.
+ - Residual mismatch after fix:
+  - vs diag reference `~3.32`, remaining gap is `+0.3156` (`~9.5%` high), far smaller than pre-fix `36.1%` but still above acceptance.
+**Current risk:** Main catastrophic error was fixed, but a non-trivial residual gap remains; likely causes are remaining architecture/training bias and/or imperfect Hamiltonian parity between VMC soft-min confinement and current one-per-well diag model.
+**Next action:** Run parity-focused ablations (same potential form / interaction convention) before tuning hyperparameters or moving to N=4.
+**Blockers:** N=4 progression remains blocked until N=3 residual gap is explained.

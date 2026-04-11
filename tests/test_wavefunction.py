@@ -46,7 +46,7 @@ def test_ground_state_wavefunction_supports_all_architectures():
 
 def test_setup_supports_open_shell_odd_n():
     system = SystemConfig.triple_dot(Ns=(1, 1, 1), spacing=4.0, omega=1.0, dim=2)
-    (_, spin, params) = setup_closed_shell_system(
+    (c_occ, spin, params) = setup_closed_shell_system(
         system, device="cpu", dtype=torch.float64, E_ref=3
     )
     assert spin.numel() == 3
@@ -54,6 +54,14 @@ def test_setup_supports_open_shell_odd_n():
     assert int((spin == 1).sum().item()) == 1
     assert params["n_up"] == 2
     assert params["n_down"] == 1
+    assert params["up_col_idx"] == [0, 1]
+    assert params["down_col_idx"] == [2]
+
+    # Ensure occupied columns are not all taken from a single well block.
+    nonzero_rows = torch.nonzero(c_occ, as_tuple=False)[:, 0].tolist()
+    # For this setup n_orb=3 -> per-well basis size is 1; expected occupied rows
+    # include one basis function from each well block.
+    assert set(nonzero_rows) == {0, 1, 2}
 
 
 def test_ground_state_wavefunction_three_wells_forward_is_finite():

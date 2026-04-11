@@ -44,7 +44,8 @@ def setup_closed_shell_system(
 ) -> tuple[torch.Tensor, torch.Tensor, dict]:
     n_up = (system.n_particles + 1) // 2
     n_down = system.n_particles // 2
-    n_orb = max(n_up, n_down)
+    is_open_shell = n_up != n_down
+    n_orb = (n_up + n_down) if is_open_shell else n_up
     dim = system.dim
     n_wells = len(system.wells)
 
@@ -74,7 +75,21 @@ def setup_closed_shell_system(
     else:
         raise ValueError(f"Unsupported dim={dim} for closed-shell setup.")
 
-    C_occ = torch.eye(n_basis, n_orb, device=device, dtype=dtype)
+    # Build occupied orbital columns by distributing low local basis functions
+    # round-robin across wells: [(well0,orb0), (well1,orb0), ..., (well0,orb1), ...].
+    occ_basis_indices: list[int] = []
+    local_idx = 0
+    while len(occ_basis_indices) < n_orb:
+        for w in range(n_wells):
+            occ_basis_indices.append(w * n_basis_per_well + local_idx)
+            if len(occ_basis_indices) >= n_orb:
+                break
+        local_idx += 1
+
+    C_occ = torch.zeros(n_basis, n_orb, device=device, dtype=dtype)
+    for col, basis_idx in enumerate(occ_basis_indices):
+        C_occ[basis_idx, col] = 1.0
+
     spin = torch.tensor([0] * n_up + [1] * n_down, device=device, dtype=torch.int64)
     well_ids: list[int] = []
     for well_idx, well in enumerate(system.wells):
@@ -98,6 +113,8 @@ def setup_closed_shell_system(
         "well_id": well_id,
         "n_up": int(n_up),
         "n_down": int(n_down),
+        "up_col_idx": list(range(n_up)),
+        "down_col_idx": (list(range(n_up, n_up + n_down)) if is_open_shell else list(range(n_up))),
     }
     return (C_occ, spin, params)
 
@@ -290,8 +307,11 @@ class GroundStateWF(nn.Module):
 
         n_up = int(idx_up.numel())
         n_down = int(idx_down.numel())
-        Psi_up = Psi[:, idx_up, :n_up]      # (B, n_up, n_up)
-        Psi_down = Psi[:, idx_down, :n_down]  # (B, n_down, n_down)
+        up_cols = self.sd_params.get("up_col_idx", list(range(n_up)))
+        down_cols = self.sd_params.get("down_col_idx", list(range(n_down)))
+
+        Psi_up = Psi[:, idx_up, :][:, :, up_cols]      # (B, n_up, n_up)
+        Psi_down = Psi[:, idx_down, :][:, :, down_cols]  # (B, n_down, n_down)
 
         if n_up > 0:
             _, log_up = torch.linalg.slogdet(Psi_up)

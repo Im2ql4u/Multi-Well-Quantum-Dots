@@ -1,0 +1,47 @@
+allow_missing_dmc: true
+run_name: smoke_p4_n3_1p1p1w_nocoul_s42
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 32
+  bf_layers: 2
+  use_backflow: false
+system:
+  type: custom
+  dim: 2
+  coulomb: false
+  wells:
+  - center:
+    - -4.0
+    - 0.0
+    omega: 1.0
+    n_particles: 1
+  - center:
+    - 0.0
+    - 0.0
+    omega: 1.0
+    n_particles: 1
+  - center:
+    - 4.0
+    - 0.0
+    omega: 1.0
+    n_particles: 1
+training:
+  epochs: 600
+  lr: 0.001
+  lr_warmup_epochs: 100
+  lr_min_factor: 0.1
+  n_coll: 256
+  loss_type: reinforce
+  fd_h: 0.01
+  reinforce_clip_width: 5.0
+  sampler: mh
+  mh_steps: 10
+  mh_step_scale: 0.25
+  mh_decorrelation: 1
+  grad_clip: 1.0
+  print_every: 100
+  seed: 42
+  device: cuda:5
+  dtype: float64
