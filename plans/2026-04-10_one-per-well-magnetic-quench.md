@@ -275,8 +275,8 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 - N=4 (1+1+1+1) ground state trained (stretch goal)
 
 ## Current State
-**Active phase:** Phase 1 — Exact Diagonalization Reference
-**Active step:** Phase 1 gate review
+**Active phase:** Phase 2 — Validated N=2 (1+1) Ground State
+**Active step:** Step 2.1 — Create config for N=2 (1+1) ground state
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -305,6 +305,11 @@ None anticipated — standard implementation path. The exact diag is textbook qu
  - B-field sanity run remains operational:
    - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --sep 4.0 --omega 1.0 --B 0.5`
      -> `E0=2.67910080` with stable eigenvalue output.
-**Current risk:** Validation now passes the known limits, but reference energies are tied to current one-per-well parameter conventions (`kinetic_prefactor=0.5`, default `kappa=0.7`) and should be logged explicitly in downstream comparisons.
-**Next action:** Phase reflection and user confirmation before starting Phase 2.
-**Blockers:** None for Phase 1.
+ - Step 2.1 config created:
+   - `configs/one_per_well/n2_1_1_gs_s42.yaml` with `double_dot`, `n_left=1`, `n_right=1`, `loss_type=reinforce`, `arch_type=pinn`, `epochs=6000`, `seed=42`, `device=cuda:0`.
+   - Acceptance check:
+     - `cat configs/one_per_well/n2_1_1_gs_s42.yaml | grep -E 'n_left|n_right|loss_type|arch_type'`
+       -> `arch_type: pinn`, `n_left: 1`, `n_right: 1`, `loss_type: reinforce`.
+**Current risk:** Phase 2 training can still fail if run settings deviate from known-stable REINFORCE + MH setup.
+**Next action:** Run Phase 2.2 sanity + full training on GPU in tmux and compare final energy against exact diag reference.
+**Blockers:** None.
