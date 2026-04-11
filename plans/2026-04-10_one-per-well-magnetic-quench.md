@@ -275,8 +275,8 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 - N=4 (1+1+1+1) ground state trained (stretch goal)
 
 ## Current State
-**Active phase:** Phase 2 — Validated N=2 (1+1) Ground State
-**Active step:** Phase 2 gate review
+**Active phase:** Phase 3 — Magnetic Quench Time Evolution
+**Active step:** Step 3.1 — Verify exact diag with B-field
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -329,6 +329,16 @@ None anticipated — standard implementation path. The exact diag is textbook qu
     -> virial(new) `8.28%` (FAIL), legacy comparator `15.49%`.
   - PINN run: `PYTHONPATH=src .venv/bin/python scripts/run_virial_check.py --result-dirs results/p2_n2_1p1w_gs_s42_20260411_075729 --device cuda:5 --n-samples 2048`
     -> virial(new) `0.69%` (PASS), legacy comparator `7.51%`.
+ - Step 3.1 exact-diag B-field table (`kappa=1.0`, `sep=4`, `omega=1.0`):
+  - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --sep 4.0 --omega 1.0 --kappa 1.0 --B 0.0`
+    -> `E0(B=0.0)=2.25437407`.
+  - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --sep 4.0 --omega 1.0 --kappa 1.0 --B 0.5`
+    -> `E0(B=0.5)=2.75437407`.
+  - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --sep 4.0 --omega 1.0 --kappa 1.0 --B 1.0`
+    -> `E0(B=1.0)=3.25437407`.
+ - Phase 2 model anchors kept for comparison context:
+  - PINN B=0 final energy: `2.24839214`.
+  - CTNN B=0 final energy: `2.25219239`.
 **Current risk:** Phase 2 training can still fail if run settings deviate from known-stable REINFORCE + MH setup.
-**Next action:** Phase reflection and user confirmation before starting Phase 3 magnetic-quench protocols.
-**Blockers:** None for Phase 2 under accepted `kappa=1.0` reference.
+**Next action:** Proceed to Step 3.2 (Protocol A: B=0 ground state to B=0.5 evolution) using PINN checkpoint as initial state.
+**Blockers:** None for Step 3.1.
