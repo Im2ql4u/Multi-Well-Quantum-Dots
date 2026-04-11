@@ -42,9 +42,9 @@ def setup_closed_shell_system(
     E_ref: str | float,
     allow_missing_dmc: bool = False,
 ) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    if system.n_particles % 2 != 0:
-        raise ValueError("Closed-shell setup requires an even number of particles.")
-    n_orb = system.n_particles // 2
+    n_up = (system.n_particles + 1) // 2
+    n_down = system.n_particles // 2
+    n_orb = max(n_up, n_down)
     dim = system.dim
     n_wells = len(system.wells)
 
@@ -75,7 +75,7 @@ def setup_closed_shell_system(
         raise ValueError(f"Unsupported dim={dim} for closed-shell setup.")
 
     C_occ = torch.eye(n_basis, n_orb, device=device, dtype=dtype)
-    spin = torch.tensor([0] * n_orb + [1] * n_orb, device=device, dtype=torch.int64)
+    spin = torch.tensor([0] * n_up + [1] * n_down, device=device, dtype=torch.int64)
     well_ids: list[int] = []
     for well_idx, well in enumerate(system.wells):
         well_ids.extend([well_idx] * int(well.n_particles))
@@ -96,6 +96,8 @@ def setup_closed_shell_system(
         "nx": nx,
         "ny": ny,
         "well_id": well_id,
+        "n_up": int(n_up),
+        "n_down": int(n_down),
     }
     return (C_occ, spin, params)
 
@@ -256,6 +258,25 @@ class GroundStateWF(nn.Module):
             Phi = torch.zeros(B, N, 2 * K, device=x.device, dtype=x.dtype)
             Phi[:, :, 0::2] = bonding
             Phi[:, :, 1::2] = anti_bonding
+        elif len(wells) > 2:
+            # Multi-well (>2) basis: concatenate per-well HO bases centered at each well.
+            # This keeps a simple linear-combination basis and avoids hard-coding a specific
+            # bonding pattern beyond the double-dot case.
+            Phi_parts = []
+            for well in wells:
+                center = torch.tensor(well.center, device=x.device, dtype=x.dtype).view(1, 1, d)
+                x_shifted = x - center
+                if d == 2:
+                    Phi_w = self._evaluate_ho_basis_2d(x_shifted)
+                elif d == 1:
+                    omega_p = {"omega": float(self.system.omega)}
+                    Phi_w = evaluate_basis_functions_torch(
+                        x_shifted.squeeze(-1), self.sd_params["nx"], params=omega_p
+                    )
+                else:
+                    raise ValueError(f"Unsupported dim={d}")
+                Phi_parts.append(Phi_w)
+            Phi = torch.cat(Phi_parts, dim=-1)
         else:
             raise ValueError(f"Unsupported number of wells: {len(wells)}")
 
@@ -267,11 +288,20 @@ class GroundStateWF(nn.Module):
         idx_up = (spin_1d == 0).nonzero(as_tuple=True)[0]
         idx_down = (spin_1d == 1).nonzero(as_tuple=True)[0]
 
-        Psi_up = Psi[:, idx_up, :]    # (B, n_occ, n_occ)
-        Psi_down = Psi[:, idx_down, :]  # (B, n_occ, n_occ)
+        n_up = int(idx_up.numel())
+        n_down = int(idx_down.numel())
+        Psi_up = Psi[:, idx_up, :n_up]      # (B, n_up, n_up)
+        Psi_down = Psi[:, idx_down, :n_down]  # (B, n_down, n_down)
 
-        _, log_up = torch.linalg.slogdet(Psi_up)
-        _, log_down = torch.linalg.slogdet(Psi_down)
+        if n_up > 0:
+            _, log_up = torch.linalg.slogdet(Psi_up)
+        else:
+            log_up = torch.zeros(B, device=x.device, dtype=x.dtype)
+
+        if n_down > 0:
+            _, log_down = torch.linalg.slogdet(Psi_down)
+        else:
+            log_down = torch.zeros(B, device=x.device, dtype=x.dtype)
 
         return log_up + log_down
 

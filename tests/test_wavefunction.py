@@ -42,3 +42,30 @@ def test_ground_state_wavefunction_supports_all_architectures():
     loss.backward()
     assert torch.isfinite(x.grad).all()
     _assert_finite_grads(model)
+
+
+def test_setup_supports_open_shell_odd_n():
+    system = SystemConfig.triple_dot(Ns=(1, 1, 1), spacing=4.0, omega=1.0, dim=2)
+    (_, spin, params) = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref=3
+    )
+    assert spin.numel() == 3
+    assert int((spin == 0).sum().item()) == 2
+    assert int((spin == 1).sum().item()) == 1
+    assert params["n_up"] == 2
+    assert params["n_down"] == 1
+
+
+def test_ground_state_wavefunction_three_wells_forward_is_finite():
+    system = SystemConfig.triple_dot(Ns=(1, 1, 1), spacing=4.0, omega=1.0, dim=2)
+    (C_occ, spin, params) = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref=3
+    )
+    model = GroundStateWF(system, C_occ, spin, params, arch_type="pinn").double()
+    x = torch.randn(4, 3, 2, dtype=torch.float64, requires_grad=True)
+    out = model(x)
+    assert out.shape == (4,)
+    assert torch.isfinite(out).all()
+    out.sum().backward()
+    assert torch.isfinite(x.grad).all()
+    _assert_finite_grads(model)

@@ -276,7 +276,7 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 
 ## Current State
 **Active phase:** Phase 4 — Generalize to N=3, N=4 One-Per-Well
-**Active step:** Step 4.1 — Create N=3 (1+1+1) system config (implemented)
+**Active step:** Step 4.2 — Train N=3 ground state (executed; range gate pending interpretation)
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -373,9 +373,17 @@ None anticipated — standard implementation path. The exact diag is textbook qu
   - parser validation:
     - `PYTHONPATH=src .venv/bin/python ... _build_system(...)`
       -> `n_wells=3`, `n_particles=3`, expected centers/occupancies confirmed.
- - Step 4.1 execution blocker identified (implementation-level):
-  - `setup_closed_shell_system(...)` currently enforces even particle count.
-  - evidence: `ValueError: Closed-shell setup requires an even number of particles.` on N=3 custom system.
-**Current risk:** Phase 4 cannot proceed to N=3 training (Step 4.2) until open-shell support is added in `setup_closed_shell_system` / Slater construction for odd-N systems.
-**Next action:** Implement open-shell initialization support for odd-N systems (target: `N=3`, spin pattern `2 up + 1 down`) and re-run a smoke training check.
-**Blockers:** N=3 training blocked by closed-shell-only setup.
+ - Step 4.2 unblocker implemented in wavefunction pipeline:
+  - odd-N open-shell occupancy support in `setup_closed_shell_system` (`n_up=(N+1)//2`, `n_down=N//2`).
+  - multi-well Slater basis support for `len(wells)>2` using concatenated per-well HO bases.
+  - focused tests added and passed (`tests/test_wavefunction.py`): odd-N setup + 3-well forward finiteness.
+ - Step 4.2 smoke training run (sanity):
+  - `PYTHONPATH=src .venv/bin/python src/run_ground_state.py --config configs/one_per_well/n3_1_1_1_gs_s42_smoke.yaml`
+  - completed successfully; saved to `results/smoke_p4_n3_1p1p1w_gs_s42_20260411_105715`.
+ - Step 4.2 full training run (N=3, 1+1+1):
+  - `PYTHONPATH=src .venv/bin/python src/run_ground_state.py --config configs/one_per_well/n3_1_1_1_gs_s42.yaml`
+  - completed successfully; saved to `results/p4_n3_1p1p1w_gs_s42_20260411_112549`.
+  - final metrics: `final_energy=4.51762223`, `final_energy_var=0.00184173`, `final_ess=0.5404`.
+**Current risk:** Step 4.2 plan heuristic expected energy range `[2.5, 4.0]`, but observed `4.5176`; this may indicate either (a) heuristic is too strict for 3-well Coulomb geometry at spacing 4.0, or (b) remaining model bias.
+**Next action:** Phase 4 Step 4.3 — compute/approximate N=3 reference (exact diag if feasible, otherwise controlled large-separation/ablations) to determine whether `E=4.5176` is physically consistent.
+**Blockers:** No execution blocker; only validation/reference blocker for interpretation.
