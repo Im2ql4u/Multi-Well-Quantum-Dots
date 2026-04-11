@@ -276,7 +276,7 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 
 ## Current State
 **Active phase:** Phase 3 — Magnetic Quench Time Evolution
-**Active step:** Step 3.1 — Verify exact diag with B-field
+**Active step:** Step 3.3 — Protocol B: B!=0 ground state to B=0 evolution
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -339,6 +339,15 @@ None anticipated — standard implementation path. The exact diag is textbook qu
  - Phase 2 model anchors kept for comparison context:
   - PINN B=0 final energy: `2.24839214`.
   - CTNN B=0 final energy: `2.25219239`.
-**Current risk:** Phase 2 training can still fail if run settings deviate from known-stable REINFORCE + MH setup.
-**Next action:** Proceed to Step 3.2 (Protocol A: B=0 ground state to B=0.5 evolution) using PINN checkpoint as initial state.
-**Blockers:** None for Step 3.1.
+ - Step 3.2 Protocol A run completed (B_initial=0.0 -> B=0.5, d=4.0, omega=1.0, zeeman_electron1_only=True):
+  - launch command executed in tmux on `cuda:5` with `tau_max=5.0`, `n_epochs_pde=8000`.
+  - final trajectory point from saved JSON: `E(tau=5.0)=2.75085377`.
+  - exact reference from Step 3.1: `E0(B=0.5)=2.75437407`.
+  - absolute error: `0.00352030`; relative error: `0.1278%` (PASS, criterion `<2%`).
+  - artifacts:
+    - JSON: `results/imag_time_pinn/phase3_step32_protocolA_d4_B0p5.json`
+    - figure: `results/imag_time_pinn/pinn_phase3_step32_protocolA_d4_B0p5_d4.0_w1.0.png`
+    - checkpoint: `results/imag_time_pinn/phase3_step32_protocolA_d4_B0p5_checkpoint.pt`
+**Current risk:** Protocol B may converge more slowly because reverse quench reweights from a field-shifted initial state; may require larger `tau_max`.
+**Next action:** Run Step 3.3 (Protocol B: `magnetic_B_initial=0.5`, `magnetic_B=0.0`) under the same numerical settings and evaluate against `E0(B=0.0)=2.25437407`.
+**Blockers:** None for Step 3.3.
