@@ -275,8 +275,8 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 - N=4 (1+1+1+1) ground state trained (stretch goal)
 
 ## Current State
-**Active phase:** Phase 3 — Magnetic Quench Time Evolution
-**Active step:** Step 3.3 — Protocol B: B!=0 ground state to B=0 evolution
+**Active phase:** Phase 4 — Generalize to N=3, N=4 One-Per-Well
+**Active step:** Step 4.1 — Create N=3 (1+1+1) system config
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -348,6 +348,24 @@ None anticipated — standard implementation path. The exact diag is textbook qu
     - JSON: `results/imag_time_pinn/phase3_step32_protocolA_d4_B0p5.json`
     - figure: `results/imag_time_pinn/pinn_phase3_step32_protocolA_d4_B0p5_d4.0_w1.0.png`
     - checkpoint: `results/imag_time_pinn/phase3_step32_protocolA_d4_B0p5_checkpoint.pt`
-**Current risk:** Protocol B may converge more slowly because reverse quench reweights from a field-shifted initial state; may require larger `tau_max`.
-**Next action:** Run Step 3.3 (Protocol B: `magnetic_B_initial=0.5`, `magnetic_B=0.0`) under the same numerical settings and evaluate against `E0(B=0.0)=2.25437407`.
-**Blockers:** None for Step 3.3.
+ - Step 3.3 Protocol B run completed (B_initial=0.5 -> B=0.0, d=4.0, omega=1.0, zeeman_electron1_only=True):
+  - run finished from tmux session `phase3_step33_B` with `tau_max=5.0`, `n_epochs_pde=8000`.
+  - final trajectory point from saved JSON: `E(tau=5.0)=2.25176989`.
+  - exact reference from Step 3.1: `E0(B=0.0)=2.25437407`.
+  - absolute error: `0.00260418`; relative error: `0.1155%` (PASS, criterion `<2%`).
+  - artifacts:
+    - JSON: `results/imag_time_pinn/phase3_step33_protocolB_d4_B0p0.json`
+    - figure: `results/imag_time_pinn/pinn_phase3_step33_protocolB_d4_B0p0_d4.0_w1.0.png`
+    - checkpoint: `results/imag_time_pinn/phase3_step33_protocolB_d4_B0p0_checkpoint.pt`
+    - log: `results/imag_time_pinn/p3_step33_protocolB_d4_B0p0.log`
+   - Step 3.4 protocol comparison (exact-diag, `kappa=1.0`, `sep=4.0`, `omega=1.0`):
+
+    | Protocol | B_initial -> B_final | E_final (tau=5.0) | E_exact | Abs error | Rel error | Gate |
+    |---|---|---:|---:|---:|---:|---|
+    | A | 0.0 -> 0.5 | 2.75085377 | 2.75437407 | 0.00352030 | 0.1278% | PASS |
+    | B | 0.5 -> 0.0 | 2.25176989 | 2.25437407 | 0.00260418 | 0.1155% | PASS |
+
+    - Phase 3 gate satisfied: both protocols converge within `<2%` of exact reference.
+**Current risk:** Gap extraction remains less stable than late-time energy convergence; energy gate passes but spectral-fit interpretations should remain secondary.
+  **Next action:** Proceed to Phase 4 Step 4.1 — create and validate `N=3 (1+1+1)` custom-well ground-state config.
+  **Blockers:** None for Phase 4 start.

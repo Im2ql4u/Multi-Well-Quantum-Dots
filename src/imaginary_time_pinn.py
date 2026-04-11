@@ -1584,7 +1584,7 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     if expected:
         print(f"  Expected = {expected:.4f} (Kohn mode)")
     else:
-        print(f"  (No exact reference for d={cfg.well_sep:.1f})")
+        print(f"  (No built-in exact reference for d={cfg.well_sep:.1f}; compare against external diag target if available)")
     print("  =============================================")
 
     plot_results(traj, fit_s, fit_d, cfg, E_ref, RESULTS_DIR, tag)
