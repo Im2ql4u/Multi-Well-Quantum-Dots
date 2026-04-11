@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 from scipy.linalg import eigh
@@ -27,6 +28,8 @@ class DiagConfig:
     mu_b: float
     x_half_width: float
     y_half_width: float
+    model_mode: Literal["shared", "one_per_well"] = "one_per_well"
+    kinetic_prefactor: float = 0.5
 
 
 def sine_dvr_1d(x0: float, x1: float, n: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -79,6 +82,18 @@ def build_potential_matrix(
     return np.diag(potential.ravel())
 
 
+def build_centered_harmonic_potential_matrix(
+    x_grid: np.ndarray,
+    y_grid: np.ndarray,
+    omega: float,
+    center_x: float,
+) -> np.ndarray:
+    """2D harmonic potential centered at `center_x` on the x-axis."""
+    x2d, y2d = np.meshgrid(x_grid, y_grid, indexing="ij")
+    potential = 0.5 * omega**2 * ((x2d - center_x) ** 2 + y2d**2)
+    return np.diag(potential.ravel())
+
+
 def single_particle_eigenstates(
     t2d: np.ndarray,
     v2d: np.ndarray,
@@ -115,6 +130,7 @@ def precompute_coulomb_kernel(
     w_y: np.ndarray,
     kappa: float,
     epsilon: float,
+    include_quadrature_weights: bool = True,
 ) -> np.ndarray:
     x2d, y2d = np.meshgrid(x_grid, y_grid, indexing="ij")
     x_flat, y_flat = x2d.ravel(), y2d.ravel()
@@ -124,7 +140,10 @@ def precompute_coulomb_kernel(
     dx = x_flat[:, None] - x_flat[None, :]
     dy = y_flat[:, None] - y_flat[None, :]
     r12 = np.sqrt(dx**2 + dy**2 + epsilon**2)
-    return (kappa / r12) * weight_flat[:, None] * weight_flat[None, :]
+    kernel = kappa / r12
+    if include_quadrature_weights:
+        kernel = kernel * weight_flat[:, None] * weight_flat[None, :]
+    return kernel
 
 
 def zeeman_shift(spin_type: str, b_field: float, g_factor: float, mu_b: float) -> float:
@@ -225,6 +244,7 @@ def run_exact_diagonalization(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, 
         w_y=w_y,
         kappa=cfg.kappa,
         epsilon=cfg.epsilon,
+        include_quadrature_weights=True,
     )
     h_ci = build_ci_hamiltonian(
         slater_basis=slater_basis,
@@ -240,12 +260,90 @@ def run_exact_diagonalization(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, 
     return eigvals, eigvecs, single_energies
 
 
+def run_exact_diagonalization_one_per_well(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Two-electron one-per-well reference with left/right localized one-body bases."""
+    x_grid, y_grid, w_x, w_y, t2d = build_2d_dvr(
+        nx=cfg.nx,
+        ny=cfg.ny,
+        x_half_width=cfg.x_half_width,
+        y_half_width=cfg.y_half_width,
+    )
+    t2d = cfg.kinetic_prefactor * t2d
+    v_left = build_centered_harmonic_potential_matrix(
+        x_grid=x_grid,
+        y_grid=y_grid,
+        omega=cfg.omega,
+        center_x=-0.5 * cfg.sep,
+    )
+    v_right = build_centered_harmonic_potential_matrix(
+        x_grid=x_grid,
+        y_grid=y_grid,
+        omega=cfg.omega,
+        center_x=0.5 * cfg.sep,
+    )
+    left_energies, left_vecs = single_particle_eigenstates(t2d=t2d, v2d=v_left, n_sp_states=cfg.n_sp_states)
+    right_energies, right_vecs = single_particle_eigenstates(t2d=t2d, v2d=v_right, n_sp_states=cfg.n_sp_states)
+    kernel = precompute_coulomb_kernel(
+        x_grid=x_grid,
+        y_grid=y_grid,
+        w_x=w_x,
+        w_y=w_y,
+        kappa=cfg.kappa,
+        epsilon=cfg.epsilon,
+        include_quadrature_weights=False,
+    )
+
+    product_basis: list[tuple[float, int, int]] = []
+    for a in range(cfg.n_sp_states):
+        for b in range(cfg.n_sp_states):
+            product_basis.append((float(left_energies[a] + right_energies[b]), a, b))
+    product_basis.sort(key=lambda item: (item[0], item[1], item[2]))
+    product_basis = product_basis[: cfg.n_ci_compute]
+
+    n_cfg = len(product_basis)
+    h_ci = np.zeros((n_cfg, n_cfg), dtype=np.float64)
+    two_e_cache: dict[tuple[int, int, int, int], float] = {}
+
+    def two_e(a: int, b: int, c: int, d: int) -> float:
+        key = (a, b, c, d)
+        if key not in two_e_cache:
+            two_e_cache[key] = float((left_vecs[:, a] * left_vecs[:, c]) @ kernel @ (right_vecs[:, b] * right_vecs[:, d]))
+        return two_e_cache[key]
+
+    # One-per-well reference uses one electron in each localized well basis.
+    # Zeeman shift is applied on electron-1 channel to match quench setup.
+    zeeman_single = 0.5 * cfg.g_factor * cfg.mu_b * cfg.b_field
+
+    for idx_i, (_, a_i, b_i) in enumerate(product_basis):
+        h_ci[idx_i, idx_i] = float(left_energies[a_i] + right_energies[b_i] + zeeman_single)
+        for idx_j in range(idx_i, n_cfg):
+            _, a_j, b_j = product_basis[idx_j]
+            val = two_e(a_i, b_i, a_j, b_j)
+            h_ci[idx_i, idx_j] += val
+            if idx_i != idx_j:
+                h_ci[idx_j, idx_i] = h_ci[idx_i, idx_j]
+
+    eigvals, eigvecs = eigh(h_ci)
+    merged_sp = np.sort(np.concatenate([left_energies, right_energies]))
+    return eigvals, eigvecs, merged_sp
+
+
+def solve_exact_diagonalization(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    if cfg.model_mode == "shared":
+        return run_exact_diagonalization(cfg)
+    if cfg.model_mode == "one_per_well":
+        return run_exact_diagonalization_one_per_well(cfg)
+    raise ValueError(f"Unknown model_mode={cfg.model_mode}")
+
+
 def run_validation(base_args: argparse.Namespace) -> int:
     checks = [
-        {"name": "sep0_no_coulomb", "sep": 0.0, "kappa": 0.0, "target": 2.0, "tol": 0.25},
-        {"name": "sep20_no_coulomb", "sep": 20.0, "kappa": 0.0, "target": 2.0, "tol": 0.25},
-        {"name": "sep4_with_coulomb", "sep": 4.0, "kappa": base_args.kappa, "target": 2.17, "tol": 0.8},
+        {"name": "sep0_no_coulomb", "sep": 0.0, "kappa": 0.0, "target": 2.0},
+        {"name": "sep0_with_coulomb", "sep": 0.0, "kappa": base_args.kappa, "target": 3.0},
+        {"name": "sep20_with_coulomb", "sep": 20.0, "kappa": base_args.kappa, "target": 2.0},
+        {"name": "sep4_with_coulomb", "sep": 4.0, "kappa": base_args.kappa, "target": 2.17},
     ]
+    rel_tol = 0.05
     failures = 0
     for check in checks:
         x_half, y_half = infer_box_half_widths(check["sep"], base_args.omega)
@@ -264,19 +362,23 @@ def run_validation(base_args: argparse.Namespace) -> int:
             mu_b=base_args.mu_b,
             x_half_width=x_half,
             y_half_width=y_half,
+            model_mode=base_args.model,
+            kinetic_prefactor=base_args.kinetic_prefactor,
         )
-        evals, _, _ = run_exact_diagonalization(cfg)
+        evals, _, _ = solve_exact_diagonalization(cfg)
         e0 = float(evals[0])
         err = abs(e0 - check["target"])
-        ok = err <= check["tol"]
+        rel_err = err / max(abs(check["target"]), 1e-12)
+        ok = rel_err <= rel_tol
         status = "PASS" if ok else "FAIL"
         LOGGER.info(
-            "validate %-18s e0=% .6f target=% .6f |err|=% .6f tol=% .6f => %s",
+            "validate %-20s e0=% .6f target=% .6f |err|=% .6f rel_err=%.2f%% tol=%.2f%% => %s",
             check["name"],
             e0,
             check["target"],
             err,
-            check["tol"],
+            100.0 * rel_err,
+            100.0 * rel_tol,
             status,
         )
         if not ok:
@@ -294,11 +396,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sep", type=float, default=4.0, help="Well separation along x.")
     parser.add_argument("--omega", type=float, default=1.0, help="Confinement frequency.")
     parser.add_argument("--smooth-t", type=float, default=0.2, help="Soft-min temperature for double-well potential.")
-    parser.add_argument("--kappa", type=float, default=1.0, help="Coulomb strength.")
+    parser.add_argument("--kappa", type=float, default=0.7, help="Coulomb strength.")
     parser.add_argument("--epsilon", type=float, default=0.02, help="Coulomb softening.")
     parser.add_argument("--B", type=float, default=0.0, help="Magnetic field entering Zeeman shift.")
     parser.add_argument("--g-factor", type=float, default=2.0, help="g-factor in Zeeman term.")
     parser.add_argument("--mu-b", type=float, default=1.0, help="Bohr magneton scaling in Zeeman term.")
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="one_per_well",
+        choices=["shared", "one_per_well"],
+        help="Reference Hamiltonian mode: shared soft-min or one-per-well localized basis.",
+    )
+    parser.add_argument(
+        "--kinetic-prefactor",
+        type=float,
+        default=0.5,
+        help="Prefactor multiplying the DVR kinetic operator.",
+    )
     parser.add_argument("--validate", action="store_true", help="Run built-in limit checks and exit status by pass/fail.")
     parser.add_argument("--log-level", type=str, default="INFO", help="Logging level.")
     return parser
@@ -333,10 +448,13 @@ def main() -> int:
         mu_b=args.mu_b,
         x_half_width=x_half,
         y_half_width=y_half,
+        model_mode=args.model,
+        kinetic_prefactor=args.kinetic_prefactor,
     )
 
     LOGGER.info(
-        "Running exact diag: sep=%.3f omega=%.3f B=%.3f nx=%d ny=%d sp=%d ci=%d",
+        "Running exact diag: mode=%s sep=%.3f omega=%.3f B=%.3f nx=%d ny=%d sp=%d ci=%d",
+        cfg.model_mode,
         cfg.sep,
         cfg.omega,
         cfg.b_field,
@@ -346,7 +464,7 @@ def main() -> int:
         cfg.n_ci_compute,
     )
 
-    eigvals, _, single_energies = run_exact_diagonalization(cfg)
+    eigvals, _, single_energies = solve_exact_diagonalization(cfg)
     LOGGER.info("Ground-state energy E0 = %.8f", float(eigvals[0]))
     LOGGER.info("Lowest single-particle energies: %s", np.array2string(single_energies[:6], precision=6))
     LOGGER.info("Lowest many-body eigenvalues: %s", np.array2string(eigvals[:5], precision=8))

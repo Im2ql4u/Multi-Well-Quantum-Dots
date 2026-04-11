@@ -276,7 +276,7 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 
 ## Current State
 **Active phase:** Phase 1 — Exact Diagonalization Reference
-**Active step:** Step 1.2 — Build exact diagonalization for N=2 double dot
+**Active step:** Phase 1 gate review
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -296,6 +296,15 @@ None anticipated — standard implementation path. The exact diag is textbook qu
    - optional B-field check:
      - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --n-max 6 --sep 4.0 --omega 1.0 --B 0.5`
        -> `E0=2.30144984`.
-**Current risk:** Energy scale from the rebuilt DVR+CI model does not yet match the expected VMC anchor (~2.17 at `sep=4`), so physical calibration and known-limit validation (Step 1.3) are still required before using this as a hard reference.
-**Next action:** Execute Step 1.3 (`--validate`) and adjust model/calibration if limits fail.
-**Blockers:** None for Step 1.3; notebook is now present and script path is restored.
+ - Step 1.3 acceptance command re-run after one-per-well solver update and Coulomb convention fix:
+   - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --validate`
+     -> `sep0_no_coulomb` PASS (`E0=2.000001`, `0.00%` error),
+        `sep0_with_coulomb` PASS (`E0=2.985187`, `0.49%` error),
+        `sep20_with_coulomb` PASS (`E0=2.010717`, `0.54%` error),
+        `sep4_with_coulomb` PASS (`E0=2.179101`, `0.42%` error).
+ - B-field sanity run remains operational:
+   - `PYTHONPATH=src .venv/bin/python scripts/exact_diag_double_dot.py --sep 4.0 --omega 1.0 --B 0.5`
+     -> `E0=2.67910080` with stable eigenvalue output.
+**Current risk:** Validation now passes the known limits, but reference energies are tied to current one-per-well parameter conventions (`kinetic_prefactor=0.5`, default `kappa=0.7`) and should be logged explicitly in downstream comparisons.
+**Next action:** Phase reflection and user confirmation before starting Phase 2.
+**Blockers:** None for Phase 1.
