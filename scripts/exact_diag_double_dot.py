@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import heapq
+import itertools
 import logging
 from dataclasses import dataclass
 from typing import Literal
@@ -28,6 +30,7 @@ class DiagConfig:
     mu_b: float
     x_half_width: float
     y_half_width: float
+    n_wells: int = 2
     model_mode: Literal["shared", "one_per_well"] = "one_per_well"
     kinetic_prefactor: float = 0.5
 
@@ -221,6 +224,115 @@ def infer_box_half_widths(sep: float, omega: float) -> tuple[float, float]:
     return x_half, y_half
 
 
+def well_centers_linear(n_wells: int, sep: float) -> list[float]:
+    if n_wells < 2:
+        raise ValueError(f"n_wells must be >= 2 for one_per_well mode, got {n_wells}.")
+    origin = 0.5 * (n_wells - 1)
+    return [(idx - origin) * float(sep) for idx in range(n_wells)]
+
+
+def select_low_energy_product_basis(
+    per_well_energies: list[np.ndarray],
+    n_ci_compute: int,
+) -> list[tuple[float, tuple[int, ...]]]:
+    n_wells = len(per_well_energies)
+    n_states = len(per_well_energies[0])
+    if n_ci_compute <= 0:
+        raise ValueError("n_ci_compute must be positive.")
+
+    # Keep only n_ci_compute smallest product energies via bounded max-heap.
+    heap: list[tuple[float, tuple[int, ...]]] = []
+    for orb_tuple in itertools.product(range(n_states), repeat=n_wells):
+        e_total = float(sum(per_well_energies[w][orb_tuple[w]] for w in range(n_wells)))
+        entry = (-e_total, orb_tuple)
+        if len(heap) < n_ci_compute:
+            heapq.heappush(heap, entry)
+        elif entry > heap[0]:
+            heapq.heapreplace(heap, entry)
+
+    selected = [(-neg_e, orb_tuple) for neg_e, orb_tuple in heap]
+    selected.sort(key=lambda item: (item[0], item[1]))
+    return selected
+
+
+def run_exact_diagonalization_one_per_well_multi(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """One-electron-per-well CI for linear multiwell systems (distinguishable well channels)."""
+    x_grid, y_grid, w_x, w_y, t2d = build_2d_dvr(
+        nx=cfg.nx,
+        ny=cfg.ny,
+        x_half_width=cfg.x_half_width,
+        y_half_width=cfg.y_half_width,
+    )
+    t2d = cfg.kinetic_prefactor * t2d
+
+    centers = well_centers_linear(cfg.n_wells, cfg.sep)
+    per_well_energies: list[np.ndarray] = []
+    per_well_vecs: list[np.ndarray] = []
+    for center_x in centers:
+        v_well = build_centered_harmonic_potential_matrix(
+            x_grid=x_grid,
+            y_grid=y_grid,
+            omega=cfg.omega,
+            center_x=center_x,
+        )
+        energies_w, vecs_w = single_particle_eigenstates(
+            t2d=t2d,
+            v2d=v_well,
+            n_sp_states=cfg.n_sp_states,
+        )
+        per_well_energies.append(energies_w)
+        per_well_vecs.append(vecs_w)
+
+    kernel = precompute_coulomb_kernel(
+        x_grid=x_grid,
+        y_grid=y_grid,
+        w_x=w_x,
+        w_y=w_y,
+        kappa=cfg.kappa,
+        epsilon=cfg.epsilon,
+        include_quadrature_weights=False,
+    )
+
+    basis = select_low_energy_product_basis(per_well_energies, cfg.n_ci_compute)
+    n_cfg = len(basis)
+    n_wells = cfg.n_wells
+    h_ci = np.zeros((n_cfg, n_cfg), dtype=np.float64)
+    two_e_cache: dict[tuple[int, int, int, int, int, int], float] = {}
+
+    def pair_integral(w_l: int, w_r: int, a_i: int, a_j: int, b_i: int, b_j: int) -> float:
+        key = (w_l, w_r, a_i, a_j, b_i, b_j)
+        if key not in two_e_cache:
+            left = per_well_vecs[w_l]
+            right = per_well_vecs[w_r]
+            two_e_cache[key] = float((left[:, a_i] * left[:, a_j]) @ kernel @ (right[:, b_i] * right[:, b_j]))
+        return two_e_cache[key]
+
+    zeeman_single = 0.5 * cfg.g_factor * cfg.mu_b * cfg.b_field
+    for idx_i, (e_i, orb_i) in enumerate(basis):
+        # one-body part is diagonal in this product basis
+        h_ci[idx_i, idx_i] = e_i + zeeman_single
+        for idx_j in range(idx_i, n_cfg):
+            _, orb_j = basis[idx_j]
+            val = 0.0
+            for p in range(n_wells):
+                for q in range(p + 1, n_wells):
+                    val += pair_integral(
+                        p,
+                        q,
+                        orb_i[p],
+                        orb_j[p],
+                        orb_i[q],
+                        orb_j[q],
+                    )
+            h_ci[idx_i, idx_j] += val
+            if idx_i != idx_j:
+                h_ci[idx_j, idx_i] = h_ci[idx_i, idx_j]
+
+    eigvals, eigvecs = eigh(h_ci)
+    merged_sp = np.sort(np.concatenate(per_well_energies))
+    return eigvals, eigvecs, merged_sp
+
+
 def run_exact_diagonalization(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     x_grid, y_grid, w_x, w_y, t2d = build_2d_dvr(
         nx=cfg.nx,
@@ -330,9 +442,13 @@ def run_exact_diagonalization_one_per_well(cfg: DiagConfig) -> tuple[np.ndarray,
 
 def solve_exact_diagonalization(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     if cfg.model_mode == "shared":
+        if cfg.n_wells != 2:
+            raise ValueError("shared mode currently supports n_wells=2 only.")
         return run_exact_diagonalization(cfg)
     if cfg.model_mode == "one_per_well":
-        return run_exact_diagonalization_one_per_well(cfg)
+        if cfg.n_wells == 2:
+            return run_exact_diagonalization_one_per_well(cfg)
+        return run_exact_diagonalization_one_per_well_multi(cfg)
     raise ValueError(f"Unknown model_mode={cfg.model_mode}")
 
 
@@ -387,13 +503,14 @@ def run_validation(base_args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Exact diagonalization for 2-electron double dot (DVR+CI).")
+    parser = argparse.ArgumentParser(description="Exact diagonalization for one-per-well DVR+CI references.")
     parser.add_argument("--nx", type=int, default=20, help="DVR grid points in x.")
     parser.add_argument("--ny", type=int, default=20, help="DVR grid points in y.")
     parser.add_argument("--n-max", type=int, default=6, help="Principal-like cutoff proxy used to set retained SP states.")
     parser.add_argument("--n-sp-states", type=int, default=40, help="Single-particle eigenstates retained for CI.")
     parser.add_argument("--n-ci-compute", type=int, default=200, help="Number of determinants retained in CI matrix.")
     parser.add_argument("--sep", type=float, default=4.0, help="Well separation along x.")
+    parser.add_argument("--n-wells", type=int, default=2, help="Number of wells/electrons for one_per_well mode.")
     parser.add_argument("--omega", type=float, default=1.0, help="Confinement frequency.")
     parser.add_argument("--smooth-t", type=float, default=0.2, help="Soft-min temperature for double-well potential.")
     parser.add_argument("--kappa", type=float, default=0.7, help="Coulomb strength.")
@@ -448,13 +565,15 @@ def main() -> int:
         mu_b=args.mu_b,
         x_half_width=x_half,
         y_half_width=y_half,
+        n_wells=args.n_wells,
         model_mode=args.model,
         kinetic_prefactor=args.kinetic_prefactor,
     )
 
     LOGGER.info(
-        "Running exact diag: mode=%s sep=%.3f omega=%.3f B=%.3f nx=%d ny=%d sp=%d ci=%d",
+        "Running exact diag: mode=%s n_wells=%d sep=%.3f omega=%.3f B=%.3f nx=%d ny=%d sp=%d ci=%d",
         cfg.model_mode,
+        cfg.n_wells,
         cfg.sep,
         cfg.omega,
         cfg.b_field,

@@ -276,7 +276,7 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 
 ## Current State
 **Active phase:** Phase 4 — Generalize to N=3, N=4 One-Per-Well
-**Active step:** Step 4.2 — Train N=3 ground state (executed; range gate pending interpretation)
+**Active step:** Step 4.3 — N=3 reference validation (executed; mismatch found)
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -384,6 +384,19 @@ None anticipated — standard implementation path. The exact diag is textbook qu
   - `PYTHONPATH=src .venv/bin/python src/run_ground_state.py --config configs/one_per_well/n3_1_1_1_gs_s42.yaml`
   - completed successfully; saved to `results/p4_n3_1p1p1w_gs_s42_20260411_112549`.
   - final metrics: `final_energy=4.51762223`, `final_energy_var=0.00184173`, `final_ess=0.5404`.
-**Current risk:** Step 4.2 plan heuristic expected energy range `[2.5, 4.0]`, but observed `4.5176`; this may indicate either (a) heuristic is too strict for 3-well Coulomb geometry at spacing 4.0, or (b) remaining model bias.
-**Next action:** Phase 4 Step 4.3 — compute/approximate N=3 reference (exact diag if feasible, otherwise controlled large-separation/ablations) to determine whether `E=4.5176` is physically consistent.
-**Blockers:** No execution blocker; only validation/reference blocker for interpretation.
+ - Step 4.3 reference implementation: `scripts/exact_diag_double_dot.py` extended for one-per-well multiwell mode via `--n-wells`.
+ - N=2 regression after extension (consistency check):
+  - `--n-wells 2 --kappa 1.0 --sep 4.0` -> `E0=2.25438788` (matches established target `2.25437407`, abs diff `1.38e-05`).
+ - N=3 one-per-well diagonalization sweep (`kappa=1.0`, `sep=4.0`, `omega=1.0`, `B=0.0`):
+  - `(sp=10, ci=80, nx=16, ny=16)` -> `E0=3.35263043`
+  - `(sp=12, ci=120, nx=18, ny=18)` -> `E0=3.33060497`
+  - `(sp=14, ci=160, nx=20, ny=20)` -> `E0=3.32146481`
+  - `(sp=16, ci=200, nx=22, ny=22)` -> `E0=3.31996630`
+  - convergence estimate: `E0≈3.32`.
+ - Non-interacting N=3 anchor (`kappa=0.0`) from same solver: `E0=3.03518218`.
+ - Comparison vs Step 4.2 VMC full run (`results/p4_n3_1p1p1w_gs_s42_20260411_112549`):
+  - VMC `E_final=4.51762223` vs diag reference `~3.32` -> gap `+1.1977` (`~36.1%` high).
+  - result artifact: `results/p4_n3_diag_reference_20260411.json`.
+**Current risk:** Step 4.2 N=3 training currently appears physically inconsistent with diagonalization reference; this is likely an implementation/training issue, not a missing reference issue.
+**Next action:** Return to diagnostic loop for Step 4.2 (Layer 2/3): verify odd-N Slater construction and sampling/training settings before attempting N=4.
+**Blockers:** Phase 4 progression to N=4 is blocked by unresolved N=3 energy mismatch.

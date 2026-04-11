@@ -1,0 +1,61 @@
+{
+  "system": {
+    "n_wells": 3,
+    "occupancy": [
+      1,
+      1,
+      1
+    ],
+    "sep": 4.0,
+    "omega": 1.0,
+    "kappa": 1.0,
+    "B": 0.0,
+    "model": "one_per_well"
+  },
+  "diag_sweep": [
+    {
+      "n_sp_states": 10,
+      "n_ci_compute": 80,
+      "nx": 16,
+      "ny": 16,
+      "E0": 3.35263043
+    },
+    {
+      "n_sp_states": 12,
+      "n_ci_compute": 120,
+      "nx": 18,
+      "ny": 18,
+      "E0": 3.33060497
+    },
+    {
+      "n_sp_states": 14,
+      "n_ci_compute": 160,
+      "nx": 20,
+      "ny": 20,
+      "E0": 3.32146481
+    },
+    {
+      "n_sp_states": 16,
+      "n_ci_compute": 200,
+      "nx": 22,
+      "ny": 22,
+      "E0": 3.3199663
+    }
+  ],
+  "n3_reference_estimate": 3.32,
+  "n2_regression_check": {
+    "E0": 2.25438788,
+    "target_kappa1": 2.25437407,
+    "abs_error": 1.381e-05
+  },
+  "non_interacting_anchor_n3": 3.03518218,
+  "vmc_full_run": {
+    "result_dir": "results/p4_n3_1p1p1w_gs_s42_20260411_112549",
+    "final_energy": 4.517622233918989
+  },
+  "comparison": {
+    "abs_gap_vmc_minus_diag": 1.197655933918989,
+    "rel_gap_percent_vs_diag": 36.07
+  },
+  "assessment": "VMC N=3 run does not match diagonalization reference; further diagnosis required."
+}
