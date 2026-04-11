@@ -417,6 +417,21 @@ None anticipated — standard implementation path. The exact diag is textbook qu
   - `softmin, epsilon=0.01` (shared soft-min one-body parity probe) -> `E0=2.95815330`.
   - post-fix VMC full run (`E=3.63554528`) remains above all parity references.
   - artifact: `results/p4_n3_parity_ablation_20260411.json`.
+- Step 4.2 architecture/loss ablations (fixed system/seed, 1200 epochs):
+  - configs executed:
+    - `n3_ablation_pinn_reinforce_s42.yaml`
+    - `n3_ablation_ctnn_reinforce_s42.yaml`
+    - `n3_ablation_pinn_weakform_s42.yaml`
+    - `n3_ablation_ctnn_weakform_s42.yaml`
+  - outcomes vs diag reference `E0=3.31996630`:
+    - PINN + REINFORCE -> `E=3.63393531`, rel gap `9.46%`, `ESS≈0.56`.
+    - CTNN + REINFORCE -> `E=3.63426206`, rel gap `9.47%`, `ESS≈0.56`.
+    - PINN + weak_form -> catastrophic divergence (`E≈-5.03e25`, `ESS=0`).
+    - CTNN + weak_form -> catastrophic divergence (`E≈-4.61e25`, `ESS=0`).
+  - artifacts:
+    - batch log: `results/p4_n3_ablation_20260411.log`
+    - summary JSON: `results/p4_n3_arch_loss_ablation_20260411.json`
+  - diagnostic conclusion: residual N=3 gap is not architecture-specific between PINN/CTNN under REINFORCE; weak-form objective is unstable for this odd-N multiwell regime.
 **Current risk:** Main catastrophic error was fixed, but a non-trivial residual gap remains; likely causes are remaining architecture/training bias and/or imperfect Hamiltonian parity between VMC soft-min confinement and current one-per-well diag model.
-**Next action:** Diagnose optimization/ansatz bias (Layer 3/4): run N=3 architecture/loss ablations (PINN vs CTNN, REINFORCE vs weak-form) with fixed Hamiltonian settings before moving to N=4.
+**Next action:** Diagnose residual REINFORCE bias (Layer 4): run controlled training-setup sweeps (collocation size, MH steps/decorrelation, learning-rate schedule) and add explicit Coulomb expectation diagnostics to quantify remaining +9.5% offset.
 **Blockers:** N=4 progression remains blocked until N=3 residual gap is explained.

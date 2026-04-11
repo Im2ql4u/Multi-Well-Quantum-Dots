@@ -1,0 +1,79 @@
+{
+  "diag_reference": 3.3199663,
+  "rows": [
+    {
+      "run": "pinn_reinforce",
+      "result": "results/p4ab_n3_pinn_reinforce_s42_20260411_172719",
+      "final_energy": 3.6339353144593365,
+      "final_ess": 0.5609375,
+      "final_var": 0.00034593471044206504,
+      "rel_gap_percent_vs_diag": 9.45699402006992,
+      "status": "ok"
+    },
+    {
+      "run": "ctnn_reinforce",
+      "result": "results/p4ab_n3_ctnn_reinforce_s42_20260411_173323",
+      "final_energy": 3.634262060177448,
+      "final_ess": 0.559765625,
+      "final_var": 0.0003066168546216137,
+      "rel_gap_percent_vs_diag": 9.466835858467842,
+      "status": "ok"
+    },
+    {
+      "run": "pinn_weakform",
+      "result": "results/p4ab_n3_pinn_weakform_s42_20260411_173950",
+      "final_energy": -5.033607936240265e+25,
+      "final_ess": 0.0,
+      "final_var": 8.294807615200422e+50,
+      "rel_gap_percent_vs_diag": 1.5161623587083594e+27,
+      "status": "ok"
+    },
+    {
+      "run": "ctnn_weakform",
+      "result": "results/p4ab_n3_ctnn_weakform_s42_20260411_174607",
+      "final_energy": -4.611346886918121e+25,
+      "final_ess": 0.0,
+      "final_var": 9.111837995878214e+50,
+      "rel_gap_percent_vs_diag": 1.3889740046211072e+27,
+      "status": "ok"
+    }
+  ],
+  "ranked_best_first": [
+    {
+      "run": "pinn_reinforce",
+      "result": "results/p4ab_n3_pinn_reinforce_s42_20260411_172719",
+      "final_energy": 3.6339353144593365,
+      "final_ess": 0.5609375,
+      "final_var": 0.00034593471044206504,
+      "rel_gap_percent_vs_diag": 9.45699402006992,
+      "status": "ok"
+    },
+    {
+      "run": "ctnn_reinforce",
+      "result": "results/p4ab_n3_ctnn_reinforce_s42_20260411_173323",
+      "final_energy": 3.634262060177448,
+      "final_ess": 0.559765625,
+      "final_var": 0.0003066168546216137,
+      "rel_gap_percent_vs_diag": 9.466835858467842,
+      "status": "ok"
+    },
+    {
+      "run": "ctnn_weakform",
+      "result": "results/p4ab_n3_ctnn_weakform_s42_20260411_174607",
+      "final_energy": -4.611346886918121e+25,
+      "final_ess": 0.0,
+      "final_var": 9.111837995878214e+50,
+      "rel_gap_percent_vs_diag": 1.3889740046211072e+27,
+      "status": "ok"
+    },
+    {
+      "run": "pinn_weakform",
+      "result": "results/p4ab_n3_pinn_weakform_s42_20260411_173950",
+      "final_energy": -5.033607936240265e+25,
+      "final_ess": 0.0,
+      "final_var": 8.294807615200422e+50,
+      "rel_gap_percent_vs_diag": 1.5161623587083594e+27,
+      "status": "ok"
+    }
+  ]
+}
