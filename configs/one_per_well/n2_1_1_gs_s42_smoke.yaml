@@ -1,10 +1,8 @@
-# Phase 2.1 one-per-well baseline config for N=2 (1+1).
-# Matches known-stable REINFORCE+MH setup and keeps all tunables in config.
+# Phase 2.2 smoke config: short GPU sanity run before full training.
 allow_missing_dmc: true
-run_name: p2_n2_1p1w_gs_s42
+run_name: smoke_p2_n2_1p1w_gs_s42
 
 architecture:
-  # PINN with optional backflow disabled for stability in this baseline.
   arch_type: pinn
   pinn_hidden: 64
   pinn_layers: 2
@@ -13,7 +11,6 @@ architecture:
   use_backflow: false
 
 system:
-  # One particle in each well, separation fixed for exact-diag comparison.
   type: double_dot
   n_left: 1
   n_right: 1
@@ -23,11 +20,11 @@ system:
   coulomb: true
 
 training:
-  epochs: 6000
+  epochs: 120
   lr: 0.001
-  lr_warmup_epochs: 100
+  lr_warmup_epochs: 20
   lr_min_factor: 0.1
-  n_coll: 512
+  n_coll: 256
   loss_type: reinforce
   fd_h: 0.01
   reinforce_clip_width: 5.0
@@ -36,7 +33,7 @@ training:
   mh_step_scale: 0.25
   mh_decorrelation: 1
   grad_clip: 1.0
-  print_every: 500
+  print_every: 20
   seed: 42
   device: "cuda:5"
   dtype: float64
