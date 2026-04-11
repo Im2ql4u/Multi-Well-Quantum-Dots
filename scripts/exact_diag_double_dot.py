@@ -32,6 +32,7 @@ class DiagConfig:
     y_half_width: float
     n_wells: int = 2
     model_mode: Literal["shared", "one_per_well"] = "one_per_well"
+    confinement_mode: Literal["localized", "softmin"] = "localized"
     kinetic_prefactor: float = 0.5
 
 
@@ -73,6 +74,21 @@ def softmin_double_well_potential(
     return -smooth_t * np.logaddexp(-v_l / smooth_t, -v_r / smooth_t)
 
 
+def softmin_multiwell_potential(
+    x: np.ndarray,
+    y: np.ndarray,
+    centers: list[float],
+    omega: float,
+    smooth_t: float,
+) -> np.ndarray:
+    """Soft-min harmonic confinement over arbitrary x-axis well centers."""
+    v_terms = []
+    for cx in centers:
+        v_terms.append(0.5 * omega**2 * ((x - cx) ** 2 + y**2))
+    v_stack = np.stack(v_terms, axis=0)
+    return -smooth_t * np.log(np.sum(np.exp(-v_stack / smooth_t), axis=0))
+
+
 def build_potential_matrix(
     x_grid: np.ndarray,
     y_grid: np.ndarray,
@@ -94,6 +110,24 @@ def build_centered_harmonic_potential_matrix(
     """2D harmonic potential centered at `center_x` on the x-axis."""
     x2d, y2d = np.meshgrid(x_grid, y_grid, indexing="ij")
     potential = 0.5 * omega**2 * ((x2d - center_x) ** 2 + y2d**2)
+    return np.diag(potential.ravel())
+
+
+def build_softmin_multiwell_potential_matrix(
+    x_grid: np.ndarray,
+    y_grid: np.ndarray,
+    centers: list[float],
+    omega: float,
+    smooth_t: float,
+) -> np.ndarray:
+    x2d, y2d = np.meshgrid(x_grid, y_grid, indexing="ij")
+    potential = softmin_multiwell_potential(
+        x2d,
+        y2d,
+        centers=centers,
+        omega=omega,
+        smooth_t=smooth_t,
+    )
     return np.diag(potential.ravel())
 
 
@@ -268,20 +302,40 @@ def run_exact_diagonalization_one_per_well_multi(cfg: DiagConfig) -> tuple[np.nd
     centers = well_centers_linear(cfg.n_wells, cfg.sep)
     per_well_energies: list[np.ndarray] = []
     per_well_vecs: list[np.ndarray] = []
-    for center_x in centers:
-        v_well = build_centered_harmonic_potential_matrix(
+    if cfg.confinement_mode == "localized":
+        for center_x in centers:
+            v_well = build_centered_harmonic_potential_matrix(
+                x_grid=x_grid,
+                y_grid=y_grid,
+                omega=cfg.omega,
+                center_x=center_x,
+            )
+            energies_w, vecs_w = single_particle_eigenstates(
+                t2d=t2d,
+                v2d=v_well,
+                n_sp_states=cfg.n_sp_states,
+            )
+            per_well_energies.append(energies_w)
+            per_well_vecs.append(vecs_w)
+    elif cfg.confinement_mode == "softmin":
+        # Parity ablation: use one shared soft-min one-body Hamiltonian for all channels.
+        v_shared = build_softmin_multiwell_potential_matrix(
             x_grid=x_grid,
             y_grid=y_grid,
+            centers=centers,
             omega=cfg.omega,
-            center_x=center_x,
+            smooth_t=cfg.smooth_t,
         )
         energies_w, vecs_w = single_particle_eigenstates(
             t2d=t2d,
-            v2d=v_well,
+            v2d=v_shared,
             n_sp_states=cfg.n_sp_states,
         )
-        per_well_energies.append(energies_w)
-        per_well_vecs.append(vecs_w)
+        for _ in range(cfg.n_wells):
+            per_well_energies.append(energies_w)
+            per_well_vecs.append(vecs_w)
+    else:
+        raise ValueError(f"Unknown confinement_mode={cfg.confinement_mode}")
 
     kernel = precompute_coulomb_kernel(
         x_grid=x_grid,
@@ -526,6 +580,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Reference Hamiltonian mode: shared soft-min or one-per-well localized basis.",
     )
     parser.add_argument(
+        "--confinement-mode",
+        type=str,
+        default="localized",
+        choices=["localized", "softmin"],
+        help="One-per-well one-body confinement used for multiwell parity checks.",
+    )
+    parser.add_argument(
         "--kinetic-prefactor",
         type=float,
         default=0.5,
@@ -567,12 +628,14 @@ def main() -> int:
         y_half_width=y_half,
         n_wells=args.n_wells,
         model_mode=args.model,
+        confinement_mode=args.confinement_mode,
         kinetic_prefactor=args.kinetic_prefactor,
     )
 
     LOGGER.info(
-        "Running exact diag: mode=%s n_wells=%d sep=%.3f omega=%.3f B=%.3f nx=%d ny=%d sp=%d ci=%d",
+        "Running exact diag: mode=%s confinement=%s n_wells=%d sep=%.3f omega=%.3f B=%.3f nx=%d ny=%d sp=%d ci=%d",
         cfg.model_mode,
+        cfg.confinement_mode,
         cfg.n_wells,
         cfg.sep,
         cfg.omega,

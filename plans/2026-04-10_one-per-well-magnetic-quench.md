@@ -410,6 +410,13 @@ None anticipated — standard implementation path. The exact diag is textbook qu
   - post-fix occupancy is balanced `[0.334, 0.332, 0.334]` across three wells.
  - Residual mismatch after fix:
   - vs diag reference `~3.32`, remaining gap is `+0.3156` (`~9.5%` high), far smaller than pre-fix `36.1%` but still above acceptance.
+- Step 4.2 parity-focused ablations (Hamiltonian assumptions):
+  - implemented `--confinement-mode {localized,softmin}` in `scripts/exact_diag_double_dot.py` for N=3 one-per-well checks.
+  - `localized, epsilon=0.02` -> `E0=3.31996630`.
+  - `localized, epsilon=0.01` (match VMC Coulomb softening scale) -> `E0=3.32011968`.
+  - `softmin, epsilon=0.01` (shared soft-min one-body parity probe) -> `E0=2.95815330`.
+  - post-fix VMC full run (`E=3.63554528`) remains above all parity references.
+  - artifact: `results/p4_n3_parity_ablation_20260411.json`.
 **Current risk:** Main catastrophic error was fixed, but a non-trivial residual gap remains; likely causes are remaining architecture/training bias and/or imperfect Hamiltonian parity between VMC soft-min confinement and current one-per-well diag model.
-**Next action:** Run parity-focused ablations (same potential form / interaction convention) before tuning hyperparameters or moving to N=4.
+**Next action:** Diagnose optimization/ansatz bias (Layer 3/4): run N=3 architecture/loss ablations (PINN vs CTNN, REINFORCE vs weak-form) with fixed Hamiltonian settings before moving to N=4.
 **Blockers:** N=4 progression remains blocked until N=3 residual gap is explained.

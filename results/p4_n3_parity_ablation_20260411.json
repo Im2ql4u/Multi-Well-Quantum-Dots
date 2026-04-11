@@ -1,0 +1,42 @@
+{
+  "system": {
+    "n_wells": 3,
+    "occupancy": [
+      1,
+      1,
+      1
+    ],
+    "sep": 4.0,
+    "omega": 1.0,
+    "kappa": 1.0,
+    "B": 0.0
+  },
+  "vmc_post_fix_energy": 3.6355452830306003,
+  "diag_parity_ablations": [
+    {
+      "name": "localized_eps002",
+      "confinement_mode": "localized",
+      "epsilon": 0.02,
+      "E0": 3.3199663,
+      "gap_vs_vmc": 0.3155789830306004,
+      "rel_gap_percent": 9.50548754156331
+    },
+    {
+      "name": "localized_eps001",
+      "confinement_mode": "localized",
+      "epsilon": 0.01,
+      "E0": 3.32011968,
+      "gap_vs_vmc": 0.3154256030306004,
+      "rel_gap_percent": 9.500428702335226
+    },
+    {
+      "name": "softmin_eps001",
+      "confinement_mode": "softmin",
+      "epsilon": 0.01,
+      "E0": 2.9581533,
+      "gap_vs_vmc": 0.6773919830306001,
+      "rel_gap_percent": 22.899150731322816
+    }
+  ],
+  "conclusion": "Confinement/epsilon parity ablations do not explain residual VMC-high bias; residual likely optimization/ansatz bias."
+}
