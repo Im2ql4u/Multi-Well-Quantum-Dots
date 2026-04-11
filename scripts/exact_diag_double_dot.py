@@ -251,9 +251,10 @@ def build_ci_hamiltonian(
     return h_ci
 
 
-def infer_box_half_widths(sep: float, omega: float) -> tuple[float, float]:
+def infer_box_half_widths(sep: float, omega: float, n_wells: int = 2) -> tuple[float, float]:
     ho_len = 1.0 / np.sqrt(max(omega, 1e-8))
-    x_half = max(0.5 * sep + 4.0 * ho_len, 6.0 * ho_len)
+    edge_center = 0.5 * max(n_wells - 1, 1) * sep
+    x_half = max(edge_center + 4.0 * ho_len, 6.0 * ho_len)
     y_half = max(4.0 * ho_len, 3.0)
     return x_half, y_half
 
@@ -516,7 +517,7 @@ def run_validation(base_args: argparse.Namespace) -> int:
     rel_tol = 0.05
     failures = 0
     for check in checks:
-        x_half, y_half = infer_box_half_widths(check["sep"], base_args.omega)
+        x_half, y_half = infer_box_half_widths(check["sep"], base_args.omega, n_wells=2)
         cfg = DiagConfig(
             nx=base_args.nx,
             ny=base_args.ny,
@@ -610,7 +611,7 @@ def main() -> int:
     if args.validate:
         return run_validation(args)
 
-    x_half, y_half = infer_box_half_widths(args.sep, args.omega)
+    x_half, y_half = infer_box_half_widths(args.sep, args.omega, n_wells=args.n_wells)
     cfg = DiagConfig(
         nx=args.nx,
         ny=args.ny,

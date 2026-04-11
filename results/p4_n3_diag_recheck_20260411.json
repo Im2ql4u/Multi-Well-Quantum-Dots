@@ -1,0 +1,44 @@
+{
+  "purpose": "post-boxfix diagonalization recheck for n3 one-per-well",
+  "large_sep_noninteracting_convergence": [
+    {
+      "nx": 22,
+      "ny": 22,
+      "E0": 2.86077156
+    },
+    {
+      "nx": 28,
+      "ny": 28,
+      "E0": 3.13522866
+    },
+    {
+      "nx": 34,
+      "ny": 34,
+      "E0": 2.98392609
+    }
+  ],
+  "target_sep4_kappa1_convergence": [
+    {
+      "nx": 22,
+      "ny": 22,
+      "E0": 3.27180988
+    },
+    {
+      "nx": 28,
+      "ny": 28,
+      "E0": 3.27153463
+    },
+    {
+      "nx": 34,
+      "ny": 34,
+      "E0": 3.27196406
+    }
+  ],
+  "n3_reference_estimate_updated": 3.27177,
+  "vmc_postfix_energy": 3.6355452830306003,
+  "residual_gap": {
+    "abs": 0.36377528303060025,
+    "rel_percent": 11.118608063237948
+  },
+  "assessment": "Box-size bug fixed; n3 reference now numerically consistent under grid checks."
+}

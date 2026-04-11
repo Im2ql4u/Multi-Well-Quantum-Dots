@@ -432,6 +432,19 @@ None anticipated — standard implementation path. The exact diag is textbook qu
     - batch log: `results/p4_n3_ablation_20260411.log`
     - summary JSON: `results/p4_n3_arch_loss_ablation_20260411.json`
   - diagnostic conclusion: residual N=3 gap is not architecture-specific between PINN/CTNN under REINFORCE; weak-form objective is unstable for this odd-N multiwell regime.
+- Step 4.3 diagonalization trust recheck (post box-size fix):
+  - `infer_box_half_widths` updated to depend on `n_wells` so outer wells are not clipped in multiwell runs.
+  - large-separation non-interacting sanity (`n_wells=3`, `sep=20`, `kappa=0`):
+    - `nx=22` -> `E0=2.86077156`
+    - `nx=28` -> `E0=3.13522866`
+    - `nx=34` -> `E0=2.98392609` (approaches expected `~3.0`).
+  - target-point convergence (`n_wells=3`, `sep=4`, `kappa=1`):
+    - `nx=22` -> `E0=3.27180988`
+    - `nx=28` -> `E0=3.27153463`
+    - `nx=34` -> `E0=3.27196406`
+  - updated N=3 reference estimate: `E0≈3.27177`.
+  - post-fix VMC residual vs updated ref (`E=3.63554528`): abs gap `0.3638`, rel gap `~11.1%`.
+  - artifact: `results/p4_n3_diag_recheck_20260411.json`.
 **Current risk:** Main catastrophic error was fixed, but a non-trivial residual gap remains; likely causes are remaining architecture/training bias and/or imperfect Hamiltonian parity between VMC soft-min confinement and current one-per-well diag model.
-**Next action:** Diagnose residual REINFORCE bias (Layer 4): run controlled training-setup sweeps (collocation size, MH steps/decorrelation, learning-rate schedule) and add explicit Coulomb expectation diagnostics to quantify remaining +9.5% offset.
+**Next action:** Diagnose residual REINFORCE bias (Layer 4): run controlled training-setup sweeps (collocation size, MH steps/decorrelation, learning-rate schedule) and add explicit Coulomb expectation diagnostics to quantify remaining ~11% offset.
 **Blockers:** N=4 progression remains blocked until N=3 residual gap is explained.
