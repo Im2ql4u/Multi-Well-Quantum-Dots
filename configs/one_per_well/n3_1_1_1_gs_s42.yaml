@@ -1,0 +1,51 @@
+# Phase 4.1 one-per-well baseline config for N=3 (1+1+1).
+# NOTE: current ground-state pipeline is closed-shell only (even N),
+# so this config is schema-valid but requires open-shell support to train.
+allow_missing_dmc: true
+run_name: p4_n3_1p1p1w_gs_s42
+
+architecture:
+  # Start from known-stable baseline and keep complexity controlled.
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 32
+  bf_layers: 2
+  use_backflow: false
+
+system:
+  # Custom 3-well linear geometry with one particle per well.
+  # Centers are equally spaced by 4.0 along x: -4, 0, +4.
+  type: custom
+  dim: 2
+  coulomb: true
+  wells:
+    - center: [-4.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [0.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [4.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+
+training:
+  # Keep Phase 2 stable training defaults for first N=3 bring-up.
+  epochs: 6000
+  lr: 0.001
+  lr_warmup_epochs: 100
+  lr_min_factor: 0.1
+  n_coll: 512
+  loss_type: reinforce
+  fd_h: 0.01
+  reinforce_clip_width: 5.0
+  sampler: mh
+  mh_steps: 10
+  mh_step_scale: 0.25
+  mh_decorrelation: 1
+  grad_clip: 1.0
+  print_every: 500
+  seed: 42
+  device: "cuda:5"
+  dtype: float64

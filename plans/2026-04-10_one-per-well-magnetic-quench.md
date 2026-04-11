@@ -276,7 +276,7 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 
 ## Current State
 **Active phase:** Phase 4 — Generalize to N=3, N=4 One-Per-Well
-**Active step:** Step 4.1 — Create N=3 (1+1+1) system config
+**Active step:** Step 4.1 — Create N=3 (1+1+1) system config (implemented)
 **Last evidence:** 
 - Legacy target run now executes through a compatibility path: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/20260329_134224_g6_n2_double_1_1_ctnn --device cuda:0` -> `E≈967.25`, old virial `199.92%`, new virial `213.06%` (numerically valid execution but physically implausible).
 - Modern control run is physically consistent and shows strong virial-formula effect: `PYTHONPATH=src .venv/bin/python scripts/check_virial_multiwell.py --result-dir results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115 --device cuda:0` -> `E≈7.0226`, old virial `14.58%`, new virial `1.71%`.
@@ -367,5 +367,15 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 
     - Phase 3 gate satisfied: both protocols converge within `<2%` of exact reference.
 **Current risk:** Gap extraction remains less stable than late-time energy convergence; energy gate passes but spectral-fit interpretations should remain secondary.
-  **Next action:** Proceed to Phase 4 Step 4.1 — create and validate `N=3 (1+1+1)` custom-well ground-state config.
-  **Blockers:** None for Phase 4 start.
+ - Step 4.1 config implemented for N=3 one-per-well custom geometry:
+  - file: `configs/one_per_well/n3_1_1_1_gs_s42.yaml`
+  - wells: centers `(-4,0)`, `(0,0)`, `(4,0)` with occupancies `1,1,1`, `omega=1.0`, `dim=2`, `coulomb=true`.
+  - parser validation:
+    - `PYTHONPATH=src .venv/bin/python ... _build_system(...)`
+      -> `n_wells=3`, `n_particles=3`, expected centers/occupancies confirmed.
+ - Step 4.1 execution blocker identified (implementation-level):
+  - `setup_closed_shell_system(...)` currently enforces even particle count.
+  - evidence: `ValueError: Closed-shell setup requires an even number of particles.` on N=3 custom system.
+**Current risk:** Phase 4 cannot proceed to N=3 training (Step 4.2) until open-shell support is added in `setup_closed_shell_system` / Slater construction for odd-N systems.
+**Next action:** Implement open-shell initialization support for odd-N systems (target: `N=3`, spin pattern `2 up + 1 down`) and re-run a smoke training check.
+**Blockers:** N=3 training blocked by closed-shell-only setup.
