@@ -653,6 +653,11 @@ def precompute_ground_state(ground_wf: nn.Module, cfg: PINNConfig, system_overri
         print(
             f"  <ΔV_quench> = {deltaV.mean():.5f} +/- {deltaV.std().item()/math.sqrt(n):.5f}"
         )
+        if abs(float(deltaV.mean().item())) < 1e-8:
+            print(
+                "  WARNING: ΔV_quench is ~0. The selected Zeeman subset likely cancels "
+                "net spin-z and induces no effective quench."
+            )
     return result
 
 
