@@ -371,6 +371,14 @@ def run_exact_diagonalization_one_per_well_multi(cfg: DiagConfig) -> tuple[np.nd
             val = 0.0
             for p in range(n_wells):
                 for q in range(p + 1, n_wells):
+                    # Spectator overlap: for the two-body operator V_{pq},
+                    # all wells k not in {p, q} must have matching orbitals
+                    # between bra and ket (orthonormality → δ_{orb_i[k], orb_j[k]}).
+                    spectator_ok = all(
+                        orb_i[k] == orb_j[k] for k in range(n_wells) if k != p and k != q
+                    )
+                    if not spectator_ok:
+                        continue
                     val += pair_integral(
                         p,
                         q,
