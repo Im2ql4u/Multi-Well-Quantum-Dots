@@ -43,6 +43,7 @@ import math
 import os
 import sys
 import time
+from dataclasses import replace
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -57,6 +58,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import yaml
 from scipy.optimize import curve_fit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -64,7 +66,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config
 from functions.Slater_Determinant import slater_determinant_closed_shell
 from PINN import PINN, CTNNBackflowNet
+from potential import compute_potential as compute_potential_generalized
 from potential import compute_potential_legacy_compatible
+from run_ground_state import _build_system
+from wavefunction import GroundStateWF as GeneralizedGroundStateWF
+from wavefunction import resolve_reference_energy, setup_closed_shell_system
 
 _manual = os.environ.get("CUDA_MANUAL_DEVICE")
 if _manual is not None and torch.cuda.is_available():
@@ -131,6 +137,10 @@ class PINNConfig:
     use_spectral: bool = True  # use SpectralG (preferred) vs FiLM
     g_modes: int = 3  # number of spectral modes
     no_vmc_train: bool = False  # use untrained Slater-only reference instead of VMC phase
+    # Optional path to a run_ground_state output directory containing model.pt
+    # and config.yaml. If set, Phase 1 loads this frozen GS artifact instead of
+    # training a legacy ground state in this script.
+    ground_state_dir: str | None = None
     seed: int | None = None  # RNG seed for reproducibility; None = non-deterministic
     # PINN training variants
     loss_style: str = "curriculum_mse"  # curriculum_mse, mse, huber, logcosh
@@ -168,6 +178,106 @@ def compute_potential(
         zeeman_electron1_only=zeeman_electron1_only,
         zeeman_particle_indices=zeeman_particle_indices,
     )
+
+
+def _spin_batch_for_model(model: nn.Module, batch_size: int) -> torch.Tensor:
+    if hasattr(model, "spin"):
+        spin = getattr(model, "spin")
+    elif hasattr(model, "spin_template"):
+        spin = getattr(model, "spin_template")
+    else:
+        raise AttributeError("Ground-state model has neither 'spin' nor 'spin_template'.")
+    if not isinstance(spin, torch.Tensor):
+        raise TypeError("Ground-state spin attribute must be a torch.Tensor.")
+    return spin.to(device=DEVICE).expand(batch_size, -1)
+
+
+def _compute_potential_for_cfg(
+    x: torch.Tensor,
+    cfg: PINNConfig,
+    *,
+    spin_batch: torch.Tensor,
+    magnetic_B: float,
+    system_override,
+) -> torch.Tensor:
+    if system_override is None:
+        return compute_potential(
+            x,
+            cfg.omega,
+            cfg.well_sep,
+            cfg.smooth_T,
+            cfg.coulomb,
+            magnetic_B=magnetic_B,
+            spin=spin_batch,
+            g_factor=cfg.g_factor,
+            mu_B=cfg.mu_B,
+            zeeman_electron1_only=cfg.zeeman_electron1_only,
+            zeeman_particle_indices=cfg.zeeman_particle_indices,
+        )
+
+    system_at_B = replace(
+        system_override,
+        B_magnitude=float(magnetic_B),
+        g_factor=float(cfg.g_factor),
+        mu_B=float(cfg.mu_B),
+        zeeman_electron1_only=bool(cfg.zeeman_electron1_only),
+        zeeman_particle_indices=cfg.zeeman_particle_indices,
+    )
+    return compute_potential_generalized(x, system_at_B, spin=spin_batch)
+
+
+def _load_locked_ground_state(cfg: PINNConfig):
+    if not cfg.ground_state_dir:
+        raise ValueError("ground_state_dir is required to load locked ground state.")
+    gs_dir = Path(cfg.ground_state_dir).expanduser().resolve()
+    model_path = gs_dir / "model.pt"
+    config_path = gs_dir / "config.yaml"
+    if not model_path.exists():
+        raise FileNotFoundError(f"Missing ground-state model checkpoint: {model_path}")
+    if not config_path.exists():
+        raise FileNotFoundError(f"Missing ground-state config file: {config_path}")
+
+    with config_path.open("r", encoding="utf-8") as f:
+        raw_cfg = yaml.safe_load(f)
+
+    system = _build_system(raw_cfg["system"])
+    arch_cfg = raw_cfg.get("architecture", {})
+    allow_missing_dmc = bool(raw_cfg.get("allow_missing_dmc", True))
+    input_E_ref = raw_cfg.get("E_ref", "auto")
+    resolved_E_ref = resolve_reference_energy(
+        system,
+        input_E_ref,
+        allow_missing_dmc=allow_missing_dmc,
+    )
+    C_occ, spin, params = setup_closed_shell_system(
+        system,
+        device=DEVICE,
+        dtype=DTYPE,
+        E_ref=resolved_E_ref,
+        allow_missing_dmc=allow_missing_dmc,
+    )
+
+    wf = GeneralizedGroundStateWF(
+        system,
+        C_occ,
+        spin,
+        params,
+        arch_type=arch_cfg.get("arch_type", "pinn"),
+        pinn_hidden=int(arch_cfg.get("pinn_hidden", 64)),
+        pinn_layers=int(arch_cfg.get("pinn_layers", 2)),
+        bf_hidden=int(arch_cfg.get("bf_hidden", 32)),
+        bf_layers=int(arch_cfg.get("bf_layers", 2)),
+        use_well_features=bool(arch_cfg.get("use_well_features", False)),
+        use_well_backflow=bool(arch_cfg.get("use_well_backflow", False)),
+        use_backflow=bool(arch_cfg.get("use_backflow", True)),
+    ).to(device=DEVICE, dtype=DTYPE)
+
+    state = torch.load(model_path, map_location=DEVICE)
+    wf.load_state_dict(state, strict=True)
+    wf.eval()
+    for p in wf.parameters():
+        p.requires_grad_(False)
+    return wf, system, raw_cfg
 
 
 # ============================================================
@@ -340,7 +450,7 @@ def setup_sd(n_particles, dim, omega, E_ref):
 # ============================================================
 # VMC training (Phase 1)
 # ============================================================
-def train_vmc(cfg: PINNConfig):
+def train_vmc(cfg: PINNConfig, system_override=None):
     C_occ, spin, params = setup_sd(cfg.n_particles, cfg.dim, cfg.omega, cfg.E_ref)
     wf = GroundStateWF(
         cfg.n_particles,
@@ -384,19 +494,13 @@ def train_vmc(cfg: PINNConfig):
                 )[0]
                 lap += g2[:, i, j]
         T = -0.5 * (lap + (grad**2).sum(dim=(1, 2)))
-        spin_batch = wf.spin.expand(B, -1)
-        V = compute_potential(
+        spin_batch = _spin_batch_for_model(wf, B)
+        V = _compute_potential_for_cfg(
             x_g,
-            cfg.omega,
-            cfg.well_sep,
-            cfg.smooth_T,
-            cfg.coulomb,
-            magnetic_B=cfg.magnetic_B_initial,  # Use initial field for VMC prep
-            spin=spin_batch,
-            g_factor=cfg.g_factor,
-            mu_B=cfg.mu_B,
-            zeeman_electron1_only=cfg.zeeman_electron1_only,
-            zeeman_particle_indices=cfg.zeeman_particle_indices,
+            cfg,
+            spin_batch=spin_batch,
+            magnetic_B=cfg.magnetic_B_initial,
+            system_override=system_override,
         )
         E_L = T + V
         E_mean = E_L.mean()
@@ -436,19 +540,13 @@ def train_vmc(cfg: PINNConfig):
             )[0]
             lap += g2[:, i, j]
     T = -0.5 * (lap + (grad**2).sum(dim=(1, 2)))
-    spin_batch = wf.spin.expand(B, -1)
-    V = compute_potential(
+    spin_batch = _spin_batch_for_model(wf, B)
+    V = _compute_potential_for_cfg(
         x_g,
-        cfg.omega,
-        cfg.well_sep,
-        cfg.smooth_T,
-        cfg.coulomb,
-        magnetic_B=cfg.magnetic_B_initial,  # Use initial field for VMC evaluation
-        spin=spin_batch,
-        g_factor=cfg.g_factor,
-        mu_B=cfg.mu_B,
-        zeeman_electron1_only=cfg.zeeman_electron1_only,
-        zeeman_particle_indices=cfg.zeeman_particle_indices,
+        cfg,
+        spin_batch=spin_batch,
+        magnetic_B=cfg.magnetic_B_initial,
+        system_override=system_override,
     )
     E_L = T + V
     E_final = E_L.detach().mean().item()
@@ -457,7 +555,12 @@ def train_vmc(cfg: PINNConfig):
     return wf, E_final
 
 
-def estimate_energy(wf: nn.Module, cfg: PINNConfig, n_eval: int = 2000) -> tuple[float, float]:
+def estimate_energy(
+    wf: nn.Module,
+    cfg: PINNConfig,
+    n_eval: int = 2000,
+    system_override=None,
+) -> tuple[float, float]:
     """Estimate local energy and error bar for a provided reference wf."""
     with torch.no_grad():
         x, _ = mcmc_sample(wf, n_eval, cfg.n_particles, cfg.dim, cfg.omega, cfg.well_sep, 500, 0.4)
@@ -473,19 +576,13 @@ def estimate_energy(wf: nn.Module, cfg: PINNConfig, n_eval: int = 2000) -> tuple
             )[0]
             lap += g2[:, i, j]
     T = -0.5 * (lap + (grad**2).sum(dim=(1, 2)))
-    spin_batch = wf.spin.expand(B, -1)
-    V = compute_potential(
+    spin_batch = _spin_batch_for_model(wf, B)
+    V = _compute_potential_for_cfg(
         x_g,
-        cfg.omega,
-        cfg.well_sep,
-        cfg.smooth_T,
-        cfg.coulomb,
+        cfg,
+        spin_batch=spin_batch,
         magnetic_B=cfg.magnetic_B_initial,
-        spin=spin_batch,
-        g_factor=cfg.g_factor,
-        mu_B=cfg.mu_B,
-        zeeman_electron1_only=cfg.zeeman_electron1_only,
-        zeeman_particle_indices=cfg.zeeman_particle_indices,
+        system_override=system_override,
     )
     E_L = T + V
     E_mean = E_L.detach().mean().item()
@@ -496,7 +593,7 @@ def estimate_energy(wf: nn.Module, cfg: PINNConfig, n_eval: int = 2000) -> tuple
 # ============================================================
 # Pre-compute ground-state quantities (Phase 2)
 # ============================================================
-def precompute_ground_state(ground_wf: GroundStateWF, cfg: PINNConfig) -> dict:
+def precompute_ground_state(ground_wf: nn.Module, cfg: PINNConfig, system_override=None) -> dict:
     """Sample x ~ |ψ_0|² and compute E_L^(0), ∇logψ_0 once."""
     n = cfg.n_precompute
     print(f"  Pre-computing on {n} walkers...")
@@ -520,36 +617,24 @@ def precompute_ground_state(ground_wf: GroundStateWF, cfg: PINNConfig) -> dict:
             lap += g2[:, i, j]
 
     T = -0.5 * (lap + (grad_lp**2).sum(dim=(1, 2)))
-    spin_batch = ground_wf.spin.expand(B, -1)
-    V = compute_potential(
+    spin_batch = _spin_batch_for_model(ground_wf, B)
+    V = _compute_potential_for_cfg(
         x_g,
-        cfg.omega,
-        cfg.well_sep,
-        cfg.smooth_T,
-        cfg.coulomb,
-        magnetic_B=cfg.magnetic_B_initial,  # Use initial field for precomputation
-        spin=spin_batch,
-        g_factor=cfg.g_factor,
-        mu_B=cfg.mu_B,
-        zeeman_electron1_only=cfg.zeeman_electron1_only,
-        zeeman_particle_indices=cfg.zeeman_particle_indices,
+        cfg,
+        spin_batch=spin_batch,
+        magnetic_B=cfg.magnetic_B_initial,
+        system_override=system_override,
     )
     E_L0 = (T + V).detach()
 
     deltaV = torch.zeros_like(E_L0)
     if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
-        V_evol = compute_potential(
+        V_evol = _compute_potential_for_cfg(
             x_g,
-            cfg.omega,
-            cfg.well_sep,
-            cfg.smooth_T,
-            cfg.coulomb,
+            cfg,
+            spin_batch=spin_batch,
             magnetic_B=cfg.magnetic_B,
-            spin=spin_batch,
-            g_factor=cfg.g_factor,
-            mu_B=cfg.mu_B,
-            zeeman_electron1_only=cfg.zeeman_electron1_only,
-            zeeman_particle_indices=cfg.zeeman_particle_indices,
+            system_override=system_override,
         )
         deltaV = (V_evol - V).detach()
 
@@ -1452,9 +1537,30 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         )
     print(f"{'='*65}")
 
-    # Phase 1: reference state (trained VMC or Slater-only)
+    system_override = None
+
+    # Phase 1: reference state (locked GS artifact, trained VMC, or Slater-only)
     t0 = time.time()
-    if cfg.no_vmc_train:
+    if cfg.ground_state_dir is not None:
+        print("\n  Phase 1: Loading locked generalized ground state artifact...")
+        ground_wf, system_override, gs_cfg = _load_locked_ground_state(cfg)
+        cfg.n_particles = int(system_override.n_particles)
+        cfg.dim = int(system_override.dim)
+        cfg.omega = float(system_override.omega)
+        cfg.coulomb = bool(system_override.coulomb)
+        cfg.smooth_T = float(system_override.smooth_T)
+        E_vmc, E_err = estimate_energy(
+            ground_wf,
+            cfg,
+            n_eval=2000,
+            system_override=system_override,
+        )
+        print(
+            f"  Loaded GS from {cfg.ground_state_dir} | "
+            f"run_name={gs_cfg.get('run_name', 'unknown')} | "
+            f"E = {E_vmc:.5f} +/- {E_err:.5f}"
+        )
+    elif cfg.no_vmc_train:
         print("\n  Phase 1: Slater-only reference (no VMC training)...")
         C_occ, spin, params = setup_sd(cfg.n_particles, cfg.dim, cfg.omega, cfg.E_ref)
         ground_wf = SlaterOnlyWF(
@@ -1466,11 +1572,11 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
             params,
             well_sep=cfg.well_sep,
         ).to(DEVICE)
-        E_vmc, E_err = estimate_energy(ground_wf, cfg, n_eval=2000)
+        E_vmc, E_err = estimate_energy(ground_wf, cfg, n_eval=2000, system_override=None)
         print(f"  Reference energy: E = {E_vmc:.5f} +/- {E_err:.5f}")
     else:
         print("\n  Phase 1: VMC ground state...")
-        ground_wf, E_vmc = train_vmc(cfg)
+        ground_wf, E_vmc = train_vmc(cfg, system_override=None)
     t_vmc = time.time() - t0
     print(f"  Phase 1 time: {t_vmc:.0f}s")
 
@@ -1486,7 +1592,7 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     # Phase 2: pre-compute
     t0 = time.time()
     print("\n  Phase 2: Pre-computing ground-state data...")
-    precomputed = precompute_ground_state(ground_wf, cfg)
+    precomputed = precompute_ground_state(ground_wf, cfg, system_override=system_override)
     t_pre = time.time() - t0
     print(f"  Phase 2 time: {t_pre:.0f}s")
 
@@ -1501,7 +1607,11 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     if cfg.n_precompute < cfg.n_samples_eval:
         print(f"  Re-computing {cfg.n_samples_eval} samples for evaluation...")
         eval_cfg = PINNConfig(**{**cfg.__dict__, "n_precompute": cfg.n_samples_eval})
-        precomputed_eval = precompute_ground_state(ground_wf, eval_cfg)
+        precomputed_eval = precompute_ground_state(
+            ground_wf,
+            eval_cfg,
+            system_override=system_override,
+        )
     else:
         precomputed_eval = precomputed
 
@@ -1920,6 +2030,7 @@ def run_quench_single_B(
     *,
     zeeman_electron1_only: bool = False,
     zeeman_particle_indices: tuple[int, ...] | None = None,
+    ground_state_dir: str | None = None,
 ) -> dict:
     """Run sudden-quench pipeline for one B value and save dedicated JSON."""
     cfg = build_quench_config(
@@ -1928,6 +2039,8 @@ def run_quench_single_B(
         zeeman_electron1_only=zeeman_electron1_only,
         zeeman_particle_indices=zeeman_particle_indices,
     )
+    if ground_state_dir:
+        cfg.ground_state_dir = str(ground_state_dir)
     btag = f"{B_evol:.2f}".replace(".", "p")
     profile_tag = "fast" if profile == "fast" else "full"
     tag = f"quench_single_{profile_tag}_B{btag}_"
@@ -2063,6 +2176,12 @@ if __name__ == "__main__":
         default="full",
         help="Config profile for --quench_B",
     )
+    p.add_argument(
+        "--ground_state_dir",
+        type=str,
+        default=None,
+        help="Path to run_ground_state output directory (contains model.pt + config.yaml).",
+    )
     p.add_argument("--sweep", action="store_true", help="Distance sweep")
     p.add_argument("--rerun_d4", action="store_true", help="Rerun d=4 with better settings")
     args = p.parse_args()
@@ -2085,6 +2204,7 @@ if __name__ == "__main__":
             profile=args.quench_profile,
             zeeman_electron1_only=bool(args.zeeman_electron1_only),
             zeeman_particle_indices=zeeman_particle_indices,
+            ground_state_dir=args.ground_state_dir,
         )
     elif args.quench:
         sudden_quench_B_sweep()
