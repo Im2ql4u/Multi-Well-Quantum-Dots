@@ -77,3 +77,48 @@ def test_ground_state_wavefunction_three_wells_forward_is_finite():
     out.sum().backward()
     assert torch.isfinite(x.grad).all()
     _assert_finite_grads(model)
+
+
+def test_setup_multi_well_even_n_covers_all_wells():
+    """N=4 even-N multi-well: every well must appear in the occupied SD columns.
+
+    Regression for the closed-shell shortcut (n_orb = n_up = 2) that left
+    wells 2 and 3 unrepresented, causing the sampler to crowd all 4 particles
+    into the left two wells and producing a falsely high VMC energy (~6.0 vs
+    exact ~5.1 for 4-well 1-per-well at sep=4, omega=1).
+    """
+    from config import WellSpec
+
+    wells = tuple(
+        WellSpec(center=(float(x), 0.0), omega=1.0, n_particles=1)
+        for x in (-6.0, -2.0, 2.0, 6.0)
+    )
+    system = SystemConfig(wells=wells, dim=2)
+    (c_occ, spin, params) = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref="auto", allow_missing_dmc=True
+    )
+    assert params["n_up"] == 2
+    assert params["n_down"] == 2
+    assert params["up_col_idx"] == [0, 1]
+    # Spin-down must use *different* orbital columns so all 4 wells are covered.
+    assert params["down_col_idx"] == [2, 3]
+    assert c_occ.shape == (4, 4), f"Expected (4,4) C_occ, got {tuple(c_occ.shape)}"
+    # Every well block must have exactly one occupied orbital.
+    nonzero_rows = torch.nonzero(c_occ, as_tuple=False)[:, 0].tolist()
+    assert set(nonzero_rows) == {0, 1, 2, 3}, (
+        f"Wells not covered by C_occ: {set(nonzero_rows)}"
+    )
+
+
+def test_single_dot_even_n_stays_closed_shell():
+    """Single-dot N=4 must remain closed-shell (n_orb = n_up = 2)."""
+    system = SystemConfig.single_dot(N=4, omega=1.0, dim=2)
+    (c_occ, _, params) = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref="auto", allow_missing_dmc=True
+    )
+    assert params["n_up"] == 2
+    assert params["n_down"] == 2
+    assert params["up_col_idx"] == [0, 1]
+    assert params["down_col_idx"] == [0, 1], "Single-dot should still use doubly-occupied orbitals"
+    # C_occ should have n_orb=2 columns (closed-shell)
+    assert c_occ.shape[1] == 2

@@ -45,9 +45,13 @@ def setup_closed_shell_system(
     n_up = (system.n_particles + 1) // 2
     n_down = system.n_particles // 2
     is_open_shell = n_up != n_down
-    n_orb = (n_up + n_down) if is_open_shell else n_up
     dim = system.dim
     n_wells = len(system.wells)
+    # For multi-well systems every particle needs its own spatial orbital so all
+    # well-localised HO functions appear in the SD.  Closed-shell doubling
+    # (n_orb = n_up) is correct only for a single-centre dot.
+    _multi_well = n_wells > 1
+    n_orb = (n_up + n_down) if (is_open_shell or _multi_well) else n_up
 
     # Determine HO basis size for the Slater determinant.
     # For multi-well: each single-center basis produces bonding+anti-bonding
@@ -114,7 +118,7 @@ def setup_closed_shell_system(
         "n_up": int(n_up),
         "n_down": int(n_down),
         "up_col_idx": list(range(n_up)),
-        "down_col_idx": (list(range(n_up, n_up + n_down)) if is_open_shell else list(range(n_up))),
+        "down_col_idx": (list(range(n_up, n_up + n_down)) if (is_open_shell or _multi_well) else list(range(n_up))),
     }
     return (C_occ, spin, params)
 
