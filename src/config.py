@@ -29,7 +29,6 @@ def _select_best_gpu() -> str:
 
         if free_mem > best_free:
             best_idx, best_free = i, free_mem
-    print(best_idx)
     return f"cuda:{best_idx}"
 
 

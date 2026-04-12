@@ -448,3 +448,33 @@ None anticipated — standard implementation path. The exact diag is textbook qu
 **Current risk:** Main catastrophic error was fixed, but a non-trivial residual gap remains; likely causes are remaining architecture/training bias and/or imperfect Hamiltonian parity between VMC soft-min confinement and current one-per-well diag model.
 **Next action:** Diagnose residual REINFORCE bias (Layer 4): run controlled training-setup sweeps (collocation size, MH steps/decorrelation, learning-rate schedule) and add explicit Coulomb expectation diagnostics to quantify remaining ~11% offset.
 **Blockers:** N=4 progression remains blocked until N=3 residual gap is explained.
+- Step 4.2 REINFORCE training-setup sweep (3 variants, cuda:1, 1200 epochs):
+  - configs: `n3_setup_pinn_reinforce_mh20_dec2_coll512_s42.yaml`, `mh40_dec3_coll512_s42.yaml`, `mh20_dec2_coll512_lr5e4_s42.yaml`.
+  - outcomes vs diag reference `E0=3.27177`:
+    - mh10/dec1/coll256/lr1e-3 (baseline): `E=3.633935`, gap `11.07%`
+    - mh20/dec2/coll512/lr1e-3: `E=3.635025`, gap `11.10%`
+    - mh40/dec3/coll512/lr1e-3: `E=3.634333`, gap `11.08%`
+    - mh20/dec2/coll512/lr5e-4: `E=3.635367`, gap `11.11%`
+    - full-training run (6000 epochs): `E=3.635545`, gap `11.12%`
+  - energy-component decomposition (FD kinetic, fd_h=0.01):
+    - All runs: T≈1.49–1.53, V_conf≈1.47–1.53, V_ee≈0.628–0.632.
+    - V_ee: physical range for N=3 triple-dot at sep=4, kappa=1 is reasonable.
+    - Occupancy uniformly `[0.334, 0.332, 0.334]` — well-balance is correct in all runs.
+    - Acceptance rates uniformly ~0.657–0.660 across all MH settings.
+  - sweeper script: `scripts/run_n3_setup_sweep.sh`
+  - component evaluator: `scripts/eval_ground_state_components.py`
+  - summary artifact: `results/p4_n3_setup_sweep_summary_20260411.json`
+  - diagnostic conclusion: residual 11% gap is INVARIANT to MH sampling steps (10–40), decorrelation multiplier (1–3), batch size (256→512), and LR (1e-3→5e-4). This rules out sampling bias or optimizer dynamics as the primary cause.
+- Spurious print removed in `src/config.py` (`_select_best_gpu` was printing `best_idx` to stdout, corrupting JSON output of evaluator scripts).
+**Diagnosis (Layer 3 — Architecture/Ansatz):**
+  - Layer 4 (training setup) verified: all sampling/optimizer variations plateau identically at E≈3.634.
+  - Layer 5 (hyperparameters) verified: negligible effect.
+  - Root cause is now identified as Layer 3: variational/expressiveness limit of the current Slater+PINN ansatz.
+  - The single-Slater-determinant product form with the current orbital basis cannot represent the correct correlated 3-body wavefunction. Candidate improvements:
+    1. **Backflow transformation** (already scaffolded via `use_backflow=True`) — verify backflow is enabled and has sufficient capacity.
+    2. **Larger PINN** (wider/deeper hidden layers).
+    3. **Improved orbital basis** (more HO eigenstates per well, or cross-well basis functions).
+    4. **Soft-min parity** — investigate whether the VMC one-body potential (soft-min) creates a systematic energy bias vs the localized diag potential.
+**Current risk:** Residual gap is a variational/expressiveness limit; current ansatz cannot close it without architectural improvement.
+**Next action:** Enable and verify backflow, or increase PINN hidden dim. Then re-run N=3 with improved ansatz and compare vs diag reference.
+**Blockers:** N=4 progression remains blocked until either N=3 gap is closed or it is attributed to a known, quantifiable bias.

@@ -1,0 +1,44 @@
+allow_missing_dmc: true
+run_name: p4setup_n3_pinn_rf_mh20_dec2_coll512_s42
+
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 32
+  bf_layers: 2
+  use_backflow: false
+
+system:
+  type: custom
+  dim: 2
+  coulomb: true
+  wells:
+    - center: [-4.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [0.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [4.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+
+training:
+  epochs: 1200
+  lr: 0.001
+  lr_warmup_epochs: 100
+  lr_min_factor: 0.1
+  n_coll: 512
+  loss_type: reinforce
+  fd_h: 0.01
+  reinforce_clip_width: 5.0
+  sampler: mh
+  mh_steps: 20
+  mh_step_scale: 0.25
+  mh_decorrelation: 2
+  grad_clip: 1.0
+  print_every: 200
+  seed: 42
+  device: "cuda:1"
+  dtype: float64
