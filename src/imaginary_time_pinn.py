@@ -223,7 +223,7 @@ def _compute_potential_for_cfg(
         zeeman_electron1_only=bool(cfg.zeeman_electron1_only),
         zeeman_particle_indices=cfg.zeeman_particle_indices,
     )
-    return compute_potential_generalized(x, system_at_B, spin=spin_batch)
+    return compute_potential_generalized(x, system=system_at_B, spin=spin_batch)
 
 
 def _load_locked_ground_state(cfg: PINNConfig):

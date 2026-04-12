@@ -13,27 +13,80 @@ def compute_potential(
     system: SystemConfig,
     spin: torch.Tensor | None = None,
 ) -> torch.Tensor:
-    """Compute the full potential for a SystemConfig."""
-    # Reconstruct legacy parameters from SystemConfig.
-    omega = system.omega
-    if system.n_wells == 1:
-        well_sep = 0.0
-    else:
-        well_sep = system.wells[1].center[0] - system.wells[0].center[0]
-    magnetic_B = system.B_magnitude * system.B_direction[2]
-    return compute_potential_legacy_compatible(
-        x,
-        omega=omega,
-        well_sep=well_sep,
-        smooth_T=system.smooth_T,
-        coulomb=system.coulomb,
-        magnetic_B=magnetic_B,
-        spin=spin,
-        g_factor=system.g_factor,
-        mu_B=system.mu_B,
-        zeeman_electron1_only=system.zeeman_electron1_only,
-        zeeman_particle_indices=system.zeeman_particle_indices,
-    )
+    """Compute full potential for an arbitrary multi-well SystemConfig."""
+    (batch_size, n_particles, dim) = x.shape
+    dtype = x.dtype
+    device = x.device
+
+    well_vals = []
+    for well in system.wells:
+        center = torch.tensor(well.center, device=device, dtype=dtype).view(1, 1, dim)
+        dr = x - center
+        v_well = 0.5 * float(well.omega) ** 2 * torch.sum(dr * dr, dim=-1)
+        well_vals.append(v_well)
+    v_stack = torch.stack(well_vals, dim=-1)
+    T = float(system.smooth_T)
+    v_conf = -T * torch.logsumexp(-v_stack / T, dim=-1)
+    v_conf = torch.sum(v_conf, dim=-1)
+
+    v_coul = torch.zeros(batch_size, dtype=dtype, device=device)
+    if system.coulomb:
+        eps = 1e-6 / max(float(system.omega), 1e-6) ** 0.5
+        for i in range(n_particles):
+            for j in range(i + 1, n_particles):
+                r2 = ((x[:, i, :] - x[:, j, :]) ** 2).sum(dim=-1)
+                v_coul = v_coul + 1.0 / torch.sqrt(r2 + eps * eps)
+
+    v = v_conf + v_coul
+
+    magnetic_B = float(system.B_magnitude) * float(system.B_direction[2])
+    if abs(magnetic_B) > 0.0:
+        if spin is None:
+            up = n_particles // 2
+            spin_z = torch.ones(n_particles, dtype=dtype, device=device)
+            spin_z[up:] = -1.0
+            spin_z = spin_z.unsqueeze(0).expand(batch_size, -1)
+        else:
+            s = spin.to(device=device)
+            if s.dim() == 1:
+                s = s.unsqueeze(0).expand(batch_size, -1)
+            if torch.all((s == 0) | (s == 1)):
+                spin_z = 1.0 - 2.0 * s.to(dtype)
+            else:
+                spin_z = s.to(dtype)
+
+        if system.zeeman_electron1_only and system.zeeman_particle_indices is not None:
+            raise ValueError(
+                "zeeman_electron1_only and zeeman_particle_indices are mutually exclusive."
+            )
+
+        if system.zeeman_particle_indices is not None:
+            if len(system.zeeman_particle_indices) == 0:
+                raise ValueError("zeeman_particle_indices must not be empty.")
+            idx = torch.tensor(system.zeeman_particle_indices, device=device, dtype=torch.long)
+            if int(idx.min().item()) < 0 or int(idx.max().item()) >= n_particles:
+                raise ValueError(
+                    f"zeeman_particle_indices out of range for N={n_particles}: "
+                    f"{tuple(int(i) for i in system.zeeman_particle_indices)}"
+                )
+            zeeman = (
+                0.5
+                * float(system.g_factor)
+                * float(system.mu_B)
+                * magnetic_B
+                * spin_z[:, idx].sum(dim=1)
+            )
+        elif system.zeeman_electron1_only:
+            zeeman = (
+                0.5 * float(system.g_factor) * float(system.mu_B) * magnetic_B * spin_z[:, 0]
+            )
+        else:
+            zeeman = (
+                0.5 * float(system.g_factor) * float(system.mu_B) * magnetic_B * spin_z.sum(dim=1)
+            )
+        v = v + zeeman
+
+    return v
 
 
 def compute_potential_legacy_compatible(
