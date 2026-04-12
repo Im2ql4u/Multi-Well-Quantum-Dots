@@ -1268,6 +1268,29 @@ def fit_log_linear(traj, E0_fixed, tau_min=0.0, tau_max=None):
     }
 
 
+def fit_log_linear_windows(traj, E0_fixed, windows):
+    """Run log-linear fits over multiple tau windows for stability diagnostics."""
+    results = []
+    for (tau_min, tau_max) in windows:
+        fit = fit_log_linear(traj, E0_fixed, tau_min=tau_min, tau_max=tau_max)
+        entry = {
+            "tau_min": float(tau_min),
+            "tau_max": float(tau_max),
+            "success": bool(fit.get("success", False)),
+        }
+        if fit.get("success"):
+            entry.update(
+                {
+                    "gap": float(fit["gap"]),
+                    "gap_err": float(fit["gap_err"]),
+                    "n_points": int(fit.get("n_points", 0)),
+                    "gamma": float(fit.get("gamma", float("nan"))),
+                }
+            )
+        results.append(entry)
+    return results
+
+
 def fit_single_exponential(traj, E_ref):
     tau = np.array([r["tau"] for r in traj])
     E = np.array([r["E"] for r in traj])
@@ -1647,6 +1670,18 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     fit_ll_vmc = fit_log_linear(traj, E_vmc, tau_min=0.1, tau_max=2.5)
     # Windowed log-linear: use middle τ range where single exponential dominates
     fit_ll_win = fit_log_linear(traj, E0_for_log, tau_min=0.15, tau_max=2.5)
+    # Explicit window sweep to diagnose fit stability vs τ-range choices.
+    fit_ll_windows = fit_log_linear_windows(
+        traj,
+        E0_for_log,
+        windows=[
+            (0.05, 1.0),
+            (0.10, 1.5),
+            (0.15, 2.0),
+            (0.20, 2.5),
+            (0.30, 3.0),
+        ],
+    )
     # Optimal E0 scan: finds E0 that gives best linear fit in log-space
     fit_opt = fit_optimal_E0(traj, E_ref)
     # Best estimate: ensemble of exp fit, restricted exp, and log-linear
@@ -1701,6 +1736,17 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
             f"gap={fit_ll_win['gap']:.4f}±{fit_ll_win['gap_err']:.4f}{err_str} "
             f"({fit_ll_win['n_points']} pts, τ∈[0.15,2.5])"
         )
+    print("  [LL-WIN]   window diagnostics (E0 fixed to late-τ mean):")
+    for w in fit_ll_windows:
+        if w.get("success"):
+            print(
+                f"             τ∈[{w['tau_min']:.2f},{w['tau_max']:.2f}] "
+                f"gap={w['gap']:.4f}±{w['gap_err']:.4f} (n={w['n_points']})"
+            )
+        else:
+            print(
+                f"             τ∈[{w['tau_min']:.2f},{w['tau_max']:.2f}] fit failed"
+            )
     if fit_d.get("success"):
         print(f"  [Double]   gap1={fit_d['gap1']:.4f}, gap2={fit_d['gap2']:.4f}")
     if fit_opt.get("success"):
@@ -1769,6 +1815,7 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         "fit_windowed": fit_ll_win,
         "fit_optimal_E0": fit_opt,
         "fit_best": fit_best,
+        "fit_loglin_windows": fit_ll_windows,
         "direct_gaps": g_net.get_gaps().tolist() if hasattr(g_net, "get_gaps") else None,
         "t_vmc": t_vmc,
         "t_pinn": t_pinn,
