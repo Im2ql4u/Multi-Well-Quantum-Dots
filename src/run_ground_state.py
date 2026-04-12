@@ -21,6 +21,17 @@ def _build_system(system_cfg: dict) -> SystemConfig:
     _replace = dataclasses.replace
     kind = system_cfg.get("type", "single_dot")
     coulomb = system_cfg.get("coulomb", True)
+    smooth_t = float(system_cfg.get("smooth_T", 0.2))
+    b_magnitude = float(system_cfg.get("B_magnitude", 0.0))
+    b_direction = tuple(float(v) for v in system_cfg.get("B_direction", (0.0, 0.0, 1.0)))
+    g_factor = float(system_cfg.get("g_factor", 2.0))
+    mu_b = float(system_cfg.get("mu_B", 1.0))
+    zeeman_electron1_only = bool(system_cfg.get("zeeman_electron1_only", False))
+    zeeman_particle_indices_cfg = system_cfg.get("zeeman_particle_indices", None)
+    if zeeman_particle_indices_cfg is None:
+        zeeman_particle_indices: tuple[int, ...] | None = None
+    else:
+        zeeman_particle_indices = tuple(int(idx) for idx in zeeman_particle_indices_cfg)
     if kind == "single_dot":
         sys = SystemConfig.single_dot(
             N=int(system_cfg["n_particles"]),
@@ -49,6 +60,16 @@ def _build_system(system_cfg: dict) -> SystemConfig:
         raise ValueError(f"Unknown system type '{kind}'.")
     if not coulomb:
         sys = _replace(sys, coulomb=False)
+    sys = _replace(
+        sys,
+        smooth_T=smooth_t,
+        B_magnitude=b_magnitude,
+        B_direction=b_direction,
+        g_factor=g_factor,
+        mu_B=mu_b,
+        zeeman_electron1_only=zeeman_electron1_only,
+        zeeman_particle_indices=zeeman_particle_indices,
+    )
     return sys
 
 

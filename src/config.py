@@ -159,6 +159,7 @@ class SystemConfig:
     g_factor: float = 2.0
     mu_B: float = 1.0
     zeeman_electron1_only: bool = False
+    zeeman_particle_indices: tuple[int, ...] | None = None
 
     def __post_init__(self) -> None:
         if self.dim <= 0:
@@ -179,6 +180,22 @@ class SystemConfig:
                     "WellSpec.center dimensionality does not match SystemConfig.dim: "
                     f"{len(well.center)} != {self.dim}."
                 )
+        if self.zeeman_particle_indices is not None:
+            n_particles = self.n_particles
+            if len(self.zeeman_particle_indices) == 0:
+                raise ValueError("SystemConfig.zeeman_particle_indices must not be empty.")
+            if len(set(self.zeeman_particle_indices)) != len(self.zeeman_particle_indices):
+                raise ValueError("SystemConfig.zeeman_particle_indices must be unique.")
+            for idx in self.zeeman_particle_indices:
+                if idx < 0 or idx >= n_particles:
+                    raise ValueError(
+                        "SystemConfig.zeeman_particle_indices contains out-of-range index "
+                        f"{idx} for n_particles={n_particles}."
+                    )
+        if self.zeeman_electron1_only and self.zeeman_particle_indices is not None:
+            raise ValueError(
+                "SystemConfig.zeeman_electron1_only and zeeman_particle_indices are mutually exclusive."
+            )
 
     @property
     def n_particles(self) -> int:
@@ -300,6 +317,7 @@ class SystemConfig:
             g_factor=g_factor,
             mu_B=mu_B,
             zeeman_electron1_only=zeeman_electron1_only,
+            zeeman_particle_indices=None,
         )
 
 

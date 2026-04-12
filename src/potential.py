@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Sequence
+
 import torch
 
 from config import SystemConfig
@@ -30,6 +32,7 @@ def compute_potential(
         g_factor=system.g_factor,
         mu_B=system.mu_B,
         zeeman_electron1_only=system.zeeman_electron1_only,
+        zeeman_particle_indices=system.zeeman_particle_indices,
     )
 
 
@@ -45,6 +48,7 @@ def compute_potential_legacy_compatible(
     g_factor: float = 2.0,
     mu_B: float = 1.0,
     zeeman_electron1_only: bool = False,
+    zeeman_particle_indices: Sequence[int] | None = None,
 ) -> torch.Tensor:
     """Legacy-compatible external + Coulomb + optional Zeeman potential.
 
@@ -96,7 +100,21 @@ def compute_potential_legacy_compatible(
             else:
                 spin_z = s.to(x.dtype)
 
-        if zeeman_electron1_only:
+        if zeeman_electron1_only and zeeman_particle_indices is not None:
+            raise ValueError(
+                "zeeman_electron1_only and zeeman_particle_indices are mutually exclusive."
+            )
+
+        if zeeman_particle_indices is not None:
+            if len(zeeman_particle_indices) == 0:
+                raise ValueError("zeeman_particle_indices must not be empty.")
+            idx = torch.tensor(zeeman_particle_indices, device=x.device, dtype=torch.long)
+            if int(idx.min().item()) < 0 or int(idx.max().item()) >= N:
+                raise ValueError(
+                    f"zeeman_particle_indices out of range for N={N}: {tuple(int(i) for i in zeeman_particle_indices)}"
+                )
+            zeeman = 0.5 * float(g_factor) * float(mu_B) * float(magnetic_B) * spin_z[:, idx].sum(dim=1)
+        elif zeeman_electron1_only:
             zeeman = 0.5 * float(g_factor) * float(mu_B) * float(magnetic_B) * spin_z[:, 0]
         else:
             zeeman = 0.5 * float(g_factor) * float(mu_B) * float(magnetic_B) * spin_z.sum(dim=1)

@@ -98,6 +98,7 @@ class PINNConfig:
     g_factor: float = 2.0
     mu_B: float = 1.0
     zeeman_electron1_only: bool = False
+    zeeman_particle_indices: tuple[int, ...] | None = None
     tau_max: float = 5.0
     # Phase 1: VMC
     n_epochs_vmc: int = 800
@@ -152,6 +153,7 @@ def compute_potential(
     g_factor: float = 2.0,
     mu_B: float = 1.0,
     zeeman_electron1_only: bool = False,
+    zeeman_particle_indices: tuple[int, ...] | None = None,
 ) -> torch.Tensor:
     return compute_potential_legacy_compatible(
         x,
@@ -164,6 +166,7 @@ def compute_potential(
         g_factor=g_factor,
         mu_B=mu_B,
         zeeman_electron1_only=zeeman_electron1_only,
+        zeeman_particle_indices=zeeman_particle_indices,
     )
 
 
@@ -393,6 +396,7 @@ def train_vmc(cfg: PINNConfig):
             g_factor=cfg.g_factor,
             mu_B=cfg.mu_B,
             zeeman_electron1_only=cfg.zeeman_electron1_only,
+            zeeman_particle_indices=cfg.zeeman_particle_indices,
         )
         E_L = T + V
         E_mean = E_L.mean()
@@ -444,6 +448,7 @@ def train_vmc(cfg: PINNConfig):
         g_factor=cfg.g_factor,
         mu_B=cfg.mu_B,
         zeeman_electron1_only=cfg.zeeman_electron1_only,
+        zeeman_particle_indices=cfg.zeeman_particle_indices,
     )
     E_L = T + V
     E_final = E_L.detach().mean().item()
@@ -480,6 +485,7 @@ def estimate_energy(wf: nn.Module, cfg: PINNConfig, n_eval: int = 2000) -> tuple
         g_factor=cfg.g_factor,
         mu_B=cfg.mu_B,
         zeeman_electron1_only=cfg.zeeman_electron1_only,
+        zeeman_particle_indices=cfg.zeeman_particle_indices,
     )
     E_L = T + V
     E_mean = E_L.detach().mean().item()
@@ -526,6 +532,7 @@ def precompute_ground_state(ground_wf: GroundStateWF, cfg: PINNConfig) -> dict:
         g_factor=cfg.g_factor,
         mu_B=cfg.mu_B,
         zeeman_electron1_only=cfg.zeeman_electron1_only,
+        zeeman_particle_indices=cfg.zeeman_particle_indices,
     )
     E_L0 = (T + V).detach()
 
@@ -542,6 +549,7 @@ def precompute_ground_state(ground_wf: GroundStateWF, cfg: PINNConfig) -> dict:
             g_factor=cfg.g_factor,
             mu_B=cfg.mu_B,
             zeeman_electron1_only=cfg.zeeman_electron1_only,
+            zeeman_particle_indices=cfg.zeeman_particle_indices,
         )
         deltaV = (V_evol - V).detach()
 
@@ -1409,6 +1417,13 @@ def plot_results(traj, fit_s, fit_d, cfg, E_ref, save_dir, tag=""):
 # Run single configuration
 # ============================================================
 def run_single(cfg: PINNConfig, tag="") -> dict:
+    if cfg.zeeman_electron1_only and cfg.zeeman_particle_indices is not None:
+        raise ValueError(
+            "zeeman_electron1_only and zeeman_particle_indices are mutually exclusive."
+        )
+    if cfg.zeeman_particle_indices is not None and len(cfg.zeeman_particle_indices) == 0:
+        raise ValueError("zeeman_particle_indices must not be empty.")
+
     # Seed all RNGs if seed is specified
     if cfg.seed is not None:
         import random
@@ -1423,7 +1438,12 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     print(f"\n{'='*65}")
     print(f"  {coul_str}: d={cfg.well_sep:.1f}, ω={cfg.omega:.1f}, E_ref={cfg.E_ref:.5f}")
     if abs(cfg.magnetic_B_initial) > 1e-14 or abs(cfg.magnetic_B) > 1e-14:
-        zmode = "electron1" if cfg.zeeman_electron1_only else "all-electrons"
+        if cfg.zeeman_particle_indices is not None:
+            zmode = f"particles={list(cfg.zeeman_particle_indices)}"
+        elif cfg.zeeman_electron1_only:
+            zmode = "electron1"
+        else:
+            zmode = "all-electrons"
         print(
             f"  magnetic: B_initial={cfg.magnetic_B_initial:.4f} (VMC), B_evolution={cfg.magnetic_B:.4f} (PINN)"
         )
@@ -1617,6 +1637,7 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         "g_factor": cfg.g_factor,
         "mu_B": cfg.mu_B,
         "zeeman_electron1_only": cfg.zeeman_electron1_only,
+        "zeeman_particle_indices": list(cfg.zeeman_particle_indices) if cfg.zeeman_particle_indices is not None else None,
         "E_ref": E_ref,
         "E_vmc": E_vmc,
         "coulomb": cfg.coulomb,
@@ -1821,7 +1842,13 @@ def sudden_quench_B_sweep():
     print("=" * 70)
 
 
-def build_quench_config(B_evol: float, profile: str = "full") -> PINNConfig:
+def build_quench_config(
+    B_evol: float,
+    profile: str = "full",
+    *,
+    zeeman_electron1_only: bool = False,
+    zeeman_particle_indices: tuple[int, ...] | None = None,
+) -> PINNConfig:
     """Build config for sudden-quench run at a single B value."""
     if profile == "fast":
         return PINNConfig(
@@ -1829,6 +1856,8 @@ def build_quench_config(B_evol: float, profile: str = "full") -> PINNConfig:
             well_sep=0.0,
             magnetic_B_initial=0.0,
             magnetic_B=float(B_evol),
+            zeeman_electron1_only=zeeman_electron1_only,
+            zeeman_particle_indices=zeeman_particle_indices,
             E_ref=3.0,
             coulomb=True,
             tau_max=2.0,
@@ -1858,6 +1887,8 @@ def build_quench_config(B_evol: float, profile: str = "full") -> PINNConfig:
         well_sep=0.0,
         magnetic_B_initial=0.0,
         magnetic_B=float(B_evol),
+        zeeman_electron1_only=zeeman_electron1_only,
+        zeeman_particle_indices=zeeman_particle_indices,
         E_ref=3.0,
         coulomb=True,
         tau_max=4.0,
@@ -1883,9 +1914,20 @@ def build_quench_config(B_evol: float, profile: str = "full") -> PINNConfig:
     )
 
 
-def run_quench_single_B(B_evol: float, profile: str = "full") -> dict:
+def run_quench_single_B(
+    B_evol: float,
+    profile: str = "full",
+    *,
+    zeeman_electron1_only: bool = False,
+    zeeman_particle_indices: tuple[int, ...] | None = None,
+) -> dict:
     """Run sudden-quench pipeline for one B value and save dedicated JSON."""
-    cfg = build_quench_config(B_evol, profile=profile)
+    cfg = build_quench_config(
+        B_evol,
+        profile=profile,
+        zeeman_electron1_only=zeeman_electron1_only,
+        zeeman_particle_indices=zeeman_particle_indices,
+    )
     btag = f"{B_evol:.2f}".replace(".", "p")
     profile_tag = "fast" if profile == "fast" else "full"
     tag = f"quench_single_{profile_tag}_B{btag}_"
@@ -2005,6 +2047,17 @@ if __name__ == "__main__":
     p.add_argument("--quench", action="store_true", help="Sudden quench B-field sweep")
     p.add_argument("--quench_B", type=float, default=None, help="Run sudden quench for one B")
     p.add_argument(
+        "--zeeman_electron1_only",
+        action="store_true",
+        help="Apply Zeeman term only to particle 0 (mutually exclusive with --zeeman_particles).",
+    )
+    p.add_argument(
+        "--zeeman_particles",
+        type=str,
+        default="",
+        help="Comma-separated particle indices for Zeeman targeting, e.g. '0,2,3'.",
+    )
+    p.add_argument(
         "--quench_profile",
         choices=["full", "fast"],
         default="full",
@@ -2014,6 +2067,12 @@ if __name__ == "__main__":
     p.add_argument("--rerun_d4", action="store_true", help="Rerun d=4 with better settings")
     args = p.parse_args()
 
+    zeeman_particle_indices: tuple[int, ...] | None = None
+    if args.zeeman_particles.strip():
+        zeeman_particle_indices = tuple(
+            int(tok.strip()) for tok in args.zeeman_particles.split(",") if tok.strip()
+        )
+
     if args.test_free:
         test_free()
     elif args.tiny:
@@ -2021,7 +2080,12 @@ if __name__ == "__main__":
     elif args.full:
         full_test()
     elif args.quench_B is not None:
-        run_quench_single_B(args.quench_B, profile=args.quench_profile)
+        run_quench_single_B(
+            args.quench_B,
+            profile=args.quench_profile,
+            zeeman_electron1_only=bool(args.zeeman_electron1_only),
+            zeeman_particle_indices=zeeman_particle_indices,
+        )
     elif args.quench:
         sudden_quench_B_sweep()
     elif args.sweep:
