@@ -178,8 +178,8 @@ done
 
 ## Current State
 **Active phase:** 2 — Non-Interacting Validation on GPU
-**Active step:** 2.1 — Create validation YAML configs
-**Last evidence:** `PYTHONPATH=src .venv/bin/python -m pytest tests/ -v --tb=short` -> `22 passed, 6 skipped`; `PYTHONPATH=src .venv/bin/python src/run_ground_state.py --config /tmp/smoke_ctnn.yaml` and `/tmp/smoke_unified.yaml` both completed with finite losses and saved outputs.
-**Current risk:** Architecture dispatch is now implemented, but non-interacting exact-energy checks (Phase 2) have not yet been run at full length.
-**Next action:** Create Phase 2 validation configs and launch IS/MH validation runs on available GPUs.
+**Active step:** 2.2 — Run IS baselines on GPU (in progress)
+**Last evidence:** `PYTHONPATH=src .venv/bin/python - << 'PY' ... yaml.safe_load ...` confirmed 4 Phase 2.1 configs parse; `tmux ls | grep p21_` shows four Phase 2.2 sessions running; logs show epoch 0 finite on all runs with ESS~220-246.
+**Current risk:** Full 10k-epoch runs are long; acceptance gate (energies within 1% of exact) cannot be evaluated until runs complete.
+**Next action:** Monitor tmux logs to completion, then aggregate final energies against exact targets (2.0, 2.0, 6.0, 4.0).
 **Blockers:** None.

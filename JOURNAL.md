@@ -86,3 +86,79 @@ Experiments compared: <entry refs>
 - Treat low-MH quick diagnostics as triage only, not decision evidence.
 - Require at least 2 seeds before promoting a variant decision.
 **Output reference:** [results/p3fix_n4_dd_base_fd_s901_20260410_085510](results/p3fix_n4_dd_base_fd_s901_20260410_085510), [results/p3fix_n4_dd_wellpinn_fd_s901_20260410_085327](results/p3fix_n4_dd_wellpinn_fd_s901_20260410_085327), [results/p3fix_n4_dd_wellbf_fd_s901_20260410_085309](results/p3fix_n4_dd_wellbf_fd_s901_20260410_085309), [results/p3fix_n4_dd_both_fd_s901_20260410_085457](results/p3fix_n4_dd_both_fd_s901_20260410_085457), [results/p3fix_n4_dd_base_autograd_s901_20260410_085549](results/p3fix_n4_dd_base_autograd_s901_20260410_085549), [results/p3fix_n4_dd_wellpinn_autograd_s901_20260410_084755](results/p3fix_n4_dd_wellpinn_autograd_s901_20260410_084755), [results/p3fix_n4_dd_wellbf_autograd_s901_20260410_085704](results/p3fix_n4_dd_wellbf_autograd_s901_20260410_085704), [results/p3fix_n4_dd_both_autograd_s901_20260410_085915](results/p3fix_n4_dd_both_autograd_s901_20260410_085915)
+
+### [2026-04-12] — Critical bug: missing spectator overlap in N≥3 exact diag CI matrix
+**Motivation:** All NN approaches (PINN, CTNN, backflow, all hyperparameter sweeps) converged to identical N=3 energy (E≈3.634), supposedly 11% above diag reference (3.272). This universality was suspicious — if the NN were limited, different architectures should find different local optima.
+**Method:**
+- Ran CTNN backflow on SD coordinates for N=3 (1+1+1): 56,690 params, 6000 epochs. Result: E=3.634 identical to baseline.
+- Printed CI Hamiltonian matrix from `run_exact_diagonalization_one_per_well_multi`. Found massive off-diagonal Coulomb couplings (0.13–0.33) between states differing in spectator orbitals.
+- Root cause: when computing `<Ψ_i|V_{pq}|Ψ_j>` for pair (p,q), spectator particles k∉{p,q} were not checked for `orb_i[k] == orb_j[k]`. With orthonormal orbitals, nonmatching spectators give zero overlap — the code was computing a nonsensical sum.
+- Fixed by adding `spectator_ok = all(orb_i[k] == orb_j[k] for k in range(n_wells) if k != p and k != q)`.
+- N=2 code was unaffected (no spectators with exactly 2 wells).
+**Results:**
+- Fixed N=3 diag (localized, nx=22, n_ci=200): E0 = 3.637 (was 3.272 before fix)
+- Fixed N=4 diag (localized, nx=18, n_ci=200): E0 = 5.105 (was ~4.3 before fix)
+- N=3 VMC = 3.634 vs fixed diag 3.637 → **-0.08%** error (VMC slightly below CI)
+- N=4 VMC = 5.100 vs fixed diag 5.105 → **-0.08%** error (consistent)
+- N=2 diag unchanged at E0 = 2.254 (no spectators, not affected by bug)
+**What the numbers actually mean:** The VMC was working correctly all along. The "11% gap" was entirely a diag bug. The PINN correlator + single-Gaussian SD captures slightly more correlation than the finite CI expansion, which is why VMC is fractionally below CI.
+**What we cannot explain:** VMC gives E ≈ 0.003 below the CI-diag for both N=3 and N=4. This is either: (a) PINN captures more dynamic correlation than the truncated CI, or (b) a small Coulomb softening mismatch (VMC eps=0.01/√ω, diag epsilon=0.01 directly).
+**Caveats:** CI convergence at n_sp=20/n_ci=200 not rigorously verified beyond grid-size checks. The small VMC-below-CI discrepancy could indicate CI is not fully converged.
+**What a skeptic would say:** The VMC values being slightly below diag is suspicious — variational principle says VMC should be above exact. Either the CI is not converged, or there's a Hamiltonian mismatch.
+**Output reference:** [scripts/exact_diag_double_dot.py](scripts/exact_diag_double_dot.py) (fix at line 370), commit `9d5b57f`; [results/mcmc_training/p4_n3_ctnn_bf_reinforce_s42_20260412_100358](results/mcmc_training/p4_n3_ctnn_bf_reinforce_s42_20260412_100358)
+**Next question:** Resolve VMC-below-CI puzzle (check epsilon parity). Then proceed to magnetic quench time evolution for N=3/N=4.
+
+## Comparison: One-per-well ground state across N=2, N=3, N=4
+Date: 2026-04-12
+Experiments compared: Phase 2 N=2 CTNN, Phase 4 N=3 baseline, Phase 4 N=4 GS
+
+| Dimension          | N=2 (1+1)       | N=3 (1+1+1)     | N=4 (1+1+1+1)   |
+|--------------------|------------------|------------------|------------------|
+| VMC energy         | 2.237 (κ=0.7)   | 3.634 (κ=1.0)   | 5.100 (κ=1.0)   |
+| Diag CI energy     | 2.179 (κ=0.7)   | 3.637 (κ=1.0)   | 5.105 (κ=1.0)   |
+| Diag product-state | 2.260 (κ=1.0)   | 3.648 (κ=1.0)   | 5.121 (κ=1.0)   |
+| VMC vs CI          | ~2.7% (κ=0.7)   | -0.08%           | -0.08%           |
+| Architecture       | CTNN+backflow    | PINN (no BF)     | PINN (no BF)     |
+| Epochs             | 30,000           | 6,000            | 1,100            |
+| Well separation    | 4.0              | 4.0              | 4.0              |
+
+**Winner and why:** All VMC runs match or beat their respective CI references. N=3 and N=4 are validated at <0.1% of the corrected diag; N=2 comparison at κ=0.7 shows 2.7% gap which may improve with κ parity alignment.
+**What this does NOT settle:** (1) N=2 needs rerunning at κ=1.0 for apples-to-apples comparison. (2) VMC-below-CI puzzle needs epsilon-parity check.
+**What a skeptic would say:** N=4 ran only 1100 epochs — is it converged? And the κ mismatch between N=2 and N=3/N=4 makes cross-N comparison unreliable.
+**Recommended next experiment:** (1) Run N=2 at κ=1.0 for parity. (2) Check epsilon parity between VMC and diag. (3) Proceed to magnetic quench.
+
+### [2026-04-13] — Non-MCMC residual/collocation training validated for N=2, N=3, N=4
+**Motivation:** Validate that training can be done without MCMC and still hit exact-diag-quality energies, with MCMC reserved only for optional post-training validation.
+**Method:**
+- Root-cause diagnosis for non-MCMC instability used a Layer 1/2 check: known-input FD local-energy test first (analytic Gaussian), then training-branch audit.
+- Added robust per-batch local-energy MAD clipping in all training loss branches and enabled it in non-MCMC configs.
+- Ran three stratified i.i.d. non-MCMC training jobs with residual objective and fixed exact-diag targets.
+**Results:**
+- N=2 (target 2.25442431): final `E=2.253998`, relative error `0.019%`.
+- N=3 (target 3.63700158): final `E=3.636260`, relative error `0.020%`.
+- N=4 (target 5.10444947): final `E=5.103606`, relative error `0.017%`.
+- Variance remained low and finite through full training for all runs; no divergence after clipping was introduced.
+**What the numbers actually mean:** Non-MCMC training is now numerically stable and reaches the same quality regime as prior MCMC-trained models for one-per-well ground states.
+**What we cannot explain:** Whether this remains stable under stronger magnetic/quench settings without retuning clip width and sample budget.
+**Caveats:** These are single-seed runs with fixed architecture; this validates viability, not final production optimum.
+**What a skeptic would say:** The gain may come from robust clipping rather than intrinsic sampler quality; multi-seed evidence is still needed.
+**Output reference:** [results/nonmcmc_training/p4_n2_nonmcmc_residual_anneal_s42_20260412_232259](results/nonmcmc_training/p4_n2_nonmcmc_residual_anneal_s42_20260412_232259), [results/nonmcmc_training/p4_n3_nonmcmc_residual_anneal_s42_20260413_001421](results/nonmcmc_training/p4_n3_nonmcmc_residual_anneal_s42_20260413_001421), [results/nonmcmc_training/p4_n4_nonmcmc_residual_anneal_s42_20260413_001824](results/nonmcmc_training/p4_n4_nonmcmc_residual_anneal_s42_20260413_001824)
+**Next question:** For N=4+, should the next robustness budget go to `n_coll` scaling or to deeper architecture under the same non-MCMC sampler?
+
+### [2026-04-13] — Converged 3-seed non-MCMC benchmark with finite-basis-aware reporting
+**Motivation:** Convert single-seed non-MCMC success into multi-seed evidence and remove misleading interpretation when model energy falls below finite-basis CI reference.
+**Method:**
+- Completed full seed sweep for N=2/N=3/N=4 with seeds 42, 314, 901 using non-MCMC residual anneal configs.
+- Aggregated latest converged runs into a unified report JSON and generated three figures (energy vs CI, one-sided exceedance bars, seed spread).
+- Used one-sided exceedance metric: `max(E_model - E_diag, 0)` as primary benchmark error.
+**Results:**
+- N2: mean relative exceedance `0.000000%`, max `0.000000%`.
+- N3: mean relative exceedance `0.002257%`, max `0.006771%`.
+- N4: mean relative exceedance `0.000000%`, max `0.000000%`.
+- Final artifacts: [results/nonmcmc_diag_seed_sweep_final_20260413.json](results/nonmcmc_diag_seed_sweep_final_20260413.json), [results/nonmcmc_diag_seed_sweep_final_20260413_report.md](results/nonmcmc_diag_seed_sweep_final_20260413_report.md), figures in [results/figures](results/figures).
+**What the numbers actually mean:** Across three seeds, non-MCMC training is stable and generally does not exceed the finite-basis CI reference; where it does, exceedance is tiny.
+**What we cannot explain:** Whether below-reference energies are entirely CI truncation artifacts or partially reflect remaining setup mismatch.
+**Caveats:** CI reference remains finite-basis/truncated (`n_sp_states`, `n_ci_compute`); these results are high-confidence training evidence but not proof of physical overperformance.
+**What a skeptic would say:** Without a CI convergence ladder, below-reference energies should be treated as inconclusive, not as confirmed improvements.
+**Output reference:** [results/nonmcmc_diag_seed_sweep_final_20260413.json](results/nonmcmc_diag_seed_sweep_final_20260413.json)
+**Next question:** How fast does N4 CI ground energy stabilize as `n_sp_states` and `n_ci_compute` are increased under fixed Hamiltonian settings?

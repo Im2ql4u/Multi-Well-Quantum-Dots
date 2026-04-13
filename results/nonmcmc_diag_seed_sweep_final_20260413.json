@@ -1,0 +1,137 @@
+{
+  "report_type": "nonmcmc_diag_seed_sweep_final",
+  "date": "2026-04-13",
+  "seeds": [
+    42,
+    314,
+    901
+  ],
+  "notes": "All rows are fully converged runs (final epoch reached). Latest run per (system, seed) was used when multiple runs existed.",
+  "rows": [
+    {
+      "system": "n2",
+      "seed": 42,
+      "exact_diag_energy": 2.25442431,
+      "final_energy": 2.2539001487736625,
+      "energy_mean_last_window": 2.2538533554376197,
+      "abs_error": 0.0005241612263375828,
+      "rel_error_percent": 0.02325033597324821,
+      "status": "complete",
+      "source": "results/p4_n2_nonmcmc_residual_anneal_s42_20260413_113020/result.json"
+    },
+    {
+      "system": "n2",
+      "seed": 314,
+      "exact_diag_energy": 2.25442431,
+      "final_energy": 2.2540347434089107,
+      "energy_mean_last_window": 2.2540491463774863,
+      "abs_error": 0.000389566591089352,
+      "rel_error_percent": 0.017280091833704186,
+      "status": "complete",
+      "source": "results/p4_n2_nonmcmc_residual_anneal_s314_20260413_134205/result.json"
+    },
+    {
+      "system": "n2",
+      "seed": 901,
+      "exact_diag_energy": 2.25442431,
+      "final_energy": 2.2532321420149457,
+      "energy_mean_last_window": 2.2531705898456424,
+      "abs_error": 0.0011921679850543931,
+      "rel_error_percent": 0.05288126018541705,
+      "status": "complete",
+      "source": "results/p4_n2_nonmcmc_residual_anneal_s901_20260413_134250/result.json"
+    },
+    {
+      "system": "n3",
+      "seed": 42,
+      "exact_diag_energy": 3.63700158,
+      "final_energy": 3.636259819240035,
+      "energy_mean_last_window": 3.6365028808382283,
+      "abs_error": 0.0007417607599653486,
+      "rel_error_percent": 0.020394842939973335,
+      "status": "complete",
+      "source": "results/nonmcmc_training/p4_n3_nonmcmc_residual_anneal_s42_20260413_001421/result.json"
+    },
+    {
+      "system": "n3",
+      "seed": 314,
+      "exact_diag_energy": 3.63700158,
+      "final_energy": 3.637247849554132,
+      "energy_mean_last_window": 3.63620892729391,
+      "abs_error": 0.00024626955413165064,
+      "rel_error_percent": 0.006771224832177572,
+      "status": "complete",
+      "source": "results/p4_n3_nonmcmc_residual_anneal_s314_20260413_134207/result.json"
+    },
+    {
+      "system": "n3",
+      "seed": 901,
+      "exact_diag_energy": 3.63700158,
+      "final_energy": 3.6368577549610484,
+      "energy_mean_last_window": 3.6366611904296877,
+      "abs_error": 0.00014382503895182808,
+      "rel_error_percent": 0.003954494816354412,
+      "status": "complete",
+      "source": "results/p4_n3_nonmcmc_residual_anneal_s901_20260413_134131/result.json"
+    },
+    {
+      "system": "n4",
+      "seed": 42,
+      "exact_diag_energy": 5.10444947,
+      "final_energy": 5.103606378265965,
+      "energy_mean_last_window": 5.103304979071575,
+      "abs_error": 0.0008430917340342958,
+      "rel_error_percent": 0.01651680046965566,
+      "status": "complete",
+      "source": "results/nonmcmc_training/p4_n4_nonmcmc_residual_anneal_s42_20260413_001824/result.json"
+    },
+    {
+      "system": "n4",
+      "seed": 314,
+      "exact_diag_energy": 5.10444947,
+      "final_energy": 5.102587848465133,
+      "energy_mean_last_window": 5.103369478841365,
+      "abs_error": 0.0018616215348670195,
+      "rel_error_percent": 0.03647056447141242,
+      "status": "complete",
+      "source": "results/p4_n4_nonmcmc_residual_anneal_s314_20260413_140201/result.json"
+    },
+    {
+      "system": "n4",
+      "seed": 901,
+      "exact_diag_energy": 5.10444947,
+      "final_energy": 5.102927126478168,
+      "energy_mean_last_window": 5.103568484280216,
+      "abs_error": 0.0015223435218318926,
+      "rel_error_percent": 0.02982385330247755,
+      "status": "complete",
+      "source": "results/p4_n4_nonmcmc_residual_anneal_s901_20260413_140348/result.json"
+    }
+  ],
+  "summary": {
+    "n2": {
+      "exact_diag_energy": 2.25442431,
+      "mean_energy": 2.2537223447325063,
+      "stdev_energy": 0.00042982898597844905,
+      "mean_rel_error_percent": 0.031137229330789815,
+      "max_rel_error_percent": 0.05288126018541705,
+      "n_seeds": 3
+    },
+    "n3": {
+      "exact_diag_energy": 3.63700158,
+      "mean_energy": 3.636788474585072,
+      "stdev_energy": 0.0004976452584575246,
+      "mean_rel_error_percent": 0.010373520862835106,
+      "max_rel_error_percent": 0.020394842939973335,
+      "n_seeds": 3
+    },
+    "n4": {
+      "exact_diag_energy": 5.10444947,
+      "mean_energy": 5.103040451069755,
+      "stdev_energy": 0.0005186353112640331,
+      "mean_rel_error_percent": 0.02760373941451521,
+      "max_rel_error_percent": 0.03647056447141242,
+      "n_seeds": 3
+    }
+  }
+}

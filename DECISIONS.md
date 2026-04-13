@@ -41,3 +41,58 @@ Only write entries for genuine decisions. Not every small implementation choice.
 **Evidence:** `scripts/run_virial_check.py` summary on p3fix runs with locked protocol showed best case 12.73% (wellpinn_fd), worst 15.34% (both_autograd).
 **What to do instead:** Perform 2-seed confirmation on best corrected variant and then revisit architecture assumptions or objective design.
 **Severity:** minor-setback
+
+### [2026-04-12] — N≥3 exact diag was wrong due to missing spectator overlap
+**Decision:** Fixed `run_exact_diagonalization_one_per_well_multi` in `scripts/exact_diag_double_dot.py` to enforce spectator orbital orthogonality in the CI Hamiltonian. All N≥3 diag results before commit `9d5b57f` are invalid.
+**Alternatives considered:** None — this was a clear bug, not a design choice.
+**Reasoning:** When computing `<Ψ_i|V_{pq}|Ψ_j>` for a two-body pair (p,q) in an N-particle product basis, particles k∉{p,q} must satisfy `orb_i[k] == orb_j[k]` (spectator overlap). The code was missing this check, injecting spurious off-diagonal Coulomb coupling. N=2 was unaffected (no spectators). N=3 CI energy was 3.272 (wrong) vs 3.637 (correct). This explains the entire "11% gap" that drove multiple sessions of architecture/hyperparameter investigation.
+**Constraints introduced:** Must re-derive any N≥3 diag reference from scratch using post-fix code.
+**Confidence:** high
+
+## Negative Memory
+
+### [2026-04-12] — FAILED: All N=3 architecture/hyperparameter investigations were chasing a phantom gap
+**What:** Ran CTNN backflow, MH sweep (10→40 steps), decorrelation sweep, batch size sweep, LR sweep, loss-type ablation — none improved N=3 energy beyond 3.634.
+**Why it failed:** The "11% gap" was due to a bug in the diag code, not a limitation of the NN. The VMC was actually performing correctly all along.
+**Evidence:** After fixing the diag spectator overlap, corrected N=3 diag = 3.637 vs VMC = 3.634 (VMC is -0.08% vs CI). All sweep variants gave identical energy because the true gap is <0.4%.
+**What to do instead:** Always verify the reference before blaming the model. Cross-check diag with known limits (kappa=0 → N×ω, large sep → sum of point charges).
+**Severity:** needs-rethink
+
+## Decisions (continued)
+
+### [2026-04-13] — Split result lanes by training regime (MCMC vs non-MCMC)
+**Decision:** Maintain two explicit result lanes: `results/mcmc_training/` for MCMC-trained runs and `results/nonmcmc_training/` for i.i.d. stratified residual/collocation training runs.
+**Alternatives considered:** Keep mixed run folders under `results/` with naming-only separation.
+**Reasoning:** Mixed folders caused ambiguity about whether a result supports non-MCMC training viability or only MCMC-based training. Lane separation makes interpretation and next-session planning unambiguous.
+**Constraints introduced:** Existing analysis scripts and references must use lane-aware paths; future runs should be moved or written into the correct lane.
+**Confidence:** high
+
+### [2026-04-13] — Non-MCMC as primary training direction, MCMC as validation lane
+**Decision:** Continue development primarily on non-MCMC residual/collocation training; keep MCMC runs as a distinct baseline/validation track.
+**Alternatives considered:** Continue training primarily with MCMC and treat non-MCMC as optional.
+**Reasoning:** After robust clipping fix, non-MCMC runs reached exact-diag-level accuracy for N=2/N=3/N=4 while satisfying the project direction to avoid MCMC during optimization.
+**Constraints introduced:** Non-MCMC stability controls (clip width, sample budget, diagnostic checks) become mandatory for new configs.
+**Confidence:** high
+
+### [2026-04-13] — Treat finite-basis diagonalization as approximate reference in benchmark reporting
+**Decision:** For benchmark summaries against CI diagonalization, use one-sided exceedance (`max(E_model - E_diag, 0)`) as the primary error metric and report symmetric deltas separately for transparency.
+**Alternatives considered:** Treat absolute/symmetric deviation from CI as model error regardless of sign.
+**Reasoning:** CI reference here is finite-basis/truncated (`n_sp_states`, `n_ci_compute`), so `E_model < E_diag` can reflect CI under-convergence rather than model failure.
+**Constraints introduced:** Any claim that model energies "beat reference" now requires explicit CI-convergence evidence before being promoted as physical improvement.
+**Confidence:** medium
+
+## Negative Memory (continued)
+
+### [2026-04-13] — FAILED: Raw non-MCMC residual training without local-energy clipping
+**What:** Early non-MCMC residual/collocation runs were executed without robust clipping of local-energy outliers.
+**Why it failed:** i.i.d. stratified batches produced heavy-tail local-energy samples that dominated gradients and caused unstable variance/exploding dynamics.
+**Evidence:** Pre-fix runs showed high and erratic `e_var` (up to O(10^2-10^4)) and large energy drift; post-fix clipped runs converged stably to <0.03% error vs exact diag for N=2/N=3/N=4.
+**What to do instead:** Apply per-batch MAD clipping before loss construction in all non-MCMC branches and keep known-input FD operator checks in the bring-up flow.
+**Severity:** needs-rethink
+
+### [2026-04-13] — FAILED: Interpreting sub-CI energies as automatic model error
+**What:** Used symmetric error framing where energies below finite-basis CI reference were treated as model/reporting errors.
+**Why it failed:** CI reference is truncated-basis and not guaranteed converged; sub-CI outcomes may indicate reference bias instead of model pathology.
+**Evidence:** In the converged 3-seed N2/N3/N4 sweep, most runs landed slightly below CI while maintaining stable training diagnostics and low seed spread.
+**What to do instead:** Use one-sided exceedance as the primary benchmark metric and require explicit CI convergence ladders before classifying below-reference energies.
+**Severity:** needs-rethink

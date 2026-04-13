@@ -278,8 +278,8 @@ This avoids manual tmux management for 12+ runs.
 
 ## Current State
 **Active phase:** Phase 2 (interacting architecture comparison)
-**Active step:** Phase 2 long re-test in progress (12h N=4 Coulomb run with stronger MH mixing)
-**Last evidence:** `scripts/run_virial_check.py` now matches training Hamiltonian and includes MH warmup; parity check on `arch_n4_pinn_s401_20260406_224854` gives `E=6.240875` with `virial=24.16%` (still fail but now trustworthy). New run `p2fix_n4_12h_s901` is live and reached `epoch=1000` with finite metrics.
-**Current risk:** Virial remains far from <5% even after evaluator parity fix, indicating model/training objective mismatch rather than pure diagnostic artifact.
-**Next action:** Let `p2fix_n4_12h_s901` run to completion (~12h), then rerun parity virial diagnostics and compare against prior long runs to decide whether this training adjustment helps.
+**Active step:** Execute bounded long-run set with new cusp+eps fixes (<=2h wall-clock total) and collect real interacting results.
+**Last evidence:** Fixed smoke run `p2fix2_n4_pinn_s901_cusp_eps_smoke_20260408_154419` gives `E=7.015898`, `virial=13.67%` vs pre-fix smoke `E=7.176194`, `virial=38.45%` under identical evaluator settings.
+**Current risk:** Unknown whether improvements persist over longer training and across seed variation within the 2-hour campaign budget.
+**Next action:** Run a timing-calibrated sanity check, launch two parallel long runs (seed 901/902), then evaluate both with parity virial diagnostics.
 **Blockers:** None

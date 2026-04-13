@@ -1,23 +1,23 @@
 # Session Log
 
-Last session: [2026-04-10] — Virial Gap Corrective Sweep and Evaluation Protocol Diagnosis
+Last session: [2026-04-13] — Converged 3-Seed Non-MCMC Benchmark, Reporting Update, and Cleanup
 See ARCHIVE.md for full history.
 
 ## Next session
-**Project objective:** Produce publication-quality VMC ground-state energies and virial-validated wavefunctions for N=2 and N=4 double quantum dots with Coulomb interaction; hard gate is virial residual < 5% for N=4.
-**Active plan file:** [plans/2026-04-09_virial-gap-investigation.md](plans/2026-04-09_virial-gap-investigation.md)
-**Recommended starting point:** Run 2-seed confirmation for the corrected best variant (`p3fix wellpinn_fd`) under locked virial protocol, then compare against old baseline with identical evaluator settings.
+**Project objective:** Advance one-per-well N=2/N=3/N=4 quality with non-MCMC training while tightening reference-quality evidence for publication-grade claims.
+**Active plan file:** [plans/2026-04-12_nonmcmc-residual-collocation-multiwell.md](plans/2026-04-12_nonmcmc-residual-collocation-multiwell.md)
+**Recommended starting point:** Run a CI convergence ladder for N4 (`n_sp_states`, `n_ci_compute`) and re-evaluate interpretation of sub-reference energies.
 **Open questions:**
-- Is the apparent ~1% absolute virial gain of corrected `wellpinn_fd` over corrected base real across seeds or noise?
-- After protocol lock, is remaining ~13%–15% virial gap primarily an architecture limit or an objective/evaluator limit?
-**Unverified assumptions:** Single-seed corrected sweep is representative.
-**Active workarounds:** Legacy checkpoint compatibility in diagnostics (`strict=False` with allowed missing `backflow.w_intra`/`backflow.w_inter`).
-**Foundation status:** Sampling fairness and FD evaluator sign convention verified; comparison protocol now fixed (FD evaluator + MH steps=40 + warmup 20); multi-seed confirmation still missing.
+- Are current diagonalization references sufficiently converged to support sign-sensitive claims?
+- Do one-sided exceedance conclusions hold under tighter CI settings?
+**Unverified assumptions:** Below-reference model energies currently assumed to be mostly CI-truncation effects.
+**Active workarounds:** [configs/one_per_well/seed_sweep/n4_nonmcmc_residual_anneal_s901.yaml](configs/one_per_well/seed_sweep/n4_nonmcmc_residual_anneal_s901.yaml) uses `device: cuda:7` to bypass external contention on cuda:5.
+**Foundation status:** Non-MCMC training is stable across three seeds for N=2/N=3/N=4; reporting now distinguishes finite-basis reference limits via one-sided exceedance.
 **Context freshness:** fresh
-**Contradiction flags:** Initial 38%–55% virial interpretation contradicted by protocol-aligned reevaluation (~12.7%–15.3%); treat earlier high numbers as evaluation-artifact diagnostics, not final evidence.
+**Contradiction flags:** none
 
 ## Session metrics (latest)
-**Steps completed:** 3 of 3 planned (structural fix, 8-run sweep, protocol-aligned diagnosis)
-**Material deviations:** 1 (added corrective subphase before Phase 4 CTNN comparison)
-**Evaluation gates triggered:** 2 (phase gate and diagnosis gate; verdict: iterate)
-**Unresolved uncertainties:** 2
+**Steps completed:** 4 of 4 planned
+**Material deviations:** 2
+**Evaluation gates triggered:** 2 (convergence + interpretation)
+**Unresolved uncertainties:** 1
