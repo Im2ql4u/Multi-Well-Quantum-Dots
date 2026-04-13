@@ -64,11 +64,14 @@ from scipy.optimize import curve_fit
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
+from config import SystemConfig
 from functions.Slater_Determinant import slater_determinant_closed_shell
 from PINN import PINN, CTNNBackflowNet
 from potential import compute_potential as compute_potential_generalized
 from potential import compute_potential_legacy_compatible
 from run_ground_state import _build_system
+from training.sampling import stratified_logpdf, stratified_resample
+from training.vmc_colloc import clip_local_energy_by_mad
 from wavefunction import GroundStateWF as GeneralizedGroundStateWF
 from wavefunction import resolve_reference_energy, setup_closed_shell_system
 
@@ -124,6 +127,23 @@ class PINNConfig:
     # Phase 4: evaluation
     n_tau_eval: int = 40
     n_samples_eval: int = 6000
+    eval_sampler: str = "precomputed"  # precomputed, mcmc, stratified
+    eval_local_energy_clip_width: float = 0.0
+    eval_sampler_mix_weights: tuple[float, float, float, float, float] = (
+        0.55,
+        0.05,
+        0.20,
+        0.20,
+        0.0,
+    )
+    eval_sampler_sigma_center: float = 0.15
+    eval_sampler_sigma_tails: float = 0.80
+    eval_sampler_sigma_mixed_in: float = 0.20
+    eval_sampler_sigma_mixed_out: float = 0.50
+    eval_sampler_shell_radius: float = 1.00
+    eval_sampler_shell_radius_sigma: float = 0.05
+    eval_sampler_dimer_pairs: int = 0
+    eval_sampler_dimer_eps_max: float = 0.0
     # Architecture
     pinn_hidden: int = 64
     pinn_layers: int = 2
@@ -147,6 +167,24 @@ class PINNConfig:
     tau_sampling: str = "small_bias"  # small_bias, uniform, two_stage
     x_sampling: str = "uniform"  # uniform, energy_weighted
     tau_small_bias_power: float = 1.5
+    # Phase 2 precompute sampler
+    precompute_sampler: str = "mcmc"  # mcmc, stratified
+    precompute_local_energy_clip_width: float = 5.0
+    precompute_sampler_mix_weights: tuple[float, float, float, float, float] = (
+        0.25,
+        0.2,
+        0.25,
+        0.2,
+        0.1,
+    )
+    precompute_sampler_sigma_center: float = 0.20
+    precompute_sampler_sigma_tails: float = 1.20
+    precompute_sampler_sigma_mixed_in: float = 0.25
+    precompute_sampler_sigma_mixed_out: float = 0.90
+    precompute_sampler_shell_radius: float = 1.40
+    precompute_sampler_shell_radius_sigma: float = 0.08
+    precompute_sampler_dimer_pairs: int = 2
+    precompute_sampler_dimer_eps_max: float = 0.08
 
 
 # ============================================================
@@ -280,18 +318,220 @@ def _load_locked_ground_state(cfg: PINNConfig):
     return wf, system, raw_cfg
 
 
+def _load_locked_ground_state_energy(gs_dir: Path) -> float | None:
+    result_path = gs_dir / "result.json"
+    if not result_path.exists():
+        return None
+    with result_path.open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+    for key in ("final_energy", "energy_mean_last_window"):
+        value = payload.get(key)
+        if value is None:
+            continue
+        try:
+            energy = float(value)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(energy):
+            return energy
+    return None
+
+
+def _build_initial_walkers(
+    n_samples: int,
+    n_particles: int,
+    dim: int,
+    omega: float,
+    well_sep: float = 0.0,
+    system_override=None,
+) -> torch.Tensor:
+    sigma = 1.0 / math.sqrt(omega)
+    x = torch.randn(n_samples, n_particles, dim, device=DEVICE, dtype=DTYPE) * sigma
+
+    if system_override is None:
+        if well_sep > 1e-10:
+            x[:, 0, 0] -= well_sep / 2
+            x[:, 1, 0] += well_sep / 2
+        return x
+
+    particle_centers: list[tuple[float, ...]] = []
+    particle_sigmas: list[float] = []
+    for well in system_override.wells:
+        local_sigma = 1.0 / math.sqrt(float(well.omega))
+        for _ in range(int(well.n_particles)):
+            particle_centers.append(tuple(float(c) for c in well.center))
+            particle_sigmas.append(local_sigma)
+
+    if len(particle_centers) != n_particles:
+        return x
+
+    centers = torch.tensor(particle_centers, device=DEVICE, dtype=DTYPE)
+    scales = torch.tensor(particle_sigmas, device=DEVICE, dtype=DTYPE).view(1, n_particles, 1)
+    return centers.unsqueeze(0) + 0.5 * scales * torch.randn_like(x)
+
+
+def _legacy_system_from_cfg(cfg: PINNConfig) -> SystemConfig:
+    if cfg.well_sep > 1e-10:
+        return SystemConfig.double_dot(
+            N_L=cfg.n_particles // 2,
+            N_R=cfg.n_particles - cfg.n_particles // 2,
+            sep=float(cfg.well_sep),
+            omega=float(cfg.omega),
+            dim=int(cfg.dim),
+        )
+    return SystemConfig.single_dot(
+        N=int(cfg.n_particles),
+        omega=float(cfg.omega),
+        dim=int(cfg.dim),
+    )
+
+
+def _precompute_system(cfg: PINNConfig, system_override) -> SystemConfig:
+    if system_override is not None:
+        return system_override
+    legacy = _legacy_system_from_cfg(cfg)
+    return replace(
+        legacy,
+        coulomb=bool(cfg.coulomb),
+        smooth_T=float(cfg.smooth_T),
+        B_magnitude=float(cfg.magnetic_B_initial),
+        g_factor=float(cfg.g_factor),
+        mu_B=float(cfg.mu_B),
+        zeeman_electron1_only=bool(cfg.zeeman_electron1_only),
+        zeeman_particle_indices=cfg.zeeman_particle_indices,
+    )
+
+
+def _stratified_sampler_kwargs(cfg: PINNConfig, *, eval_mode: bool) -> dict:
+    if eval_mode:
+        return {
+            "component_weights": cfg.eval_sampler_mix_weights,
+            "sigma_center": cfg.eval_sampler_sigma_center,
+            "sigma_tails": cfg.eval_sampler_sigma_tails,
+            "sigma_mixed_in": cfg.eval_sampler_sigma_mixed_in,
+            "sigma_mixed_out": cfg.eval_sampler_sigma_mixed_out,
+            "shell_radius": cfg.eval_sampler_shell_radius,
+            "shell_radius_sigma": cfg.eval_sampler_shell_radius_sigma,
+            "dimer_pairs": cfg.eval_sampler_dimer_pairs,
+            "dimer_eps_max": cfg.eval_sampler_dimer_eps_max,
+        }
+    return {
+        "component_weights": cfg.precompute_sampler_mix_weights,
+        "sigma_center": cfg.precompute_sampler_sigma_center,
+        "sigma_tails": cfg.precompute_sampler_sigma_tails,
+        "sigma_mixed_in": cfg.precompute_sampler_sigma_mixed_in,
+        "sigma_mixed_out": cfg.precompute_sampler_sigma_mixed_out,
+        "shell_radius": cfg.precompute_sampler_shell_radius,
+        "shell_radius_sigma": cfg.precompute_sampler_shell_radius_sigma,
+        "dimer_pairs": cfg.precompute_sampler_dimer_pairs,
+        "dimer_eps_max": cfg.precompute_sampler_dimer_eps_max,
+    }
+
+
+def _compute_precomputed_quantities(
+    x: torch.Tensor,
+    ground_wf: nn.Module,
+    cfg: PINNConfig,
+    *,
+    system_override=None,
+    acc: float | None = None,
+    ess: float | None = None,
+    sampler_name: str,
+    clip_width: float,
+    extra_fields: dict | None = None,
+) -> dict:
+    x_g = x.detach().requires_grad_(True)
+    lp = ground_wf(x_g)
+    grad_lp = torch.autograd.grad(lp.sum(), x_g, create_graph=True)[0]
+
+    B, N, d = x_g.shape
+    lap = torch.zeros(B, device=DEVICE, dtype=DTYPE)
+    for i in range(N):
+        for j in range(d):
+            g2 = torch.autograd.grad(
+                grad_lp[:, i, j].sum(), x_g, create_graph=True, retain_graph=True
+            )[0]
+            lap += g2[:, i, j]
+
+    T = -0.5 * (lap + (grad_lp**2).sum(dim=(1, 2)))
+    spin_batch = _spin_batch_for_model(ground_wf, B)
+    V = _compute_potential_for_cfg(
+        x_g,
+        cfg,
+        spin_batch=spin_batch,
+        magnetic_B=cfg.magnetic_B_initial,
+        system_override=system_override,
+    )
+    E_L0 = (T + V).detach()
+    E_L0 = clip_local_energy_by_mad(E_L0, clip_width)
+
+    deltaV = torch.zeros_like(E_L0)
+    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
+        V_evol = _compute_potential_for_cfg(
+            x_g,
+            cfg,
+            spin_batch=spin_batch,
+            magnetic_B=cfg.magnetic_B,
+            system_override=system_override,
+        )
+        deltaV = (V_evol - V).detach()
+
+    result = {
+        "x": x_g.detach(),
+        "log_psi0": lp.detach(),
+        "E_L0": E_L0,
+        "deltaV": deltaV,
+        "grad_log_psi0": grad_lp.detach(),
+        "acc": acc,
+        "ess": ess,
+        "sampler": sampler_name,
+    }
+    if extra_fields:
+        result.update(extra_fields)
+
+    stats = (
+        f"  <E_L^(0)> = {E_L0.mean():.5f} +/- {E_L0.std().item()/math.sqrt(B):.5f}"
+    )
+    if acc is not None:
+        stats += f", acc = {acc:.2f}"
+    if ess is not None:
+        stats += f", ess = {ess:.1f}"
+    print(stats)
+    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
+        print(
+            f"  <ΔV_quench> = {deltaV.mean():.5f} +/- {deltaV.std().item()/math.sqrt(B):.5f}"
+        )
+        if abs(float(deltaV.mean().item())) < 1e-8:
+            print(
+                "  WARNING: ΔV_quench is ~0. The selected Zeeman subset likely cancels "
+                "net spin-z and induces no effective quench."
+            )
+    return result
+
+
 # ============================================================
 # MCMC sampling
 # ============================================================
 @torch.no_grad()
 def mcmc_sample(
-    log_psi_fn, n_samples, n_particles, dim, omega, well_sep=0.0, n_warmup=300, step_size=0.5
+    log_psi_fn,
+    n_samples,
+    n_particles,
+    dim,
+    omega,
+    well_sep=0.0,
+    n_warmup=300,
+    step_size=0.5,
+    init_x: torch.Tensor | None = None,
 ):
     sigma = 1.0 / math.sqrt(omega)
-    x = torch.randn(n_samples, n_particles, dim, device=DEVICE, dtype=DTYPE) * sigma
-    if well_sep > 1e-10:
-        x[:, 0, 0] -= well_sep / 2
-        x[:, 1, 0] += well_sep / 2
+    if init_x is None:
+        x = torch.randn(n_samples, n_particles, dim, device=DEVICE, dtype=DTYPE) * sigma
+        if well_sep > 1e-10:
+            x[:, 0, 0] -= well_sep / 2
+            x[:, 1, 0] += well_sep / 2
+    else:
+        x = init_x.to(device=DEVICE, dtype=DTYPE)
 
     log_prob = 2 * log_psi_fn(x)
     n_accept = 0
@@ -563,7 +803,25 @@ def estimate_energy(
 ) -> tuple[float, float]:
     """Estimate local energy and error bar for a provided reference wf."""
     with torch.no_grad():
-        x, _ = mcmc_sample(wf, n_eval, cfg.n_particles, cfg.dim, cfg.omega, cfg.well_sep, 500, 0.4)
+        init_x = _build_initial_walkers(
+            n_eval,
+            cfg.n_particles,
+            cfg.dim,
+            cfg.omega,
+            cfg.well_sep,
+            system_override=system_override,
+        )
+        x, _ = mcmc_sample(
+            wf,
+            n_eval,
+            cfg.n_particles,
+            cfg.dim,
+            cfg.omega,
+            cfg.well_sep,
+            500,
+            0.4,
+            init_x=init_x,
+        )
     x_g = x.detach().requires_grad_(True)
     lp = wf(x_g)
     grad = torch.autograd.grad(lp.sum(), x_g, create_graph=True)[0]
@@ -599,66 +857,85 @@ def precompute_ground_state(ground_wf: nn.Module, cfg: PINNConfig, system_overri
     print(f"  Pre-computing on {n} walkers...")
 
     with torch.no_grad():
-        x, acc = mcmc_sample(
-            ground_wf, n, cfg.n_particles, cfg.dim, cfg.omega, cfg.well_sep, 500, 0.4
-        )
-
-    x_g = x.detach().requires_grad_(True)
-    lp = ground_wf(x_g)
-    grad_lp = torch.autograd.grad(lp.sum(), x_g, create_graph=True)[0]
-
-    B, N, d = x_g.shape
-    lap = torch.zeros(B, device=DEVICE, dtype=DTYPE)
-    for i in range(N):
-        for j in range(d):
-            g2 = torch.autograd.grad(
-                grad_lp[:, i, j].sum(), x_g, create_graph=True, retain_graph=True
-            )[0]
-            lap += g2[:, i, j]
-
-    T = -0.5 * (lap + (grad_lp**2).sum(dim=(1, 2)))
-    spin_batch = _spin_batch_for_model(ground_wf, B)
-    V = _compute_potential_for_cfg(
-        x_g,
-        cfg,
-        spin_batch=spin_batch,
-        magnetic_B=cfg.magnetic_B_initial,
-        system_override=system_override,
-    )
-    E_L0 = (T + V).detach()
-
-    deltaV = torch.zeros_like(E_L0)
-    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
-        V_evol = _compute_potential_for_cfg(
-            x_g,
-            cfg,
-            spin_batch=spin_batch,
-            magnetic_B=cfg.magnetic_B,
+        init_x = _build_initial_walkers(
+            n,
+            cfg.n_particles,
+            cfg.dim,
+            cfg.omega,
+            cfg.well_sep,
             system_override=system_override,
         )
-        deltaV = (V_evol - V).detach()
-
-    result = {
-        "x": x_g.detach(),  # (n, N, d)
-        "E_L0": E_L0,  # (n,)
-        "deltaV": deltaV,  # (n,) quench correction V_evolution - V_initial
-        "grad_log_psi0": grad_lp.detach(),  # (n, N, d)
-        "acc": acc,
-    }
-    print(
-        f"  <E_L^(0)> = {E_L0.mean():.5f} +/- {E_L0.std().item()/math.sqrt(n):.5f}, "
-        f"acc = {acc:.2f}"
-    )
-    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
-        print(
-            f"  <ΔV_quench> = {deltaV.mean():.5f} +/- {deltaV.std().item()/math.sqrt(n):.5f}"
+        x, acc = mcmc_sample(
+            ground_wf,
+            n,
+            cfg.n_particles,
+            cfg.dim,
+            cfg.omega,
+            cfg.well_sep,
+            500,
+            0.4,
+            init_x=init_x,
         )
-        if abs(float(deltaV.mean().item())) < 1e-8:
-            print(
-                "  WARNING: ΔV_quench is ~0. The selected Zeeman subset likely cancels "
-                "net spin-z and induces no effective quench."
-            )
-    return result
+
+    return _compute_precomputed_quantities(
+        x,
+        ground_wf,
+        cfg,
+        system_override=system_override,
+        acc=acc,
+        ess=None,
+        sampler_name="mcmc",
+        clip_width=cfg.precompute_local_energy_clip_width,
+    )
+
+
+
+def precompute_ground_state_stratified(
+    ground_wf: nn.Module,
+    cfg: PINNConfig,
+    system_override=None,
+    *,
+    eval_mode: bool = False,
+    store_sampling_density: bool = False,
+) -> dict:
+    """Sample i.i.d. collocation points and compute E_L^(0), ∇logψ_0 once."""
+    n = cfg.n_precompute
+    print(f"  Pre-computing on {n} walkers with stratified i.i.d. sampler...")
+
+    system = _precompute_system(cfg, system_override)
+    sampler_kwargs = _stratified_sampler_kwargs(cfg, eval_mode=eval_mode)
+    with torch.no_grad():
+        x, ess = stratified_resample(
+            n_keep=n,
+            omega=cfg.omega,
+            system=system,
+            device=DEVICE,
+            dtype=DTYPE,
+            **sampler_kwargs,
+        )
+
+        extra_fields = None
+        if store_sampling_density:
+            extra_fields = {
+                "log_q": stratified_logpdf(
+                    x,
+                    omega=cfg.omega,
+                    system=system,
+                    **sampler_kwargs,
+                ).detach()
+            }
+
+    return _compute_precomputed_quantities(
+        x,
+        ground_wf,
+        cfg,
+        system_override=system_override,
+        acc=None,
+        ess=ess,
+        sampler_name="stratified",
+        clip_width=(cfg.eval_local_energy_clip_width if eval_mode else cfg.precompute_local_energy_clip_width),
+        extra_fields=extra_fields,
+    )
 
 
 # ============================================================
@@ -1158,17 +1435,29 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
 # Phase 4: Evaluate E(τ) trajectory
 # ============================================================
 def evaluate_trajectory(g_net, precomputed: dict, cfg: PINNConfig, E_ref: float):
-    """Evaluate E(τ) using importance sampling from |ψ_0|²."""
+    """Evaluate E(τ) using proposal-aware self-normalized importance sampling."""
     g_net.eval()
 
     # Use evaluation samples (larger pool)
     with torch.no_grad():
         x_eval = precomputed["x"][: cfg.n_samples_eval]
+        log_psi0_eval = precomputed.get("log_psi0")
         E_L0_eval = precomputed["E_L0"][: cfg.n_samples_eval]
         deltaV_eval = precomputed.get("deltaV", torch.zeros_like(precomputed["E_L0"]))[
             : cfg.n_samples_eval
         ]
         grad_eval = precomputed["grad_log_psi0"][: cfg.n_samples_eval]
+        log_q_eval = precomputed.get("log_q")
+
+    if log_psi0_eval is not None:
+        log_psi0_eval = log_psi0_eval[: cfg.n_samples_eval]
+    sampler_name = str(precomputed.get("sampler", "mcmc"))
+    if sampler_name == "stratified" and (log_psi0_eval is None or log_q_eval is None):
+        raise ValueError(
+            "Stratified evaluation requires log_psi0 and log_q in the precomputed pool."
+        )
+    if log_q_eval is not None:
+        log_q_eval = log_q_eval[: cfg.n_samples_eval]
 
     n = x_eval.shape[0]
     tau_values = np.concatenate([[0.0], np.geomspace(0.01, cfg.tau_max, cfg.n_tau_eval - 1)])
@@ -1194,9 +1483,12 @@ def evaluate_trajectory(g_net, precomputed: dict, cfg: PINNConfig, E_ref: float)
         gradg_sq = (dg_dx.detach() ** 2).sum(dim=(1, 2))
         E_L = E_L0_eval + deltaV_eval - 0.5 * lap_g.detach() - cross - 0.5 * gradg_sq
 
-        # Importance weights: |ψ(x,τ)|²/|ψ_0(x)|² = exp(2g)
         g_vals = g.detach()
-        log_w = 2.0 * g_vals
+        if sampler_name == "stratified":
+            log_w = 2.0 * (log_psi0_eval + g_vals) - log_q_eval
+        else:
+            # For MCMC / |psi_0|^2 proposals, the Radon-Nikodym factor reduces to exp(2g).
+            log_w = 2.0 * g_vals
         log_w = log_w - log_w.max()
         w = torch.exp(log_w)
         w = w / w.sum()
@@ -1572,22 +1864,43 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     if cfg.ground_state_dir is not None:
         print("\n  Phase 1: Loading locked generalized ground state artifact...")
         ground_wf, system_override, gs_cfg = _load_locked_ground_state(cfg)
+        gs_dir = Path(cfg.ground_state_dir).expanduser().resolve()
         cfg.n_particles = int(system_override.n_particles)
         cfg.dim = int(system_override.dim)
         cfg.omega = float(system_override.omega)
         cfg.coulomb = bool(system_override.coulomb)
         cfg.smooth_T = float(system_override.smooth_T)
-        E_vmc, E_err = estimate_energy(
-            ground_wf,
-            cfg,
-            n_eval=2000,
-            system_override=system_override,
-        )
-        print(
-            f"  Loaded GS from {cfg.ground_state_dir} | "
-            f"run_name={gs_cfg.get('run_name', 'unknown')} | "
-            f"E = {E_vmc:.5f} +/- {E_err:.5f}"
-        )
+        # Compute effective well separation from generalized geometry
+        wells = system_override.wells
+        if len(wells) >= 2:
+            cfg.well_sep = max(
+                math.sqrt(sum((a - b) ** 2 for a, b in zip(c1.center, c2.center)))
+                for i, c1 in enumerate(wells)
+                for c2 in wells[i + 1 :]
+            )
+        else:
+            cfg.well_sep = 0.0
+        locked_energy = _load_locked_ground_state_energy(gs_dir)
+        if locked_energy is not None:
+            E_vmc = locked_energy
+            E_err = None
+            print(
+                f"  Loaded GS from {cfg.ground_state_dir} | "
+                f"run_name={gs_cfg.get('run_name', 'unknown')} | "
+                f"saved E = {E_vmc:.5f}"
+            )
+        else:
+            E_vmc, E_err = estimate_energy(
+                ground_wf,
+                cfg,
+                n_eval=2000,
+                system_override=system_override,
+            )
+            print(
+                f"  Loaded GS from {cfg.ground_state_dir} | "
+                f"run_name={gs_cfg.get('run_name', 'unknown')} | "
+                f"E = {E_vmc:.5f} +/- {E_err:.5f}"
+            )
     elif cfg.no_vmc_train:
         print("\n  Phase 1: Slater-only reference (no VMC training)...")
         C_occ, spin, params = setup_sd(cfg.n_particles, cfg.dim, cfg.omega, cfg.E_ref)
@@ -1613,6 +1926,9 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
             E_ref = 3.0 if cfg.well_sep <= 1e-10 else 2.0 + 1.0 / max(cfg.well_sep, 1e-10)
         else:
             E_ref = 2.0
+    elif cfg.ground_state_dir is not None:
+        # Generalized locked ground states do not encode geometry via well_sep.
+        E_ref = E_vmc
     else:
         E_ref = E_vmc if cfg.well_sep > 0.01 else cfg.E_ref
     print(f"  Using E_ref = {E_ref:.5f}")
@@ -1620,7 +1936,18 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     # Phase 2: pre-compute
     t0 = time.time()
     print("\n  Phase 2: Pre-computing ground-state data...")
-    precomputed = precompute_ground_state(ground_wf, cfg, system_override=system_override)
+    if cfg.precompute_sampler == "mcmc":
+        precomputed = precompute_ground_state(ground_wf, cfg, system_override=system_override)
+    elif cfg.precompute_sampler == "stratified":
+        precomputed = precompute_ground_state_stratified(
+            ground_wf,
+            cfg,
+            system_override=system_override,
+        )
+    else:
+        raise ValueError(
+            f"Unknown precompute_sampler '{cfg.precompute_sampler}', expected 'mcmc' or 'stratified'."
+        )
     t_pre = time.time() - t0
     print(f"  Phase 2 time: {t_pre:.0f}s")
 
@@ -1632,16 +1959,57 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     print(f"  Phase 3 time: {t_pinn:.0f}s")
 
     # If pool is smaller than eval, re-compute a larger pool
-    if cfg.n_precompute < cfg.n_samples_eval:
-        print(f"  Re-computing {cfg.n_samples_eval} samples for evaluation...")
-        eval_cfg = PINNConfig(**{**cfg.__dict__, "n_precompute": cfg.n_samples_eval})
+    if cfg.eval_sampler == "precomputed":
+        if cfg.precompute_sampler != "mcmc":
+            raise ValueError(
+                "eval_sampler='precomputed' requires precompute_sampler='mcmc' because "
+                "evaluate_trajectory currently assumes samples are drawn from |psi_0|^2. "
+                "Use eval_sampler='mcmc' when training with stratified precompute."
+            )
+        if cfg.n_precompute < cfg.n_samples_eval:
+            print(f"  Re-computing {cfg.n_samples_eval} samples for evaluation...")
+            eval_cfg = PINNConfig(
+                **{
+                    **cfg.__dict__,
+                    "n_precompute": cfg.n_samples_eval,
+                    "precompute_local_energy_clip_width": cfg.eval_local_energy_clip_width,
+                }
+            )
+            precomputed_eval = precompute_ground_state(
+                ground_wf,
+                eval_cfg,
+                system_override=system_override,
+            )
+        else:
+            precomputed_eval = precomputed
+    elif cfg.eval_sampler == "mcmc":
+        print(f"  Re-computing {cfg.n_samples_eval} MCMC samples for evaluation...")
+        eval_cfg = PINNConfig(
+            **{
+                **cfg.__dict__,
+                "n_precompute": cfg.n_samples_eval,
+                "precompute_local_energy_clip_width": cfg.eval_local_energy_clip_width,
+            }
+        )
         precomputed_eval = precompute_ground_state(
             ground_wf,
             eval_cfg,
             system_override=system_override,
         )
+    elif cfg.eval_sampler == "stratified":
+        print(f"  Re-computing {cfg.n_samples_eval} stratified samples for evaluation...")
+        eval_cfg = PINNConfig(**{**cfg.__dict__, "n_precompute": cfg.n_samples_eval})
+        precomputed_eval = precompute_ground_state_stratified(
+            ground_wf,
+            eval_cfg,
+            system_override=system_override,
+            eval_mode=True,
+            store_sampling_density=True,
+        )
     else:
-        precomputed_eval = precomputed
+        raise ValueError(
+            f"Unknown eval_sampler '{cfg.eval_sampler}', expected 'precomputed', 'mcmc', or 'stratified'."
+        )
 
     # Phase 4: Evaluate
     t0 = time.time()
@@ -1806,6 +2174,8 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         "loss_style": cfg.loss_style,
         "tau_sampling": cfg.tau_sampling,
         "x_sampling": cfg.x_sampling,
+        "precompute_sampler": cfg.precompute_sampler,
+        "eval_sampler": cfg.eval_sampler,
         "trajectory": traj,
         "fit_single": fit_s,
         "fit_double": fit_d,
