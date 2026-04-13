@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import random
 from dataclasses import asdict, dataclass, field
+from typing import Literal
 
 import numpy as np
 import torch
@@ -10,7 +11,7 @@ import torch
 from config import SystemConfig
 from observables.diagnostics import summarize_training_diagnostics
 from training.collocation import colloc_fd_loss, rayleigh_hybrid_loss, weak_form_local_energy
-from training.sampling import adapt_sigma_fs, importance_resample, mcmc_resample
+from training.sampling import adapt_sigma_fs, importance_resample, mcmc_resample, stratified_resample
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,14 @@ class GroundStateTrainingConfig:
     n_cand_mult: int = 8
     loss_type: str = "weak_form"
     laplacian_mode: str = "fd"
+    # Robust clipping for local-energy based losses (weak_form/fd_colloc/reinforce_hybrid/residual).
+    # 0.0 disables clipping. Positive values apply MAD clipping around the median.
+    local_energy_clip_width: float = 0.0
+    residual_objective: Literal["residual", "energy", "energy_var"] = "residual"
+    residual_target_energy: float | None = None
+    alpha_start: float = 0.0
+    alpha_end: float = 1.0
+    alpha_decay_frac: float = 0.5
     direct_weight: float = 0.1
     fd_h: float = 0.01
     min_pair_cutoff: float = 0.0
@@ -36,6 +45,16 @@ class GroundStateTrainingConfig:
     langevin_steps: int = 0
     langevin_step_size: float = 0.01
     sampler: str = "is"
+    non_mcmc_only: bool = False
+    sampler_mix_weights: tuple[float, float, float, float, float] = (0.25, 0.2, 0.25, 0.2, 0.1)
+    sampler_sigma_center: float = 0.20
+    sampler_sigma_tails: float = 1.20
+    sampler_sigma_mixed_in: float = 0.25
+    sampler_sigma_mixed_out: float = 0.90
+    sampler_shell_radius: float = 1.40
+    sampler_shell_radius_sigma: float = 0.08
+    sampler_dimer_pairs: int = 2
+    sampler_dimer_eps_max: float = 0.08
     mh_steps: int = 10
     mh_step_scale: float = 0.25
     mh_decorrelation: int = 1
@@ -97,6 +116,53 @@ def lr_schedule_factor(
     return min_factor + 0.5 * (1.0 - min_factor) * (1.0 + math.cos(math.pi * progress))
 
 
+def compute_eeff(
+    *,
+    mu: float,
+    e_ref: float | None,
+    epoch: int,
+    total_epochs: int,
+    mode: Literal["residual", "energy", "energy_var"],
+    alpha_start: float,
+    alpha_end: float,
+    alpha_decay_frac: float,
+) -> float:
+    if mode == "residual":
+        return float(mu)
+    if mode == "energy":
+        if e_ref is None:
+            raise ValueError("residual_target_energy must be set when residual_objective='energy'.")
+        return float(e_ref)
+    if mode != "energy_var":
+        raise ValueError(f"Unknown residual objective mode '{mode}'.")
+    if e_ref is None:
+        raise ValueError(
+            "residual_target_energy must be set when residual_objective='energy_var'."
+        )
+
+    ramp_frac = max(1e-6, float(alpha_decay_frac))
+    ramp_epochs = max(1, int(round(ramp_frac * max(total_epochs, 1))))
+    t = min(max(int(epoch), 0), ramp_epochs)
+    progress = t / ramp_epochs
+    alpha = float(alpha_start) + 0.5 * (float(alpha_end) - float(alpha_start)) * (
+        1.0 - math.cos(math.pi * progress)
+    )
+    lo = min(float(alpha_start), float(alpha_end))
+    hi = max(float(alpha_start), float(alpha_end))
+    alpha = min(max(alpha, lo), hi)
+    return float((1.0 - alpha) * mu + alpha * float(e_ref))
+
+
+def clip_local_energy_by_mad(e_loc: torch.Tensor, clip_width: float) -> torch.Tensor:
+    if clip_width <= 0.0:
+        return e_loc
+    med = e_loc.detach().median()
+    mad = (e_loc.detach() - med).abs().median().clamp_min(1e-8)
+    lo = med - float(clip_width) * mad
+    hi = med + float(clip_width) * mad
+    return e_loc.clamp(lo, hi)
+
+
 def train_ground_state(
     model: torch.nn.Module,
     system: SystemConfig,
@@ -122,8 +188,10 @@ def train_ground_state(
     def psi_log_fn(x: torch.Tensor) -> torch.Tensor:
         return model(x)
 
-    if train_cfg.sampler not in ("is", "mh"):
-        raise ValueError(f"Unknown sampler '{train_cfg.sampler}', expected 'is' or 'mh'.")
+    if train_cfg.sampler not in ("is", "mh", "stratified"):
+        raise ValueError(f"Unknown sampler '{train_cfg.sampler}', expected 'is', 'mh', or 'stratified'.")
+    if train_cfg.non_mcmc_only and train_cfg.sampler == "mh":
+        raise ValueError("non_mcmc_only=true forbids sampler='mh'.")
     if train_cfg.laplacian_mode not in ("fd", "autograd"):
         raise ValueError(
             f"Unknown laplacian_mode '{train_cfg.laplacian_mode}', expected 'fd' or 'autograd'."
@@ -163,6 +231,23 @@ def train_ground_state(
                 langevin_step_size=train_cfg.langevin_step_size,
                 system=system,
                 return_weights=True,
+            )
+        elif train_cfg.sampler == "stratified":
+            x, ess = stratified_resample(
+                n_keep=train_cfg.n_coll,
+                omega=system.omega,
+                system=system,
+                device=device,
+                dtype=dtype,
+                component_weights=train_cfg.sampler_mix_weights,
+                sigma_center=train_cfg.sampler_sigma_center,
+                sigma_tails=train_cfg.sampler_sigma_tails,
+                sigma_mixed_in=train_cfg.sampler_sigma_mixed_in,
+                sigma_mixed_out=train_cfg.sampler_sigma_mixed_out,
+                shell_radius=train_cfg.sampler_shell_radius,
+                shell_radius_sigma=train_cfg.sampler_shell_radius_sigma,
+                dimer_pairs=train_cfg.sampler_dimer_pairs,
+                dimer_eps_max=train_cfg.sampler_dimer_eps_max,
             )
         else:
             x, accept_rate, mh_scale = mcmc_resample(
@@ -208,9 +293,10 @@ def train_ground_state(
                 h=train_cfg.fd_h,
                 laplacian_mode=train_cfg.laplacian_mode,
             )
-            loss = weighted_mean(e_weak)
+            e_used = clip_local_energy_by_mad(e_weak, train_cfg.local_energy_clip_width)
+            loss = weighted_mean(e_used)
             energy = float(loss.detach().item())
-            local_energy_samples = e_weak.detach()
+            local_energy_samples = e_used.detach()
         elif train_cfg.loss_type == "reinforce_hybrid":
             _, _, e_eff, _ = rayleigh_hybrid_loss(
                 psi_log_fn,
@@ -222,9 +308,10 @@ def train_ground_state(
                 h=train_cfg.fd_h,
                 laplacian_mode=train_cfg.laplacian_mode,
             )
-            loss = weighted_mean(e_eff)
+            e_used = clip_local_energy_by_mad(e_eff, train_cfg.local_energy_clip_width)
+            loss = weighted_mean(e_used)
             energy = float(loss.detach().item())
-            local_energy_samples = e_eff
+            local_energy_samples = e_used
         elif train_cfg.loss_type == "fd_colloc":
             _, _, e_loc, _ = colloc_fd_loss(
                 psi_log_fn,
@@ -235,9 +322,10 @@ def train_ground_state(
                 h=train_cfg.fd_h,
                 laplacian_mode=train_cfg.laplacian_mode,
             )
-            loss = weighted_mean(e_loc)
+            e_used = clip_local_energy_by_mad(e_loc, train_cfg.local_energy_clip_width)
+            loss = weighted_mean(e_used)
             energy = float(loss.detach().item())
-            local_energy_samples = e_loc
+            local_energy_samples = e_used
         elif train_cfg.loss_type == "reinforce":
             # Forward pass to get log_psi (carries gradient).
             log_psi = model(x)
@@ -276,6 +364,31 @@ def train_ground_state(
             loss = 2.0 * ((e_loc - E_mean) * log_psi).mean()
             energy = float(E_mean.item())
             local_energy_samples = e_loc
+        elif train_cfg.loss_type == "residual":
+            _, _, e_loc, _ = colloc_fd_loss(
+                psi_log_fn,
+                x,
+                omega=system.omega,
+                params=params,
+                system=system,
+                h=train_cfg.fd_h,
+                laplacian_mode=train_cfg.laplacian_mode,
+            )
+            e_used = clip_local_energy_by_mad(e_loc, train_cfg.local_energy_clip_width)
+            mu = float(e_used.detach().mean().item())
+            e_eff = compute_eeff(
+                mu=mu,
+                e_ref=train_cfg.residual_target_energy,
+                epoch=epoch,
+                total_epochs=train_cfg.epochs,
+                mode=train_cfg.residual_objective,
+                alpha_start=train_cfg.alpha_start,
+                alpha_end=train_cfg.alpha_end,
+                alpha_decay_frac=train_cfg.alpha_decay_frac,
+            )
+            loss = weighted_mean((e_used - e_eff) * (e_used - e_eff))
+            energy = mu
+            local_energy_samples = e_used.detach()
         else:
             raise ValueError(f"Unknown loss_type '{train_cfg.loss_type}'.")
 

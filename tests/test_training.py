@@ -10,9 +10,16 @@ from training import (
     importance_resample,
     mcmc_resample,
     rayleigh_hybrid_loss,
+    stratified_resample,
     weak_form_local_energy,
 )
-from training.vmc_colloc import GroundStateTrainingConfig, lr_schedule_factor, train_ground_state
+from training.vmc_colloc import (
+    GroundStateTrainingConfig,
+    clip_local_energy_by_mad,
+    compute_eeff,
+    lr_schedule_factor,
+    train_ground_state,
+)
 from config import SystemConfig
 from wavefunction import GroundStateWF, setup_closed_shell_system
 
@@ -78,6 +85,50 @@ def test_importance_resample_can_return_normalized_weights() -> None:
     assert torch.all(w > 0)
     torch.testing.assert_close(w.sum(), torch.tensor(1.0, dtype=w.dtype), atol=1e-10, rtol=1e-10)
     assert ess > 0.0
+
+
+def test_stratified_resample_returns_finite_samples_without_mcmc() -> None:
+    system = SystemConfig.double_dot(N_L=1, N_R=1, sep=4.0, omega=1.0)
+    torch.manual_seed(0)
+    x, ess = stratified_resample(
+        n_keep=48,
+        omega=1.0,
+        system=system,
+        device=torch.device("cpu"),
+        dtype=torch.float64,
+    )
+    assert x.shape == (48, 2, 2)
+    assert torch.isfinite(x).all()
+    assert ess == 48.0
+
+
+def test_compute_eeff_energy_var_anneals_towards_reference() -> None:
+    vals = [
+        compute_eeff(
+            mu=3.8,
+            e_ref=3.6,
+            epoch=e,
+            total_epochs=100,
+            mode="energy_var",
+            alpha_start=0.0,
+            alpha_end=1.0,
+            alpha_decay_frac=0.5,
+        )
+        for e in (0, 25, 50, 100)
+    ]
+    assert vals[0] > vals[1] > vals[2]
+    assert abs(vals[2] - 3.6) < 1e-8
+    assert abs(vals[3] - 3.6) < 1e-8
+
+
+def test_clip_local_energy_by_mad_limits_outlier() -> None:
+    x = torch.tensor([1.0, 1.1, 0.9, 50.0], dtype=torch.float64)
+    y = clip_local_energy_by_mad(x, 3.0)
+    assert y.shape == x.shape
+    assert torch.isfinite(y).all()
+    assert float(y.max().item()) < 10.0
+    # Non-outlier points remain unchanged for this case.
+    torch.testing.assert_close(y[:3], x[:3], atol=1e-12, rtol=1e-12)
 
 
 @pytest.mark.skip(reason="sample_multiwell was refactored out; no longer exists in codebase")
@@ -388,3 +439,117 @@ def test_importance_resample_multiwell_ess_above_threshold() -> None:
     assert ess_multiwell > 20.0, (
         f"ESS={ess_multiwell:.1f} is too low — per-well proposal not improving coverage"
     )
+
+
+# ============================================================
+# stratified_logpdf / stratified_resample / well_sep metadata
+# ============================================================
+
+from training.sampling import stratified_logpdf
+
+
+_STRAT_WEIGHTS = (0.55, 0.05, 0.20, 0.20, 0.0)  # zero dimer (candA-style)
+
+
+def test_stratified_logpdf_returns_correct_shape_and_finite() -> None:
+    """stratified_logpdf must return (batch,) of finite log-densities."""
+    system = SystemConfig.double_dot(N_L=1, N_R=1, sep=4.0, omega=1.0, dim=2)
+    torch.manual_seed(0)
+    x = torch.randn(32, 2, 2, dtype=torch.float64)
+    log_q = stratified_logpdf(
+        x,
+        omega=1.0,
+        system=system,
+        component_weights=_STRAT_WEIGHTS,
+        sigma_center=0.15,
+        sigma_tails=0.80,
+    )
+    assert log_q.shape == (32,)
+    assert torch.isfinite(log_q).all(), "stratified_logpdf returned non-finite values"
+
+
+def test_stratified_logpdf_rejects_nonzero_dimer_weight() -> None:
+    """stratified_logpdf should raise ValueError when dimer weight > 0."""
+    system = SystemConfig.single_dot(N=2, omega=1.0, dim=2)
+    x = torch.randn(4, 2, 2, dtype=torch.float64)
+    with pytest.raises(ValueError, match="dimer"):
+        stratified_logpdf(
+            x,
+            omega=1.0,
+            system=system,
+            component_weights=(0.25, 0.05, 0.25, 0.25, 0.20),
+        )
+
+
+def test_stratified_resample_logpdf_consistency() -> None:
+    """Samples from stratified_resample must have finite logpdf under same mixture."""
+    system = SystemConfig.double_dot(N_L=1, N_R=1, sep=4.0, omega=1.0, dim=2)
+    torch.manual_seed(42)
+    kwargs = dict(
+        omega=1.0,
+        system=system,
+        component_weights=_STRAT_WEIGHTS,
+        sigma_center=0.15,
+        sigma_tails=0.80,
+        sigma_mixed_in=0.20,
+        sigma_mixed_out=0.50,
+        shell_radius=1.0,
+        shell_radius_sigma=0.05,
+        dimer_pairs=0,
+    )
+    x, _ = stratified_resample(
+        n_keep=64,
+        device=torch.device("cpu"),
+        dtype=torch.float64,
+        **kwargs,
+    )
+    log_q = stratified_logpdf(x, **kwargs)
+    assert log_q.shape == (64,)
+    assert torch.isfinite(log_q).all(), "logpdf is non-finite on samples from the same mixture"
+    # Densities should span a non-degenerate range (not all identical)
+    assert (log_q.max() - log_q.min()) > 0.1, "log-densities are suspiciously uniform"
+
+
+def test_well_sep_metadata_single_dot() -> None:
+    """For a single dot, well_sep should be 0."""
+    import math
+
+    system = SystemConfig.single_dot(N=2, omega=1.0, dim=2)
+    wells = system.wells
+    if len(wells) >= 2:
+        sep = max(
+            math.sqrt(sum((a - b) ** 2 for a, b in zip(c1.center, c2.center)))
+            for i, c1 in enumerate(wells)
+            for c2 in wells[i + 1 :]
+        )
+    else:
+        sep = 0.0
+    assert sep == 0.0
+
+
+def test_well_sep_metadata_double_dot() -> None:
+    """For a double dot with sep=6.0, computed well_sep should be 6.0."""
+    import math
+
+    system = SystemConfig.double_dot(N_L=1, N_R=1, sep=6.0, omega=1.0, dim=2)
+    wells = system.wells
+    sep = max(
+        math.sqrt(sum((a - b) ** 2 for a, b in zip(c1.center, c2.center)))
+        for i, c1 in enumerate(wells)
+        for c2 in wells[i + 1 :]
+    )
+    assert abs(sep - 6.0) < 1e-10, f"Expected 6.0, got {sep}"
+
+
+def test_well_sep_metadata_triple_dot() -> None:
+    """For a triple dot with spacing=4.0, well_sep should be 8.0 (max pairwise)."""
+    import math
+
+    system = SystemConfig.triple_dot(Ns=[1, 1, 1], spacing=4.0, omega=1.0, dim=2)
+    wells = system.wells
+    sep = max(
+        math.sqrt(sum((a - b) ** 2 for a, b in zip(c1.center, c2.center)))
+        for i, c1 in enumerate(wells)
+        for c2 in wells[i + 1 :]
+    )
+    assert abs(sep - 8.0) < 1e-10, f"Expected 8.0, got {sep}"

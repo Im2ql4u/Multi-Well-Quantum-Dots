@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Callable
 
 import torch
@@ -26,6 +27,198 @@ def _sample_multiwell_init(
         x[:, idx : idx + n_e, :] = chunk
         idx += n_e
     return x
+
+
+def _particle_well_centers(
+    system: SystemConfig, *, device: torch.device, dtype: torch.dtype
+) -> torch.Tensor:
+    centers = []
+    for well in system.wells:
+        for _ in range(int(well.n_particles)):
+            centers.append(list(well.center))
+    return torch.tensor(centers, device=device, dtype=dtype)
+
+
+def _log_isotropic_gaussian(x: torch.Tensor, centers: torch.Tensor, sigma: float) -> torch.Tensor:
+    sigma_t = torch.as_tensor(float(sigma), device=x.device, dtype=x.dtype).clamp_min(1e-12)
+    diff = x - centers
+    dim = x.shape[-1]
+    log_norm = -0.5 * dim * math.log(2.0 * math.pi) - dim * torch.log(sigma_t)
+    quad = -0.5 * diff.pow(2).sum(dim=-1) / sigma_t.pow(2)
+    return log_norm + quad
+
+
+def _log_shell_density_2d(
+    x: torch.Tensor,
+    centers: torch.Tensor,
+    radius_mean: float,
+    radius_sigma: float,
+) -> torch.Tensor:
+    sigma_t = torch.as_tensor(float(radius_sigma), device=x.device, dtype=x.dtype).clamp_min(1e-12)
+    mean_t = torch.as_tensor(float(radius_mean), device=x.device, dtype=x.dtype)
+    diff = x - centers
+    radius = diff.pow(2).sum(dim=-1).sqrt().clamp_min(1e-12)
+
+    z1 = (radius - mean_t) / sigma_t
+    z2 = (radius + mean_t) / sigma_t
+    log_phi1 = -0.5 * z1.pow(2) - torch.log(sigma_t) - 0.5 * math.log(2.0 * math.pi)
+    log_phi2 = -0.5 * z2.pow(2) - torch.log(sigma_t) - 0.5 * math.log(2.0 * math.pi)
+    log_radial = torch.logaddexp(log_phi1, log_phi2)
+    return log_radial - math.log(2.0 * math.pi) - torch.log(radius)
+
+
+def stratified_logpdf(
+    x: torch.Tensor,
+    *,
+    omega: float,
+    system: SystemConfig,
+    component_weights: tuple[float, float, float, float, float] = (0.25, 0.2, 0.25, 0.2, 0.0),
+    sigma_center: float = 0.2,
+    sigma_tails: float = 1.2,
+    sigma_mixed_in: float = 0.25,
+    sigma_mixed_out: float = 0.9,
+    shell_radius: float = 1.4,
+    shell_radius_sigma: float = 0.08,
+    dimer_pairs: int = 2,
+    dimer_eps_max: float = 0.08,
+) -> torch.Tensor:
+    del dimer_pairs, dimer_eps_max
+
+    if x.ndim != 3:
+        raise ValueError(f"Expected x with shape (batch, n_particles, dim), got {tuple(x.shape)}.")
+
+    if float(component_weights[4]) > 0.0:
+        raise ValueError(
+            "stratified_logpdf does not support nonzero dimer weight yet. "
+            "Use eval mixture weights with zero dimer component for non-MCMC evaluation."
+        )
+
+    a_ho = 1.0 / max(float(omega), 1e-8) ** 0.5
+    centers = _particle_well_centers(system, device=x.device, dtype=x.dtype).view(1, system.n_particles, system.dim)
+
+    w = torch.as_tensor(component_weights, device=x.device, dtype=x.dtype)
+    w = w / w.sum().clamp_min(1e-12)
+    log_w = torch.log(w.clamp_min(1e-12))
+
+    log_center = _log_isotropic_gaussian(x, centers, sigma_center * a_ho).sum(dim=1)
+    log_tails = _log_isotropic_gaussian(x, centers, sigma_tails * a_ho).sum(dim=1)
+
+    log_mixed_in = _log_isotropic_gaussian(x, centers, sigma_mixed_in * a_ho)
+    log_mixed_out = _log_isotropic_gaussian(x, centers, sigma_mixed_out * a_ho)
+    log_mixed_particle = torch.logaddexp(
+        math.log(0.5) + log_mixed_in,
+        math.log(0.5) + log_mixed_out,
+    )
+    log_mixed = log_mixed_particle.sum(dim=1)
+
+    if system.dim == 2:
+        log_shell = _log_shell_density_2d(
+            x,
+            centers,
+            shell_radius * a_ho,
+            shell_radius_sigma * a_ho,
+        ).sum(dim=1)
+    else:
+        log_shell = _log_isotropic_gaussian(x, centers, sigma_mixed_out * a_ho).sum(dim=1)
+
+    component_logs = [
+        log_w[0] + log_center,
+        log_w[1] + log_tails,
+        log_w[2] + log_mixed,
+        log_w[3] + log_shell,
+    ]
+    stacked = torch.stack(component_logs, dim=0)
+    return torch.logsumexp(stacked, dim=0)
+
+
+def stratified_resample(
+    *,
+    n_keep: int,
+    omega: float,
+    system: SystemConfig,
+    device: torch.device,
+    dtype: torch.dtype,
+    component_weights: tuple[float, float, float, float, float] = (0.25, 0.2, 0.25, 0.2, 0.1),
+    sigma_center: float = 0.2,
+    sigma_tails: float = 1.2,
+    sigma_mixed_in: float = 0.25,
+    sigma_mixed_out: float = 0.9,
+    shell_radius: float = 1.4,
+    shell_radius_sigma: float = 0.08,
+    dimer_pairs: int = 2,
+    dimer_eps_max: float = 0.08,
+) -> tuple[torch.Tensor, float]:
+    """Draw i.i.d. non-MCMC collocation points from a stratified mixture.
+
+    Components are [center, tails, mixed, shells, dimers]. This is deliberately
+    label-preserving for multi-well occupancy and does not use random permutations.
+    """
+    a_ho = 1.0 / max(float(omega), 1e-8) ** 0.5
+    n_particles = int(system.n_particles)
+    dim = int(system.dim)
+    centers = _particle_well_centers(system, device=device, dtype=dtype).view(1, n_particles, dim)
+
+    w = torch.tensor(component_weights, device=device, dtype=dtype)
+    w = w / w.sum().clamp_min(1e-12)
+    comp_idx = torch.multinomial(w, n_keep, replacement=True)
+
+    x = torch.empty(n_keep, n_particles, dim, device=device, dtype=dtype)
+
+    mask_center = comp_idx == 0
+    if mask_center.any():
+        n = int(mask_center.sum().item())
+        x[mask_center] = centers + (sigma_center * a_ho) * torch.randn(n, n_particles, dim, device=device, dtype=dtype)
+
+    mask_tails = comp_idx == 1
+    if mask_tails.any():
+        n = int(mask_tails.sum().item())
+        x[mask_tails] = centers + (sigma_tails * a_ho) * torch.randn(n, n_particles, dim, device=device, dtype=dtype)
+
+    mask_mixed = comp_idx == 2
+    if mask_mixed.any():
+        n = int(mask_mixed.sum().item())
+        choose_inner = (torch.rand(n, n_particles, 1, device=device, dtype=dtype) < 0.5).to(dtype)
+        sigma = choose_inner * (sigma_mixed_in * a_ho) + (1.0 - choose_inner) * (sigma_mixed_out * a_ho)
+        x[mask_mixed] = centers + sigma * torch.randn(n, n_particles, dim, device=device, dtype=dtype)
+
+    mask_shell = comp_idx == 3
+    if mask_shell.any():
+        n = int(mask_shell.sum().item())
+        if dim == 2:
+            theta = 2.0 * torch.pi * torch.rand(n, n_particles, 1, device=device, dtype=dtype)
+            radius = (shell_radius + shell_radius_sigma * torch.randn(n, n_particles, 1, device=device, dtype=dtype)).abs() * a_ho
+            offsets = torch.cat([radius * torch.cos(theta), radius * torch.sin(theta)], dim=-1)
+            x[mask_shell] = centers + offsets
+        else:
+            x[mask_shell] = centers + (sigma_mixed_out * a_ho) * torch.randn(n, n_particles, dim, device=device, dtype=dtype)
+
+    mask_dimer = comp_idx == 4
+    if mask_dimer.any():
+        n = int(mask_dimer.sum().item())
+        xd = centers + (sigma_center * a_ho) * torch.randn(n, n_particles, dim, device=device, dtype=dtype)
+        n_pairs = max(0, min(int(dimer_pairs), n_particles // 2))
+        if n_pairs > 0:
+            base = torch.arange(0, 2 * n_pairs, device=device)
+            for b in range(n):
+                perm = torch.randperm(n_particles, device=device)
+                eps = dimer_eps_max * a_ho * torch.rand(n_pairs, 1, device=device, dtype=dtype)
+                if dim == 2:
+                    ang = 2.0 * torch.pi * torch.rand(n_pairs, 1, device=device, dtype=dtype)
+                    dvec = torch.cat([torch.cos(ang), torch.sin(ang)], dim=-1)
+                else:
+                    signs = torch.where(
+                        torch.rand(n_pairs, 1, device=device, dtype=dtype) < 0.5,
+                        torch.full((n_pairs, 1), -1.0, device=device, dtype=dtype),
+                        torch.full((n_pairs, 1), 1.0, device=device, dtype=dtype),
+                    )
+                    dvec = signs
+                for p in range(n_pairs):
+                    i = int(perm[base[2 * p]].item())
+                    j = int(perm[base[2 * p + 1]].item())
+                    xd[b, j, :] = xd[b, i, :] + eps[p] * dvec[p]
+        x[mask_dimer] = xd
+
+    return x, float(n_keep)
 
 
 def mcmc_resample(
