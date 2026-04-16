@@ -96,3 +96,28 @@ Only write entries for genuine decisions. Not every small implementation choice.
 **Evidence:** In the converged 3-seed N2/N3/N4 sweep, most runs landed slightly below CI while maintaining stable training diagnostics and low seed spread.
 **What to do instead:** Use one-sided exceedance as the primary benchmark metric and require explicit CI convergence ladders before classifying below-reference energies.
 **Severity:** needs-rethink
+
+## Decisions (continued)
+
+### [2026-04-16] — Löwdin S^{-1/2} as canonical sector decomposition (replace Voronoi masking)
+**Decision:** All L/R sector analysis uses global Löwdin-orthogonalized HO basis. HO functions are evaluated at all quadrature points without Voronoi masking; the full cross-well overlap matrix S is symmetrically orthogonalized via S^{-1/2}. Voronoi-masked QR is deprecated.
+**Alternatives considered:** Voronoi masking + QR (old approach); natural orbital decomposition from 1-RDM.
+**Reasoning:** At small separations (d≤8), HO orbital tails extend deep into the other well's Voronoi region, so masked QR discards amplitude that physically belongs to that orbital. Löwdin evaluates everything globally and lets the linear algebra handle cross-well orthogonality — Gram error <3e-15 verified. Natural orbitals would require computing the full 1-RDM from the network, which is expensive and harder to interpret in a fixed L/R assignment.
+**Constraints introduced:** Basis quality depends on max_ho_shell parameter. At d=2, shell=2 captures 98.2% of norm; shell=4 recommended for precision measurements. Computationally heavier than Voronoi.
+**Confidence:** high
+
+## Negative Memory (continued)
+
+### [2026-04-16] — FAILED: exact_diag_double_dot.py --model shared path for CI energies
+**What:** Used `run_exact_diagonalization` via CLI with `--model shared` to compute CI reference energies for d=6, 12, 20.
+**Why it failed:** The `--model shared` code path (line ~399) does not apply `kinetic_prefactor=0.5` to the t2d matrix, while the correct `solve_shared_ci_reference` function in `compare_ci_vmc_dot_entanglement.py` does. Result: d=20 gave E₀≈0.64 (physically wrong; correct value 1.749).
+**Evidence:** Python API call with explicit `t2d = 0.5 * t2d` gave d=20 E₀=1.74902235; CLI gave ~0.64.
+**What to do instead:** Always use Python API (`build_2d_dvr`, `build_potential_matrix`, etc.) with explicit kinetic_prefactor=0.5, not the CLI --model shared path, for shared-CI reference energies.
+**Severity:** needs-rethink
+
+### [2026-04-16] — FAILED: Voronoi sector analysis at small separations
+**What:** Old `_build_localized_ho_basis` used per-well Voronoi masking (nearest-center assignment) followed by QR orthonormalization of masked columns.
+**Why it failed:** At d≤8 bohr, HO orbital tails extend significantly into the adjacent well's Voronoi region. Masking discards this amplitude, producing a numerically orthogonal but physically incorrect basis. Result: sector structure at d=2 showed LL≈25%, LR≈25%, RL≈25%, RR≈25% (flat) even for a network with near-singlet energy.
+**Evidence:** After Löwdin fix, d≥6 gives LL=0%, LR=50%, consistent with singlet. d=2/4 remaining issue is attributed to the ansatz (permanent with non-orthogonal orbitals), not the measurement.
+**What to do instead:** Use Löwdin S^{-1/2} (see decision above).
+**Severity:** dead-end

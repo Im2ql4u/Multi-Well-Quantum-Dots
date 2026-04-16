@@ -145,6 +145,25 @@ Experiments compared: Phase 2 N=2 CTNN, Phase 4 N=3 baseline, Phase 4 N=4 GS
 **Output reference:** [results/nonmcmc_training/p4_n2_nonmcmc_residual_anneal_s42_20260412_232259](results/nonmcmc_training/p4_n2_nonmcmc_residual_anneal_s42_20260412_232259), [results/nonmcmc_training/p4_n3_nonmcmc_residual_anneal_s42_20260413_001421](results/nonmcmc_training/p4_n3_nonmcmc_residual_anneal_s42_20260413_001421), [results/nonmcmc_training/p4_n4_nonmcmc_residual_anneal_s42_20260413_001824](results/nonmcmc_training/p4_n4_nonmcmc_residual_anneal_s42_20260413_001824)
 **Next question:** For N=4+, should the next robustness budget go to `n_coll` scaling or to deeper architecture under the same non-MCMC sampler?
 
+### [2026-04-16] — Singlet permanent ansatz: separation sweep d={2,4,6,8,12,20} with Löwdin entanglement
+**Motivation:** Does the singlet permanent ansatz φ_L(r1)φ_R(r2)+φ_R(r1)φ_L(r2) correctly learn the LR singlet state across a range of dot separations? Does the entanglement (dot-label negativity) track the CI reference?
+**Method:**
+- Trained singlet permanent ansatz (log-domain, PINN correlator) for N=2 at d=2,4,6,8,12,20 using stratified non-MCMC training with 3000 epochs, residual objective, shared-CI target energies.
+- Measured L/R sector probabilities and von Neumann entropy using new Löwdin S^{-1/2} basis; measured dot-label negativity from projected 2×2 reduced density matrix.
+**Results:**
+- d=2: E=1.6464 (ΔE=−0.65% vs CI), S_vN=0.593, neg=0.000, LL=25.3%, LR=24.6%, proj_w=0.982
+- d=4: E=1.8812 (ΔE=+0.20%), S_vN=0.944, neg=0.000, LL=20.4%, LR=31.0%, proj_w=0.950
+- d=6: E=1.8354, S_vN=0.768, neg=0.288, LL=0.0%, LR=50.0%, proj_w=0.941
+- d=8: E=1.7609 (ΔE=+0.05%), S_vN=0.762, neg=0.264, LL=0.0%, LR=50.0%, proj_w=0.954
+- d=12: E=1.7566, S_vN=0.759, neg=0.299, LL=0.0%, LR=50.0%, proj_w=0.972
+- d=20: E=1.7498, S_vN=0.760, neg=0.289, LL=0.0%, LR=50.0%, proj_w=0.978
+**What the numbers actually mean:** For d≥6 the network converges to the correct LR singlet sector (LL=RR=0%, LR=RL=50%) with energies within 0.05% of the CI reference. For d≤4 the sector structure is wrong (LL+RR≈50%), which is a structural property of the permanent ansatz with non-orthogonal raw HO orbitals: at d=2 the orbital overlap is S_LR=exp(−1)≈0.37, which means the permanent after Löwdin projection inherently contains ~50% double-occupancy amplitude regardless of training.
+**What we cannot explain:** dot-label negativity is 0.26–0.30 at d≥6, substantially below the pure singlet expectation of 0.50. This discrepancy is not explained: it could be (a) PINN correlator adds intra-well correlations that dilute the 2×2 density matrix, (b) ~5% of norm outside the Löwdin basis is lost, or (c) the measurement itself is wrong because it has not been validated against the CI reference wavefunction.
+**Caveats:** Single seed only. Measurement not calibrated against CI reference wavefunction in the same Löwdin basis.
+**What a skeptic would say:** Energy convergence is clean but the entanglement metric has never been shown to be correct even for a known input. Until the measurement is validated on the CI ground state, the negativity numbers are uninterpretable.
+**Output reference:** [results/diag_sweeps/singlet_entanglement_d{2,4,6,8,12,20}_lowdin_s42.json](results/diag_sweeps/), [results/p4_n2_singlet_d*](results/)
+**Next question:** Compute Löwdin-basis entanglement for the CI wavefunction at d=8 to calibrate. If CI gives neg≈0.50, the deficit is entirely in the ansatz. If CI also gives neg<0.50, the measurement underestimates due to basis truncation.
+
 ### [2026-04-13] — Converged 3-seed non-MCMC benchmark with finite-basis-aware reporting
 **Motivation:** Convert single-seed non-MCMC success into multi-seed evidence and remove misleading interpretation when model energy falls below finite-basis CI reference.
 **Method:**
