@@ -5,7 +5,12 @@ from types import SimpleNamespace
 import pytest
 import torch
 from config import SystemConfig
-from imaginary_time_pinn import compute_potential as legacy_compute_potential
+from imaginary_time_pinn import (
+    PINNConfig,
+    _compute_delta_potential_for_cfg,
+    _with_updated_well_separation,
+    compute_potential as legacy_compute_potential,
+)
 from potential import compute_potential, compute_potential_legacy_compatible
 
 
@@ -104,3 +109,62 @@ def test_zeeman_subset_and_electron1_mode_conflict():
             zeeman_electron1_only=True,
             zeeman_particle_indices=(0,),
         )
+
+
+def test_update_well_separation_preserves_two_well_occupancies():
+    system = SystemConfig.double_dot(N_L=1, N_R=2, sep=4.0, omega=1.0, dim=2)
+
+    updated = _with_updated_well_separation(system, 8.0)
+
+    assert updated.wells[0].n_particles == 1
+    assert updated.wells[1].n_particles == 2
+    assert abs(updated.wells[0].center[0] + 4.0) < 1e-12
+    assert abs(updated.wells[1].center[0] - 4.0) < 1e-12
+    assert abs(updated.wells[0].center[1]) < 1e-12
+    assert abs(updated.wells[1].center[1]) < 1e-12
+
+
+def test_delta_potential_includes_well_separation_quench():
+    x = torch.tensor([[[0.0, 0.0], [0.0, 0.0]]], dtype=torch.float64)
+    spin = torch.tensor([[0, 1]], dtype=torch.long)
+    cfg = PINNConfig(
+        n_particles=2,
+        dim=2,
+        omega=1.0,
+        well_sep=8.0,
+        well_sep_initial=4.0,
+        well_sep_final=8.0,
+        coulomb=False,
+        magnetic_B_initial=0.0,
+        magnetic_B=0.0,
+    )
+
+    deltaV = _compute_delta_potential_for_cfg(
+        x,
+        cfg,
+        spin_batch=spin,
+        system_override=None,
+    )
+    expected = compute_potential_legacy_compatible(
+        x,
+        omega=1.0,
+        well_sep=8.0,
+        smooth_T=0.2,
+        coulomb=False,
+        magnetic_B=0.0,
+        spin=spin,
+        g_factor=2.0,
+        mu_B=1.0,
+    ) - compute_potential_legacy_compatible(
+        x,
+        omega=1.0,
+        well_sep=4.0,
+        smooth_T=0.2,
+        coulomb=False,
+        magnetic_B=0.0,
+        spin=spin,
+        g_factor=2.0,
+        mu_B=1.0,
+    )
+
+    torch.testing.assert_close(deltaV, expected)

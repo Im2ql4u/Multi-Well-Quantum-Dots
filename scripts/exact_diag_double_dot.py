@@ -500,17 +500,68 @@ def run_exact_diagonalization_one_per_well(cfg: DiagConfig) -> tuple[np.ndarray,
 
     eigvals, eigvecs = eigh(h_ci)
     merged_sp = np.sort(np.concatenate([left_energies, right_energies]))
-    return eigvals, eigvecs, merged_sp
+    return eigvals, eigvecs, merged_sp, product_basis, int(cfg.n_sp_states)
 
 
-def solve_exact_diagonalization(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def compute_entanglement_one_per_well(
+    product_basis: list[tuple[float, int, int]],
+    eigvecs: np.ndarray,
+    n_sp_states: int,
+    state_idx: int = 0,
+) -> dict[str, object]:
+    """Compute spatial entanglement from the CI ground state of the one-per-well model.
+
+    The product_basis is a list of (energy, left_orb_idx, right_orb_idx).  Each CI
+    coefficient c_k maps to A[left_orb, right_orb] = c_k.  Since the left and right
+    localized orbitals are orthonormal on their respective wells, SVD(A) gives the
+    exact Schmidt decomposition for the bipartition electron-in-well-L | electron-in-well-R.
+    """
+    gs_vec: np.ndarray = eigvecs[:, state_idx]
+    A = np.zeros((n_sp_states, n_sp_states), dtype=np.float64)
+    for idx, (_, a, b) in enumerate(product_basis):
+        A[a, b] = gs_vec[idx]
+
+    _u, sigma, _vh = np.linalg.svd(A, full_matrices=False)
+    norm_sq = float(np.sum(sigma**2))
+    if abs(norm_sq) < 1e-15:
+        raise ValueError("Ground-state vector appears to be zero — normalisation failed.")
+
+    probs = sigma**2 / norm_sq
+    # Guard against log(0) for negligible Schmidt weights
+    safe_probs = probs[probs > 1e-15]
+    entropy = float(-np.sum(safe_probs * np.log(safe_probs)))
+    purity = float(np.sum(probs**2))
+    lin_entropy = float(1.0 - purity)
+    # Negativity for pure state: N = [(Σ_k σ_k)^2 - 1] / 2
+    sigma_norm = sigma / float(np.sqrt(norm_sq))
+    sigma_sum = float(np.sum(sigma_norm))
+    negativity = (sigma_sum**2 - 1.0) / 2.0
+    log_negativity = float(np.log(sigma_sum)) if sigma_sum > 0 else 0.0
+    effective_rank = float(np.exp(entropy))
+    return {
+        "entropy": entropy,
+        "purity": purity,
+        "linear_entropy": lin_entropy,
+        "negativity": negativity,
+        "log_negativity": log_negativity,
+        "effective_rank": effective_rank,
+        "schmidt_values": sigma_norm.tolist(),
+        "schmidt_probs": probs.tolist(),
+    }
+
+
+def solve_exact_diagonalization(
+    cfg: DiagConfig,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (eigvals, eigvecs, sp_energies).  Entanglement data is NOT returned here."""
     if cfg.model_mode == "shared":
         if cfg.n_wells != 2:
             raise ValueError("shared mode currently supports n_wells=2 only.")
         return run_exact_diagonalization(cfg)
     if cfg.model_mode == "one_per_well":
         if cfg.n_wells == 2:
-            return run_exact_diagonalization_one_per_well(cfg)
+            eigvals, eigvecs, merged_sp, _pb, _ns = run_exact_diagonalization_one_per_well(cfg)
+            return eigvals, eigvecs, merged_sp
         return run_exact_diagonalization_one_per_well_multi(cfg)
     raise ValueError(f"Unknown model_mode={cfg.model_mode}")
 
@@ -602,6 +653,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Prefactor multiplying the DVR kinetic operator.",
     )
     parser.add_argument("--validate", action="store_true", help="Run built-in limit checks and exit status by pass/fail.")
+    parser.add_argument(
+        "--entanglement",
+        action="store_true",
+        help="Compute and print spatial entanglement (Schmidt/SVD) for one_per_well N=2 ground state.",
+    )
+    parser.add_argument(
+        "--sep-scan",
+        type=float,
+        nargs="+",
+        metavar="SEP",
+        help="Run over multiple separations and print entropy S(d) table. Requires --entanglement.",
+    )
+    parser.add_argument("--out-json", type=str, default="", help="Write JSON results dict to this file.")
     parser.add_argument("--log-level", type=str, default="INFO", help="Logging level.")
     return parser
 
@@ -655,10 +719,67 @@ def main() -> int:
         cfg.n_ci_compute,
     )
 
-    eigvals, _, single_energies = solve_exact_diagonalization(cfg)
-    LOGGER.info("Ground-state energy E0 = %.8f", float(eigvals[0]))
-    LOGGER.info("Lowest single-particle energies: %s", np.array2string(single_energies[:6], precision=6))
-    LOGGER.info("Lowest many-body eigenvalues: %s", np.array2string(eigvals[:5], precision=8))
+    if args.entanglement and cfg.model_mode != "one_per_well":
+        LOGGER.error("--entanglement is only implemented for --model one_per_well")
+        return 1
+    if args.entanglement and cfg.n_wells != 2:
+        LOGGER.error("--entanglement currently requires --n-wells 2")
+        return 1
+
+    sep_values = args.sep_scan if (args.sep_scan and args.entanglement) else [args.sep]
+    all_results: list[dict] = []
+
+    for sep_val in sep_values:
+        x_half_s, y_half_s = infer_box_half_widths(sep_val, args.omega, n_wells=args.n_wells)
+        cfg_s = DiagConfig(
+            nx=cfg.nx,
+            ny=cfg.ny,
+            sep=sep_val,
+            omega=cfg.omega,
+            smooth_t=cfg.smooth_t,
+            kappa=cfg.kappa,
+            epsilon=cfg.epsilon,
+            n_sp_states=cfg.n_sp_states,
+            n_ci_compute=cfg.n_ci_compute,
+            b_field=cfg.b_field,
+            g_factor=cfg.g_factor,
+            mu_b=cfg.mu_b,
+            x_half_width=x_half_s,
+            y_half_width=y_half_s,
+            n_wells=cfg.n_wells,
+            model_mode=cfg.model_mode,
+            confinement_mode=cfg.confinement_mode,
+            kinetic_prefactor=cfg.kinetic_prefactor,
+        )
+        if args.entanglement:
+            eigvals_s, eigvecs_s, sp_s, product_basis_s, n_sp_s = run_exact_diagonalization_one_per_well(cfg_s)
+            ent = compute_entanglement_one_per_well(product_basis_s, eigvecs_s, n_sp_s, state_idx=0)
+            e0 = float(eigvals_s[0])
+            LOGGER.info(
+                "sep=%.3f  E0=%.6f  S=%.6f  purity=%.6f  negativity=%.6f  log_neg=%.6f  eff_rank=%.2f",
+                sep_val, e0, ent["entropy"], ent["purity"], ent["negativity"], ent["log_negativity"], ent["effective_rank"],
+            )
+            top_sv = [f"{v:.4f}" for v in ent["schmidt_values"][:6]]
+            LOGGER.info("  Schmidt values (top 6): %s", top_sv)
+            row = {"sep": sep_val, "E0": e0, **ent}
+            all_results.append(row)
+        else:
+            eigvals_s, _, sp_s = solve_exact_diagonalization(cfg_s)
+            e0 = float(eigvals_s[0])
+            LOGGER.info("sep=%.3f  E0=%.8f", sep_val, e0)
+            LOGGER.info("Lowest single-particle energies: %s", np.array2string(sp_s[:6], precision=6))
+            LOGGER.info("Lowest many-body eigenvalues: %s", np.array2string(eigvals_s[:5], precision=8))
+            all_results.append({"sep": sep_val, "E0": e0})
+
+    if args.out_json and all_results:
+        import json
+        import pathlib
+        out_path = pathlib.Path(args.out_json)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w", encoding="utf-8") as fh:
+            json.dump(all_results, fh, indent=2)
+        LOGGER.info("Saved results to %s", out_path)
+
     return 0
 
 

@@ -64,7 +64,7 @@ from scipy.optimize import curve_fit
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
-from config import SystemConfig
+from config import SystemConfig, WellSpec
 from functions.Slater_Determinant import slater_determinant_closed_shell
 from PINN import PINN, CTNNBackflowNet
 from potential import compute_potential as compute_potential_generalized
@@ -99,6 +99,8 @@ class PINNConfig:
     dim: int = 2
     omega: float = 1.0
     well_sep: float = 0.0
+    well_sep_initial: float | None = None
+    well_sep_final: float | None = None
     smooth_T: float = 0.2
     E_ref: float = 3.0
     coulomb: bool = True  # set False for non-interacting test
@@ -237,12 +239,13 @@ def _compute_potential_for_cfg(
     spin_batch: torch.Tensor,
     magnetic_B: float,
     system_override,
+    well_sep_override: float | None = None,
 ) -> torch.Tensor:
     if system_override is None:
         return compute_potential(
             x,
             cfg.omega,
-            cfg.well_sep,
+            cfg.well_sep if well_sep_override is None else float(well_sep_override),
             cfg.smooth_T,
             cfg.coulomb,
             magnetic_B=magnetic_B,
@@ -253,8 +256,12 @@ def _compute_potential_for_cfg(
             zeeman_particle_indices=cfg.zeeman_particle_indices,
         )
 
+    system_at_B = system_override
+    if well_sep_override is not None:
+        system_at_B = _with_updated_well_separation(system_at_B, float(well_sep_override))
+
     system_at_B = replace(
-        system_override,
+        system_at_B,
         B_magnitude=float(magnetic_B),
         g_factor=float(cfg.g_factor),
         mu_B=float(cfg.mu_B),
@@ -262,6 +269,105 @@ def _compute_potential_for_cfg(
         zeeman_particle_indices=cfg.zeeman_particle_indices,
     )
     return compute_potential_generalized(x, system=system_at_B, spin=spin_batch)
+
+
+def _system_max_well_separation(system: SystemConfig) -> float:
+    if len(system.wells) < 2:
+        return 0.0
+    return max(
+        math.sqrt(sum((a - b) ** 2 for a, b in zip(w1.center, w2.center)))
+        for i, w1 in enumerate(system.wells)
+        for w2 in system.wells[i + 1 :]
+    )
+
+
+def _with_updated_well_separation(system: SystemConfig, well_sep: float) -> SystemConfig:
+    if len(system.wells) < 2:
+        return system
+    if len(system.wells) != 2:
+        raise ValueError("well-separation quench currently supports two-well systems only.")
+
+    left_well, right_well = system.wells
+    midpoint = tuple(0.5 * (a + b) for a, b in zip(left_well.center, right_well.center))
+    left_center = list(midpoint)
+    right_center = list(midpoint)
+    left_center[0] -= 0.5 * float(well_sep)
+    right_center[0] += 0.5 * float(well_sep)
+
+    return SystemConfig.custom(
+        wells=(
+            WellSpec(
+                center=tuple(left_center),
+                omega=float(left_well.omega),
+                n_particles=int(left_well.n_particles),
+            ),
+            WellSpec(
+                center=tuple(right_center),
+                omega=float(right_well.omega),
+                n_particles=int(right_well.n_particles),
+            ),
+        ),
+        dim=int(system.dim),
+        coulomb=bool(system.coulomb),
+        smooth_T=float(system.smooth_T),
+        B_magnitude=float(system.B_magnitude),
+        B_direction=tuple(float(v) for v in system.B_direction),
+        g_factor=float(system.g_factor),
+        mu_B=float(system.mu_B),
+        zeeman_electron1_only=bool(system.zeeman_electron1_only),
+        zeeman_particle_indices=system.zeeman_particle_indices,
+    )
+
+
+def _resolved_well_sep_initial(cfg: PINNConfig, system_override) -> float:
+    if cfg.well_sep_initial is not None:
+        return float(cfg.well_sep_initial)
+    if system_override is not None:
+        return _system_max_well_separation(system_override)
+    return float(cfg.well_sep)
+
+
+def _resolved_well_sep_final(cfg: PINNConfig, system_override) -> float:
+    if cfg.well_sep_final is not None:
+        return float(cfg.well_sep_final)
+    if cfg.well_sep_initial is not None:
+        return float(cfg.well_sep)
+    if system_override is not None:
+        return _system_max_well_separation(system_override)
+    return float(cfg.well_sep)
+
+
+def _compute_delta_potential_for_cfg(
+    x: torch.Tensor,
+    cfg: PINNConfig,
+    *,
+    spin_batch: torch.Tensor,
+    system_override,
+) -> torch.Tensor:
+    well_sep_initial = _resolved_well_sep_initial(cfg, system_override)
+    well_sep_final = _resolved_well_sep_final(cfg, system_override)
+    same_B = abs(cfg.magnetic_B - cfg.magnetic_B_initial) <= 1e-14
+    same_sep = abs(well_sep_final - well_sep_initial) <= 1e-14
+    if same_B and same_sep:
+        return torch.zeros(x.shape[0], device=x.device, dtype=x.dtype)
+
+    V_initial = _compute_potential_for_cfg(
+        x,
+        cfg,
+        spin_batch=spin_batch,
+        magnetic_B=cfg.magnetic_B_initial,
+        system_override=system_override,
+        well_sep_override=well_sep_initial,
+    )
+    V_final = _compute_potential_for_cfg(
+        x,
+        cfg,
+        spin_batch=spin_batch,
+        magnetic_B=cfg.magnetic_B,
+        system_override=system_override,
+        well_sep_override=well_sep_final,
+    )
+    return (V_final - V_initial).detach()
 
 
 def _load_locked_ground_state(cfg: PINNConfig):
@@ -370,12 +476,13 @@ def _build_initial_walkers(
     return centers.unsqueeze(0) + 0.5 * scales * torch.randn_like(x)
 
 
-def _legacy_system_from_cfg(cfg: PINNConfig) -> SystemConfig:
-    if cfg.well_sep > 1e-10:
+def _legacy_system_from_cfg(cfg: PINNConfig, *, well_sep_override: float | None = None) -> SystemConfig:
+    well_sep = float(cfg.well_sep if well_sep_override is None else well_sep_override)
+    if well_sep > 1e-10:
         return SystemConfig.double_dot(
             N_L=cfg.n_particles // 2,
             N_R=cfg.n_particles - cfg.n_particles // 2,
-            sep=float(cfg.well_sep),
+            sep=well_sep,
             omega=float(cfg.omega),
             dim=int(cfg.dim),
         )
@@ -387,9 +494,11 @@ def _legacy_system_from_cfg(cfg: PINNConfig) -> SystemConfig:
 
 
 def _precompute_system(cfg: PINNConfig, system_override) -> SystemConfig:
+    well_sep_initial = _resolved_well_sep_initial(cfg, system_override)
     if system_override is not None:
-        return system_override
-    legacy = _legacy_system_from_cfg(cfg)
+        legacy = _with_updated_well_separation(system_override, well_sep_initial)
+    else:
+        legacy = _legacy_system_from_cfg(cfg, well_sep_override=well_sep_initial)
     return replace(
         legacy,
         coulomb=bool(cfg.coulomb),
@@ -455,26 +564,24 @@ def _compute_precomputed_quantities(
 
     T = -0.5 * (lap + (grad_lp**2).sum(dim=(1, 2)))
     spin_batch = _spin_batch_for_model(ground_wf, B)
+    well_sep_initial = _resolved_well_sep_initial(cfg, system_override)
     V = _compute_potential_for_cfg(
         x_g,
         cfg,
         spin_batch=spin_batch,
         magnetic_B=cfg.magnetic_B_initial,
         system_override=system_override,
+        well_sep_override=well_sep_initial,
     )
     E_L0 = (T + V).detach()
     E_L0 = clip_local_energy_by_mad(E_L0, clip_width)
 
-    deltaV = torch.zeros_like(E_L0)
-    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
-        V_evol = _compute_potential_for_cfg(
-            x_g,
-            cfg,
-            spin_batch=spin_batch,
-            magnetic_B=cfg.magnetic_B,
-            system_override=system_override,
-        )
-        deltaV = (V_evol - V).detach()
+    deltaV = _compute_delta_potential_for_cfg(
+        x_g,
+        cfg,
+        spin_batch=spin_batch,
+        system_override=system_override,
+    )
 
     result = {
         "x": x_g.detach(),
@@ -497,7 +604,7 @@ def _compute_precomputed_quantities(
     if ess is not None:
         stats += f", ess = {ess:.1f}"
     print(stats)
-    if abs(cfg.magnetic_B - cfg.magnetic_B_initial) > 1e-14:
+    if torch.any(deltaV.abs() > 1e-14):
         print(
             f"  <ΔV_quench> = {deltaV.mean():.5f} +/- {deltaV.std().item()/math.sqrt(B):.5f}"
         )
@@ -1829,6 +1936,12 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     if cfg.zeeman_particle_indices is not None and len(cfg.zeeman_particle_indices) == 0:
         raise ValueError("zeeman_particle_indices must not be empty.")
 
+    if cfg.well_sep_initial is None:
+        cfg.well_sep_initial = float(cfg.well_sep)
+    if cfg.well_sep_final is None:
+        cfg.well_sep_final = float(cfg.well_sep)
+    cfg.well_sep = float(cfg.well_sep_initial)
+
     # Seed all RNGs if seed is specified
     if cfg.seed is not None:
         import random
@@ -1841,7 +1954,10 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
 
     coul_str = "interacting" if cfg.coulomb else "NON-interacting"
     print(f"\n{'='*65}")
-    print(f"  {coul_str}: d={cfg.well_sep:.1f}, ω={cfg.omega:.1f}, E_ref={cfg.E_ref:.5f}")
+    print(
+        f"  {coul_str}: d_initial={cfg.well_sep_initial:.1f}, "
+        f"d_final={cfg.well_sep_final:.1f}, ω={cfg.omega:.1f}, E_ref={cfg.E_ref:.5f}"
+    )
     if abs(cfg.magnetic_B_initial) > 1e-14 or abs(cfg.magnetic_B) > 1e-14:
         if cfg.zeeman_particle_indices is not None:
             zmode = f"particles={list(cfg.zeeman_particle_indices)}"
@@ -1870,16 +1986,12 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         cfg.omega = float(system_override.omega)
         cfg.coulomb = bool(system_override.coulomb)
         cfg.smooth_T = float(system_override.smooth_T)
-        # Compute effective well separation from generalized geometry
-        wells = system_override.wells
-        if len(wells) >= 2:
-            cfg.well_sep = max(
-                math.sqrt(sum((a - b) ** 2 for a, b in zip(c1.center, c2.center)))
-                for i, c1 in enumerate(wells)
-                for c2 in wells[i + 1 :]
-            )
-        else:
-            cfg.well_sep = 0.0
+        locked_sep = _system_max_well_separation(system_override)
+        if cfg.well_sep_initial is None:
+            cfg.well_sep_initial = locked_sep
+        if cfg.well_sep_final is None:
+            cfg.well_sep_final = locked_sep
+        cfg.well_sep = float(cfg.well_sep_initial)
         locked_energy = _load_locked_ground_state_energy(gs_dir)
         if locked_energy is not None:
             E_vmc = locked_energy
@@ -1950,6 +2062,8 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         )
     t_pre = time.time() - t0
     print(f"  Phase 2 time: {t_pre:.0f}s")
+
+    cfg.well_sep = float(cfg.well_sep_final)
 
     # Phase 3: PINN training
     t0 = time.time()
@@ -2160,6 +2274,8 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
 
     return {
         "d": cfg.well_sep,
+        "well_sep_initial": cfg.well_sep_initial,
+        "well_sep_final": cfg.well_sep_final,
         "omega": cfg.omega,
         "magnetic_B_initial": cfg.magnetic_B_initial,
         "magnetic_B": cfg.magnetic_B,
@@ -2473,6 +2589,98 @@ def run_quench_single_B(
     return result
 
 
+def build_quench_config_sep(
+    well_sep_initial: float,
+    well_sep_final: float,
+    profile: str = "fast",
+) -> PINNConfig:
+    if profile == "fast":
+        return PINNConfig(
+            omega=1.0,
+            well_sep=float(well_sep_final),
+            well_sep_initial=float(well_sep_initial),
+            well_sep_final=float(well_sep_final),
+            magnetic_B_initial=0.0,
+            magnetic_B=0.0,
+            E_ref=3.0,
+            coulomb=True,
+            tau_max=2.0,
+            n_precompute=3072,
+            n_epochs_pde=3000,
+            batch_pde=192,
+            lr_pde=1e-3,
+            ic_amplitude=1.0,
+            ic_type="dipole",
+            lambda_ic=80.0,
+            lambda_bc=0.5,
+            lambda_reg=0.005,
+            n_tau_eval=30,
+            n_samples_eval=4000,
+            use_backflow=False,
+            use_spectral=True,
+            g_modes=3,
+            g_hidden=32,
+            g_layers=2,
+            precompute_sampler="stratified",
+            eval_sampler="stratified",
+        )
+
+    return PINNConfig(
+        omega=1.0,
+        well_sep=float(well_sep_final),
+        well_sep_initial=float(well_sep_initial),
+        well_sep_final=float(well_sep_final),
+        magnetic_B_initial=0.0,
+        magnetic_B=0.0,
+        E_ref=3.0,
+        coulomb=True,
+        tau_max=4.0,
+        n_precompute=8192,
+        n_epochs_pde=10000,
+        batch_pde=256,
+        lr_pde=1e-3,
+        ic_amplitude=1.0,
+        ic_type="dipole",
+        lambda_ic=80.0,
+        lambda_bc=0.5,
+        lambda_reg=0.005,
+        n_tau_eval=40,
+        n_samples_eval=8000,
+        use_backflow=False,
+        use_spectral=True,
+        g_modes=3,
+        g_hidden=32,
+        g_layers=2,
+        precompute_sampler="stratified",
+        eval_sampler="stratified",
+    )
+
+
+def run_quench_single_sep(
+    well_sep_initial: float,
+    well_sep_final: float,
+    profile: str = "fast",
+    *,
+    ground_state_dir: str | None = None,
+) -> dict:
+    cfg = build_quench_config_sep(
+        well_sep_initial=well_sep_initial,
+        well_sep_final=well_sep_final,
+        profile=profile,
+    )
+    if ground_state_dir:
+        cfg.ground_state_dir = str(ground_state_dir)
+    itag = f"{well_sep_initial:.2f}".replace(".", "p")
+    ftag = f"{well_sep_final:.2f}".replace(".", "p")
+    profile_tag = "fast" if profile == "fast" else "full"
+    tag = f"quench_sep_{profile_tag}_d{itag}_to_d{ftag}_"
+    result = run_single(cfg, tag=tag)
+    out = RESULTS_DIR / f"pinn_quench_sep_{profile_tag}_d{itag}_to_d{ftag}.json"
+    _save(result, out)
+    print(f"Saved single-separation quench result: {out}")
+    return result
+
+
 def sweep_distances():
     print("\n" + "=" * 70)
     print("SWEEP: ω=1.0, d=[0, 1, 2, 4]")
@@ -2604,6 +2812,14 @@ if __name__ == "__main__":
         default=None,
         help="Path to run_ground_state output directory (contains model.pt + config.yaml).",
     )
+    p.add_argument("--quench_sep_initial", type=float, default=None, help="Initial well separation for separation quench.")
+    p.add_argument("--quench_sep_final", type=float, default=None, help="Final well separation for separation quench.")
+    p.add_argument(
+        "--quench_sep_profile",
+        choices=["full", "fast"],
+        default="fast",
+        help="Config profile for separation quench.",
+    )
     p.add_argument("--sweep", action="store_true", help="Distance sweep")
     p.add_argument("--rerun_d4", action="store_true", help="Rerun d=4 with better settings")
     args = p.parse_args()
@@ -2626,6 +2842,15 @@ if __name__ == "__main__":
             profile=args.quench_profile,
             zeeman_electron1_only=bool(args.zeeman_electron1_only),
             zeeman_particle_indices=zeeman_particle_indices,
+            ground_state_dir=args.ground_state_dir,
+        )
+    elif args.quench_sep_initial is not None or args.quench_sep_final is not None:
+        if args.quench_sep_initial is None or args.quench_sep_final is None:
+            raise ValueError("Both --quench_sep_initial and --quench_sep_final are required.")
+        run_quench_single_sep(
+            args.quench_sep_initial,
+            args.quench_sep_final,
+            profile=args.quench_sep_profile,
             ground_state_dir=args.ground_state_dir,
         )
     elif args.quench:

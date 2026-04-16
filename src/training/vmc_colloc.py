@@ -11,7 +11,14 @@ import torch
 from config import SystemConfig
 from observables.diagnostics import summarize_training_diagnostics
 from training.collocation import colloc_fd_loss, rayleigh_hybrid_loss, weak_form_local_energy
-from training.sampling import adapt_sigma_fs, importance_resample, mcmc_resample, stratified_resample
+from training.sampling import (
+    adapt_sigma_fs,
+    importance_resample,
+    mcmc_resample,
+    multiwell_init_logpdf,
+    sample_multiwell_init,
+    stratified_resample,
+)
 
 
 @dataclass(frozen=True)
@@ -36,6 +43,8 @@ class GroundStateTrainingConfig:
     alpha_start: float = 0.0
     alpha_end: float = 1.0
     alpha_decay_frac: float = 0.5
+    occupancy_penalty_weight: float = 0.0
+    occupancy_margin: float = 0.0
     direct_weight: float = 0.1
     fd_h: float = 0.01
     min_pair_cutoff: float = 0.0
@@ -163,6 +172,25 @@ def clip_local_energy_by_mad(e_loc: torch.Tensor, clip_width: float) -> torch.Te
     return e_loc.clamp(lo, hi)
 
 
+def same_dot_occupancy_penalty(x: torch.Tensor, system: SystemConfig, margin: float) -> torch.Tensor:
+    if len(system.wells) != 2 or system.n_particles != 2:
+        return torch.zeros((), device=x.device, dtype=x.dtype)
+
+    centers = torch.tensor([well.center for well in system.wells], device=x.device, dtype=x.dtype)
+    diff = x.unsqueeze(2) - centers.view(1, 1, 2, system.dim)
+    dist_sq = torch.sum(diff * diff, dim=-1)
+    nearest = torch.argmin(dist_sq, dim=-1)
+
+    same_dot = (nearest[:, 0] == nearest[:, 1]).to(x.dtype)
+    if float(margin) <= 0.0:
+        return torch.mean(same_dot)
+
+    center_sep = torch.linalg.norm(centers[1] - centers[0])
+    same_well_dist = torch.linalg.norm(x[:, 0, :] - x[:, 1, :], dim=-1)
+    slack = torch.clamp(float(margin) * center_sep - same_well_dist, min=0.0)
+    return torch.mean(same_dot * slack)
+
+
 def train_ground_state(
     model: torch.nn.Module,
     system: SystemConfig,
@@ -172,6 +200,23 @@ def train_ground_state(
     _apply_seed(train_cfg.seed)
     device = torch.device(train_cfg.device)
     dtype = train_cfg.torch_dtype
+    if train_cfg.sampler not in ("is", "mh", "stratified"):
+        raise ValueError(f"Unknown sampler '{train_cfg.sampler}', expected 'is', 'mh', or 'stratified'.")
+    if train_cfg.non_mcmc_only and train_cfg.sampler == "mh":
+        raise ValueError("non_mcmc_only=true forbids sampler='mh'.")
+    direct_local_energy_losses = ("weak_form", "fd_colloc", "reinforce_hybrid")
+    if train_cfg.loss_type in direct_local_energy_losses and train_cfg.sampler not in ("mh", "is"):
+        raise ValueError(
+            f"loss_type='{train_cfg.loss_type}' requires sampler='mh' or sampler='is' in the current trainer. "
+            "The stratified non-MCMC sampler does not provide a valid direct local-energy estimator for this loss. "
+            "Use sampler='is' for fixed-proposal non-MCMC variational estimation, loss_type='residual' for stratified runs, "
+            "or sampler='mh' for direct variational minimization."
+        )
+    if train_cfg.laplacian_mode not in ("fd", "autograd"):
+        raise ValueError(
+            f"Unknown laplacian_mode '{train_cfg.laplacian_mode}', expected 'fd' or 'autograd'."
+        )
+
     model = model.to(device=device, dtype=dtype)
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
@@ -188,19 +233,29 @@ def train_ground_state(
     def psi_log_fn(x: torch.Tensor) -> torch.Tensor:
         return model(x)
 
-    if train_cfg.sampler not in ("is", "mh", "stratified"):
-        raise ValueError(f"Unknown sampler '{train_cfg.sampler}', expected 'is', 'mh', or 'stratified'.")
-    if train_cfg.non_mcmc_only and train_cfg.sampler == "mh":
-        raise ValueError("non_mcmc_only=true forbids sampler='mh'.")
-    if train_cfg.laplacian_mode not in ("fd", "autograd"):
-        raise ValueError(
-            f"Unknown laplacian_mode '{train_cfg.laplacian_mode}', expected 'fd' or 'autograd'."
-        )
-
     x_prev: torch.Tensor | None = None
     mh_scale = float(train_cfg.mh_step_scale)
 
     sigma_fs = adapt_sigma_fs(system.omega, train_cfg.sigma_fs)
+
+    def normalized_is_weights(
+        x: torch.Tensor,
+        proposal_logpdf: torch.Tensor,
+        *,
+        detach: bool,
+    ) -> torch.Tensor:
+        log_psi = model(x)
+        if detach:
+            log_psi = log_psi.detach()
+        logw = 2.0 * log_psi - proposal_logpdf
+        clip_q = float(train_cfg.logw_clip_q)
+        if 0.0 < clip_q < 0.5:
+            lo = torch.quantile(logw.detach(), clip_q)
+            hi = torch.quantile(logw.detach(), 1.0 - clip_q)
+            logw = torch.clamp(logw, min=lo, max=hi)
+        logw = logw - torch.logsumexp(logw, dim=0)
+        return torch.exp(logw)
+
     for epoch in range(train_cfg.epochs):
         current_lr_factor = lr_schedule_factor(
             epoch,
@@ -213,25 +268,38 @@ def train_ground_state(
             group["lr"] = current_lr
 
         is_weights: torch.Tensor | None = None
+        proposal_logpdf: torch.Tensor | None = None
         if train_cfg.sampler == "is":
-            x, ess, is_weights = importance_resample(
-                psi_log_fn,
-                n_keep=train_cfg.n_coll,
-                n_elec=system.n_particles,
-                dim=system.dim,
-                omega=system.omega,
-                device=device,
-                dtype=dtype,
-                n_cand_mult=train_cfg.n_cand_mult,
-                sigma_fs=sigma_fs,
-                min_pair_cutoff=train_cfg.min_pair_cutoff,
-                weight_temp=train_cfg.weight_temp,
-                logw_clip_q=train_cfg.logw_clip_q,
-                langevin_steps=train_cfg.langevin_steps,
-                langevin_step_size=train_cfg.langevin_step_size,
-                system=system,
-                return_weights=True,
-            )
+            if train_cfg.loss_type in direct_local_energy_losses:
+                x = sample_multiwell_init(
+                    train_cfg.n_coll,
+                    system=system,
+                    device=device,
+                    dtype=dtype,
+                )
+                proposal_logpdf = multiwell_init_logpdf(x, system=system)
+                with torch.no_grad():
+                    w_det = normalized_is_weights(x, proposal_logpdf, detach=True)
+                    ess = float((1.0 / torch.sum(w_det * w_det)).item())
+            else:
+                x, ess, is_weights = importance_resample(
+                    psi_log_fn,
+                    n_keep=train_cfg.n_coll,
+                    n_elec=system.n_particles,
+                    dim=system.dim,
+                    omega=system.omega,
+                    device=device,
+                    dtype=dtype,
+                    n_cand_mult=train_cfg.n_cand_mult,
+                    sigma_fs=sigma_fs,
+                    min_pair_cutoff=train_cfg.min_pair_cutoff,
+                    weight_temp=train_cfg.weight_temp,
+                    logw_clip_q=train_cfg.logw_clip_q,
+                    langevin_steps=train_cfg.langevin_steps,
+                    langevin_step_size=train_cfg.langevin_step_size,
+                    system=system,
+                    return_weights=True,
+                )
         elif train_cfg.sampler == "stratified":
             x, ess = stratified_resample(
                 n_keep=train_cfg.n_coll,
@@ -269,6 +337,9 @@ def train_ground_state(
             ess = float(accept_rate)
 
         def weighted_mean(values: torch.Tensor) -> torch.Tensor:
+            if proposal_logpdf is not None:
+                w = normalized_is_weights(x, proposal_logpdf, detach=False)
+                return torch.sum(w * values)
             if is_weights is None:
                 return values.mean()
             w = is_weights / is_weights.sum().clamp_min(1e-12)
@@ -276,6 +347,10 @@ def train_ground_state(
 
         def weighted_var(values: torch.Tensor) -> float:
             vals = values.detach()
+            if proposal_logpdf is not None:
+                w = normalized_is_weights(x, proposal_logpdf, detach=True)
+                mean = torch.sum(w * vals)
+                return float(torch.sum(w * (vals - mean) * (vals - mean)).item())
             if is_weights is None:
                 return float(torch.var(vals, unbiased=False).item())
             w = is_weights / is_weights.sum().clamp_min(1e-12)
@@ -387,6 +462,9 @@ def train_ground_state(
                 alpha_decay_frac=train_cfg.alpha_decay_frac,
             )
             loss = weighted_mean((e_used - e_eff) * (e_used - e_eff))
+            if train_cfg.occupancy_penalty_weight > 0.0:
+                penalty = same_dot_occupancy_penalty(x, system, train_cfg.occupancy_margin)
+                loss = loss + float(train_cfg.occupancy_penalty_weight) * penalty
             energy = mu
             local_energy_samples = e_used.detach()
         else:

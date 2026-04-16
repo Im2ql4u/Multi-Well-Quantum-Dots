@@ -29,6 +29,33 @@ def _sample_multiwell_init(
     return x
 
 
+def sample_multiwell_init(
+    n_samples: int, *, system: SystemConfig, device: torch.device, dtype: torch.dtype
+) -> torch.Tensor:
+    """Public wrapper for the fixed Gaussian non-MCMC proposal."""
+    return _sample_multiwell_init(n_samples, system=system, device=device, dtype=dtype)
+
+
+def multiwell_init_logpdf(x: torch.Tensor, *, system: SystemConfig) -> torch.Tensor:
+    """Log-density of the fixed Gaussian proposal used by sample_multiwell_init."""
+    if x.ndim != 3:
+        raise ValueError(f"Expected x with shape (batch, n_particles, dim), got {tuple(x.shape)}.")
+
+    batch = x.shape[0]
+    total = torch.zeros(batch, device=x.device, dtype=x.dtype)
+    idx = 0
+    for well in system.wells:
+        n_e = int(well.n_particles)
+        if n_e == 0:
+            continue
+        center = torch.tensor(well.center, device=x.device, dtype=x.dtype).view(1, 1, system.dim)
+        sigma = 1.0 / max(float(well.omega), 1e-8) ** 0.5
+        chunk = x[:, idx : idx + n_e, :]
+        total = total + _log_isotropic_gaussian(chunk, center, sigma).sum(dim=1)
+        idx += n_e
+    return total
+
+
 def _particle_well_centers(
     system: SystemConfig, *, device: torch.device, dtype: torch.dtype
 ) -> torch.Tensor:

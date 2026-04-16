@@ -145,16 +145,22 @@ class GroundStateWF(nn.Module):
         use_well_features: bool = False,
         use_well_backflow: bool = False,
         use_backflow: bool = True,
+        singlet: bool = False,
     ) -> None:
         super().__init__()
         self.system = system
         self.register_buffer("C_occ", C_occ.detach().clone())
         self.sd_params = dict(params)  # For Slater determinant basis evaluation
 
+        self.singlet = bool(singlet)
         self.arch_type = str(arch_type).lower()
         if self.arch_type not in {"pinn", "ctnn", "unified"}:
             raise ValueError(
                 f"Unknown arch_type '{arch_type}'. Expected one of: pinn, ctnn, unified."
+            )
+        if self.singlet and (len(system.wells) != 2 or system.n_particles != 2):
+            raise ValueError(
+                "Singlet permanent ansatz currently requires N=2 and exactly 2 wells."
             )
 
         if spin.ndim != 1 or spin.numel() != system.n_particles:
@@ -221,6 +227,40 @@ class GroundStateWF(nn.Module):
         # Keep module params aligned with the basis tensor dtype/device.
         self.to(device=C_occ.device, dtype=C_occ.dtype)
 
+    def _permanent_sign_logabs(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Symmetric permanent for the singlet: φ_L(r₁)φ_R(r₂) + φ_R(r₁)φ_L(r₂).
+
+        Uses the lowest HO orbital centered at each well. Only valid for N=2, 2-well.
+        Returns (sign, log|permanent|) with shapes (B,).
+        """
+        B, N, d = x.shape
+        wells = self.system.wells
+        c0 = torch.tensor(wells[0].center, device=x.device, dtype=x.dtype).view(1, 1, d)
+        c1 = torch.tensor(wells[1].center, device=x.device, dtype=x.dtype).view(1, 1, d)
+
+        if d == 2:
+            phi_L = self._evaluate_ho_basis_2d(x - c0)[:, :, 0]  # (B, N)
+            phi_R = self._evaluate_ho_basis_2d(x - c1)[:, :, 0]  # (B, N)
+        elif d == 1:
+            omega_p = {"omega": float(self.system.omega)}
+            phi_L = evaluate_basis_functions_torch(
+                (x - c0).squeeze(-1), 1, params=omega_p
+            )[:, :, 0]  # (B, N)
+            phi_R = evaluate_basis_functions_torch(
+                (x - c1).squeeze(-1), 1, params=omega_p
+            )[:, :, 0]  # (B, N)
+        else:
+            raise ValueError(f"Unsupported dim={d} for permanent ansatz.")
+
+        # permanent = φ_L(r₁)φ_R(r₂) + φ_R(r₁)φ_L(r₂)
+        term1 = phi_L[:, 0] * phi_R[:, 1]  # shape (B,)
+        term2 = phi_R[:, 0] * phi_L[:, 1]  # shape (B,)
+        perm = term1 + term2
+
+        sign_perm = torch.sign(perm)
+        log_perm = torch.log(torch.abs(perm).clamp(min=1e-30))
+        return sign_perm, log_perm
+
     def _evaluate_ho_basis_2d(self, x: torch.Tensor) -> torch.Tensor:
         """Evaluate 2D HO basis as outer product of 1D bases."""
         nx = self.sd_params["nx"]
@@ -231,8 +271,12 @@ class GroundStateWF(nn.Module):
         prod = phi_x.unsqueeze(-1) * phi_y.unsqueeze(-2)  # (B,N,nx,ny)
         return prod.reshape(x.shape[0], x.shape[1], nx * ny)
 
-    def _log_slater_det(self, x: torch.Tensor, spin: torch.Tensor) -> torch.Tensor:
-        """Compute log|SD| via LCAO for single- or multi-well systems."""
+    def _slater_det_sign_logabs(
+        self,
+        x: torch.Tensor,
+        spin: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute determinant sign and log-absolute value via LCAO."""
         B, N, d = x.shape
         wells = self.system.wells
 
@@ -318,18 +362,24 @@ class GroundStateWF(nn.Module):
         Psi_down = Psi[:, idx_down, :][:, :, down_cols]  # (B, n_down, n_down)
 
         if n_up > 0:
-            _, log_up = torch.linalg.slogdet(Psi_up)
+            sign_up, log_up = torch.linalg.slogdet(Psi_up)
         else:
+            sign_up = torch.ones(B, device=x.device, dtype=x.dtype)
             log_up = torch.zeros(B, device=x.device, dtype=x.dtype)
 
         if n_down > 0:
-            _, log_down = torch.linalg.slogdet(Psi_down)
+            sign_down, log_down = torch.linalg.slogdet(Psi_down)
         else:
+            sign_down = torch.ones(B, device=x.device, dtype=x.dtype)
             log_down = torch.zeros(B, device=x.device, dtype=x.dtype)
 
-        return log_up + log_down
+        return sign_up * sign_down, log_up + log_down
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def _log_slater_det(self, x: torch.Tensor, spin: torch.Tensor) -> torch.Tensor:
+        _, logabs = self._slater_det_sign_logabs(x, spin)
+        return logabs
+
+    def signed_log_slater(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         if x.ndim != 3:
             raise ValueError(f"Expected x with shape (B,N,D), got {tuple(x.shape)}")
         if x.shape[1] != self.system.n_particles or x.shape[2] != self.system.dim:
@@ -346,15 +396,48 @@ class GroundStateWF(nn.Module):
                 raise RuntimeError("Non-finite backflow displacement in GroundStateWF.")
             x_eval = x + dx
 
-        # Slater determinant envelope (includes Gaussian, excited orbitals,
-        # antisymmetry, and multi-center LCAO for double dots).
-        log_sd = self._log_slater_det(x_eval, spin)
+        return self._slater_det_sign_logabs(x_eval, spin)
 
-        # Keep Jastrow/cusp tied to physical coordinates; backflow modifies SD coordinates.
+    def signed_log_psi(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        if x.ndim != 3:
+            raise ValueError(f"Expected x with shape (B,N,D), got {tuple(x.shape)}")
+        if x.shape[1] != self.system.n_particles or x.shape[2] != self.system.dim:
+            raise ValueError(
+                f"Input shape mismatch. Expected N={self.system.n_particles}"
+                f", D={self.system.dim}, got {tuple(x.shape)}"
+            )
+
+        spin = self.spin_template.to(device=x.device)
+
+        if self.singlet:
+            # Singlet mode: symmetric permanent × symmetrized PINN correlator.
+            # Backflow is intentionally skipped — it would break spatial symmetry.
+            sign_perm, log_perm = self._permanent_sign_logabs(x)
+
+            # Symmetrize J: log(J(r₁,r₂) + J(r₂,r₁)) via logaddexp.
+            # Swap positions AND well_id so PINN's well-aware features stay consistent.
+            idx_swap = torch.tensor([1, 0], device=x.device, dtype=torch.long)
+            x_swap = x[:, idx_swap, :]
+            well_id_swap = self.well_id[idx_swap]
+            c1 = self.pinn(x, spin=spin, well_id=self.well_id, cusp_coords=x).squeeze(-1)
+            c2 = self.pinn(x_swap, spin=spin, well_id=well_id_swap, cusp_coords=x_swap).squeeze(-1)
+            correlator = torch.logaddexp(c1, c2)
+
+            log_psi = log_perm + correlator
+            if torch.isnan(log_psi).any():
+                raise RuntimeError("NaN in log_psi (singlet mode) in GroundStateWF forward pass.")
+            return sign_perm, log_psi
+
+        # Default one-per-well path.
+        sign_sd, log_sd = self.signed_log_slater(x)
         correlator = self.pinn(x, spin=spin, well_id=self.well_id, cusp_coords=x).squeeze(-1)
         log_psi = log_sd + correlator
         if torch.isnan(log_psi).any():
             raise RuntimeError("NaN in log_psi in GroundStateWF forward pass.")
+        return sign_sd, log_psi
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        _, log_psi = self.signed_log_psi(x)
         return log_psi
 
 

@@ -128,6 +128,7 @@ def main() -> None:
         use_well_features=bool(arch_cfg.get("use_well_features", False)),
         use_well_backflow=bool(arch_cfg.get("use_well_backflow", False)),
         use_backflow=bool(arch_cfg.get("use_backflow", True)),
+        singlet=bool(arch_cfg.get("singlet", False)),
     )
 
     result = train_ground_state(model, system, params, train_cfg)
