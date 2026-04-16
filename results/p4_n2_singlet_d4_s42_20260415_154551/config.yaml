@@ -1,0 +1,52 @@
+allow_missing_dmc: true
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  singlet: true
+  use_backflow: false
+run_name: p4_n2_singlet_d4_s42
+system:
+  coulomb: true
+  dim: 2
+  n_left: 1
+  n_right: 1
+  omega: 1.0
+  separation: 4.0
+  type: double_dot
+training:
+  alpha_decay_frac: 0.6
+  alpha_end: 1.0
+  alpha_start: 0.0
+  device: cuda:2
+  dtype: float64
+  epochs: 3000
+  fd_h: 0.01
+  grad_clip: 0.2
+  laplacian_mode: fd
+  local_energy_clip_width: 5.0
+  loss_type: residual
+  lr: 0.0001
+  lr_min_factor: 0.1
+  lr_warmup_epochs: 200
+  n_coll: 512
+  non_mcmc_only: true
+  print_every: 200
+  residual_objective: energy_var
+  residual_target_energy: 1.8773988
+  sampler: stratified
+  sampler_dimer_eps_max: 0.06
+  sampler_dimer_pairs: 1
+  sampler_mix_weights:
+  - 0.55
+  - 0.05
+  - 0.2
+  - 0.15
+  - 0.05
+  sampler_shell_radius: 1.2
+  sampler_shell_radius_sigma: 0.06
+  sampler_sigma_center: 0.2
+  sampler_sigma_mixed_in: 0.25
+  sampler_sigma_mixed_out: 0.7
+  sampler_sigma_tails: 1.0
+  seed: 42

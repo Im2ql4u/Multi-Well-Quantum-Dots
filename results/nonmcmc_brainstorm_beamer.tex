@@ -1,0 +1,79 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\usepackage{amsmath, amssymb}
+\title{Non-MCMC Neural VMC: Results and Next Directions}
+\author{Project Brainstorming Session}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% --- Slide: Task Focus and Context ---
+\begin{frame}{Session Focus: Task and Context}
+\begin{itemize}
+  \item \textbf{Mode: Task Focus} — orienting on recent non-MCMC results and brainstorming next research directions.
+  \item \textbf{Project objective:} Publication-quality neural VMC for multi-well quantum dots (ground states, gaps, quench, entanglement, scaling).
+  \item \textbf{Recent achievement:} Fully non-MCMC training (stratified i.i.d. sampling + residual/collocation loss) matches or beats CI for N=2,3,4.
+  \item \textbf{Session goal:} Prioritize high-impact, feasible next steps leveraging the framework's unique capabilities.
+\end{itemize}
+\end{frame}
+
+% --- Slide: Results So Far ---
+\begin{frame}{Results So Far: Non-MCMC Benchmark}
+\begin{itemize}
+  \item \textbf{N=2,3,4:} Model energies within $0.02\%$ of CI, max exceedance $<0.007\%$.
+  \item \textbf{N=6:} $E \approx 8.18$, variance $\approx 0.0003$ (stable, no collapse).
+  \item \textbf{N=8:} $E \approx 11.31$ (early), training stable.
+  \item \textbf{N=3 Quench:} Gaps $[0.57, 1.04, 1.50]$, PDE loss $0.011$.
+  \item \textbf{Scaling:} Energy per particle increases with $N$, all metrics physically consistent.
+\end{itemize}
+\end{frame}
+
+% --- Slide: What Exists in the Framework ---
+\begin{frame}{Framework Capabilities}
+\begin{itemize}
+  \item \textbf{Wavefunction:} SD + PINN correlator + optional backflow
+  \item \textbf{Potentials:} Multi-well, Coulomb, Zeeman
+  \item \textbf{Training:} VMC, residual/collocation, REINFORCE; IS/MCMC/stratified
+  \item \textbf{Imaginary-time:} SpectralG PDE solver for gap extraction
+  \item \textbf{Benchmarks:} DMC up to N=20, double-well tunneling, pair correlations
+\end{itemize}
+\end{frame}
+
+% --- Slide: Brainstorming Next Directions ---
+\begin{frame}{What Would Be Insanely Cool?}
+\begin{itemize}
+  \item \textbf{1. Magnetic-field quench spectroscopy:} Non-MCMC $E(\tau)$ decay, spectral gaps for N=2,3,4 under $B$ quench.
+  \item \textbf{2. Entanglement entropy:} Compute $S_2$ (Rényi-2) between wells using SWAP/ratio trick.
+  \item \textbf{3. Scaling to N=6,8,12:} Demonstrate accuracy and stability as $N$ increases.
+  \item \textbf{4. Wigner crystallization:} Phase diagram via pair correlation and density as function of well separation.
+  \item \textbf{5. Transport/tunneling:} Extract tunneling rates from spectral gaps.
+  \item \textbf{6. Real-time dynamics:} Analytic continuation from $E(\tau)$ to $E(t)$.
+  \item \textbf{7. 2D quantum dots:} Move to 2D arrays, explore frustration/topology.
+  \item \textbf{8. Excited-state wavefunctions:} Orthogonality-constrained VMC for $|\psi_k\rangle$.
+  \item \textbf{9. Spin-orbit/topological:} Add Rashba/Dresselhaus, study topological gap openings.
+  \item \textbf{10. Transfer learning:} Train on small $N$, fine-tune for larger $N$.
+\end{itemize}
+\end{frame}
+
+% --- Slide: Recommendation ---
+\begin{frame}{Recommended Next Steps}
+\begin{itemize}
+  \item \textbf{1. Fix quench pipeline bugs, produce $E(\tau)$ for N=2,3,4.}
+  \item \textbf{2. Add entanglement entropy measurement.}
+  \item \textbf{3. Show scaling to N=6,8.}
+  \item \textbf{Result:} A paper with three stories — non-MCMC ground states, spectral gaps, entanglement, and scaling.
+\end{itemize}
+\end{frame}
+
+% --- Slide: Immediate Next Step ---
+\begin{frame}{Immediate Next Step}
+\begin{itemize}
+  \item Pick which direction(s) excite you most, and I'll draft a concrete plan.
+\end{itemize}
+\end{frame}
+
+\end{document}

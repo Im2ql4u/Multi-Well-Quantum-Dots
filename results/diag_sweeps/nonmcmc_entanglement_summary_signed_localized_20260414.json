@@ -1,0 +1,412 @@
+{
+  "date": "2026-04-14",
+  "protocol": {
+    "wavefunction_evaluation": "signed amplitude via signed_log_psi when available",
+    "dot_basis": "masked_localized_ho",
+    "dot_max_shell": 2,
+    "recommended_ground_state_npts": 28,
+    "quench_npts": 24,
+    "status": "ground-state protocol partially converged; quench snapshots corrected but not yet grid-converged"
+  },
+  "ground_states": {
+    "d2": {
+      "preferred": {
+        "label": "d2",
+        "source_json": "results/diag_sweeps/entanglement_n2_d2_localized_ho_s2_n28_signed_20260414.json",
+        "npts": 28,
+        "particle_entropy": 0.32313051845035495,
+        "particle_negativity": 0.8718797439748744,
+        "projected_weight": 0.9905646015323134,
+        "dot_entropy": 0.2817175979276679,
+        "dot_negativity": 0.5585765202810251,
+        "dot_label_negativity": 0.12567425062332982,
+        "sector_probabilities": {
+          "LL": 0.09661406224346376,
+          "LR": 0.359349618341384,
+          "RL": 0.29990801815764695,
+          "RR": 0.24412830125751103
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.09551645206199248,
+          "LR": 0.3621952098520095,
+          "RL": 0.30194595021317755,
+          "RR": 0.24034238787282058
+        }
+      },
+      "convergence": [
+        {
+          "label": "d2",
+          "source_json": "results/diag_sweeps/entanglement_n2_d2_localized_ho_s2_n24_signed_20260414.json",
+          "npts": 24,
+          "particle_entropy": 0.329689333113203,
+          "particle_negativity": 0.871102311796355,
+          "projected_weight": 0.9908582945839242,
+          "dot_entropy": 0.28710922386035526,
+          "dot_negativity": 0.5740267605431522,
+          "dot_label_negativity": 0.12735482605355922,
+          "sector_probabilities": {
+            "LL": 0.09627783372726191,
+            "LR": 0.3596490321606522,
+            "RL": 0.3002241143683193,
+            "RR": 0.24384901974377168
+          },
+          "projected_sector_probabilities": {
+            "LL": 0.09516031829177764,
+            "LR": 0.3625043523929076,
+            "RL": 0.3023569562442314,
+            "RR": 0.2399783730710831
+          }
+        },
+        {
+          "label": "d2",
+          "source_json": "results/diag_sweeps/entanglement_n2_d2_localized_ho_s2_n28_signed_20260414.json",
+          "npts": 28,
+          "particle_entropy": 0.32313051845035495,
+          "particle_negativity": 0.8718797439748744,
+          "projected_weight": 0.9905646015323134,
+          "dot_entropy": 0.2817175979276679,
+          "dot_negativity": 0.5585765202810251,
+          "dot_label_negativity": 0.12567425062332982,
+          "sector_probabilities": {
+            "LL": 0.09661406224346376,
+            "LR": 0.359349618341384,
+            "RL": 0.29990801815764695,
+            "RR": 0.24412830125751103
+          },
+          "projected_sector_probabilities": {
+            "LL": 0.09551645206199248,
+            "LR": 0.3621952098520095,
+            "RL": 0.30194595021317755,
+            "RR": 0.24034238787282058
+          }
+        }
+      ]
+    },
+    "d4": {
+      "preferred": {
+        "label": "d4",
+        "source_json": "results/diag_sweeps/entanglement_n2_d4_localized_ho_s2_n28_signed_20260414.json",
+        "npts": 28,
+        "particle_entropy": 0.12957493251416236,
+        "particle_negativity": 0.8158229861461015,
+        "projected_weight": 0.9864422938044712,
+        "dot_entropy": 0.04075515882263295,
+        "dot_negativity": 0.2255373949110071,
+        "dot_label_negativity": 0.0047609209006402664,
+        "sector_probabilities": {
+          "LL": 0.24391501456795886,
+          "LR": 0.24974281242680288,
+          "RL": 0.24933010133240543,
+          "RR": 0.2570120716728378
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.24092915368018553,
+          "LR": 0.25285481056504305,
+          "RL": 0.2524297355835666,
+          "RR": 0.2537863001712048
+        }
+      },
+      "convergence": [
+        {
+          "label": "d4",
+          "source_json": "results/diag_sweeps/entanglement_n2_d4_localized_ho_s2_n24_signed_20260414.json",
+          "npts": 24,
+          "particle_entropy": 0.14792008595599027,
+          "particle_negativity": 0.8071151922942872,
+          "projected_weight": 0.9843618717552993,
+          "dot_entropy": 0.04552470829681309,
+          "dot_negativity": 0.2406124465842413,
+          "dot_label_negativity": 0.006912003937058511,
+          "sector_probabilities": {
+            "LL": 0.2434429123797534,
+            "LR": 0.250177380204894,
+            "RL": 0.24976740976658385,
+            "RR": 0.2566122976487732
+          },
+          "projected_sector_probabilities": {
+            "LL": 0.23982351586208123,
+            "LR": 0.2539263594030549,
+            "RL": 0.2535040935644357,
+            "RR": 0.25274603117042843
+          }
+        },
+        {
+          "label": "d4",
+          "source_json": "results/diag_sweeps/entanglement_n2_d4_localized_ho_s2_n28_signed_20260414.json",
+          "npts": 28,
+          "particle_entropy": 0.12957493251416236,
+          "particle_negativity": 0.8158229861461015,
+          "projected_weight": 0.9864422938044712,
+          "dot_entropy": 0.04075515882263295,
+          "dot_negativity": 0.2255373949110071,
+          "dot_label_negativity": 0.0047609209006402664,
+          "sector_probabilities": {
+            "LL": 0.24391501456795886,
+            "LR": 0.24974281242680288,
+            "RL": 0.24933010133240543,
+            "RR": 0.2570120716728378
+          },
+          "projected_sector_probabilities": {
+            "LL": 0.24092915368018553,
+            "LR": 0.25285481056504305,
+            "RL": 0.2524297355835666,
+            "RR": 0.2537863001712048
+          }
+        }
+      ]
+    },
+    "d8": {
+      "preferred": {
+        "label": "d8",
+        "source_json": "results/diag_sweeps/entanglement_n2_d8_localized_ho_s2_n28_signed_20260414.json",
+        "npts": 28,
+        "particle_entropy": 0.45263792020583704,
+        "particle_negativity": 1.4476691181013353,
+        "projected_weight": 0.9822761117839838,
+        "dot_entropy": 0.3234598690039924,
+        "dot_negativity": 0.45580302192529165,
+        "dot_label_negativity": 0.2807435345480114,
+        "sector_probabilities": {
+          "LL": 0.34961251405257443,
+          "LR": 0.10420555688448982,
+          "RL": 0.10420555629206542,
+          "RR": 0.441976372770875
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.34769452210155094,
+          "LR": 0.10608557099020016,
+          "RL": 0.10608557075357535,
+          "RR": 0.4401343361546737
+        }
+      },
+      "convergence": [
+        {
+          "label": "d8",
+          "source_json": "results/diag_sweeps/entanglement_n2_d8_localized_ho_s2_n24_signed_20260414.json",
+          "npts": 24,
+          "particle_entropy": 0.46562589796607257,
+          "particle_negativity": 1.370621891245983,
+          "projected_weight": 0.9777745676405236,
+          "dot_entropy": 0.31851793089971353,
+          "dot_negativity": 0.47544800861283376,
+          "dot_label_negativity": 0.2758334118665574,
+          "sector_probabilities": {
+            "LL": 0.34814440237101046,
+            "LR": 0.10600772483532571,
+            "RL": 0.10600772425432624,
+            "RR": 0.4398401485393433
+          },
+          "projected_sector_probabilities": {
+            "LL": 0.345706407516768,
+            "LR": 0.10841712418887209,
+            "RL": 0.10841712394798818,
+            "RR": 0.43745934434637174
+          }
+        },
+        {
+          "label": "d8",
+          "source_json": "results/diag_sweeps/entanglement_n2_d8_localized_ho_s2_n28_signed_20260414.json",
+          "npts": 28,
+          "particle_entropy": 0.45263792020583704,
+          "particle_negativity": 1.4476691181013353,
+          "projected_weight": 0.9822761117839838,
+          "dot_entropy": 0.3234598690039924,
+          "dot_negativity": 0.45580302192529165,
+          "dot_label_negativity": 0.2807435345480114,
+          "sector_probabilities": {
+            "LL": 0.34961251405257443,
+            "LR": 0.10420555688448982,
+            "RL": 0.10420555629206542,
+            "RR": 0.441976372770875
+          },
+          "projected_sector_probabilities": {
+            "LL": 0.34769452210155094,
+            "LR": 0.10608557099020016,
+            "RL": 0.10608557075357535,
+            "RR": 0.4401343361546737
+          }
+        }
+      ]
+    }
+  },
+  "quench": {
+    "label": "d8_to_d4",
+    "checkpoint": "results/imag_time_pinn/quench_sep_fast_d8p00_to_d4p00_checkpoint.pt",
+    "samples": [
+      {
+        "label": "tau=0.0",
+        "source_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0p00_localized_ho_s2_n24_signed_20260414.json",
+        "npts": 24,
+        "particle_entropy": 0.7130681711153319,
+        "particle_negativity": 0.8339303126267681,
+        "projected_weight": 0.5497557568337686,
+        "dot_entropy": 0.6266321886318925,
+        "dot_negativity": 0.5766201370733097,
+        "dot_label_negativity": 5.7460130220104266e-08,
+        "sector_probabilities": {
+          "LL": 2.4883429630076817e-09,
+          "LR": 1.0815319736848179e-09,
+          "RL": 0.9948016854278354,
+          "RR": 0.005198311002296599
+        },
+        "projected_sector_probabilities": {
+          "LL": 2.52966328432646e-09,
+          "LR": 1.965284927406781e-09,
+          "RL": 0.995613763602018,
+          "RR": 0.0043862319030339506
+        },
+        "tau": 0.0
+      },
+      {
+        "label": "tau=0.1",
+        "source_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0p10_localized_ho_s2_n24_signed_20260414.json",
+        "npts": 24,
+        "particle_entropy": 0.7175573494023022,
+        "particle_negativity": 0.9133853255604685,
+        "projected_weight": 0.6904416814145692,
+        "dot_entropy": 0.6526894977672362,
+        "dot_negativity": 0.6301190457785824,
+        "dot_label_negativity": 1.046582802187206e-07,
+        "sector_probabilities": {
+          "LL": 7.850980913772945e-08,
+          "LR": 2.5396526684541125e-08,
+          "RL": 0.9367627046869718,
+          "RR": 0.06323719140669523
+        },
+        "projected_sector_probabilities": {
+          "LL": 7.497934528386159e-08,
+          "LR": 3.670045813658742e-08,
+          "RL": 0.9431996192785121,
+          "RR": 0.05680026904168426
+        },
+        "tau": 0.1
+      },
+      {
+        "label": "tau=0.3",
+        "source_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0p30_localized_ho_s2_n24_signed_20260414.json",
+        "npts": 24,
+        "particle_entropy": 0.5662918486447441,
+        "particle_negativity": 0.9609592080179086,
+        "projected_weight": 0.8282471304511484,
+        "dot_entropy": 0.5421711516006892,
+        "dot_negativity": 0.6468260229458551,
+        "dot_label_negativity": 1.1937431946835705e-05,
+        "sector_probabilities": {
+          "LL": 3.97022585513571e-06,
+          "LR": 8.792710203124513e-07,
+          "RL": 0.33888657178825166,
+          "RR": 0.6611085787148796
+        },
+        "projected_sector_probabilities": {
+          "LL": 3.735679580751889e-06,
+          "LR": 1.0507579577624527e-06,
+          "RL": 0.34810435957477764,
+          "RR": 0.6518908539876839
+        },
+        "tau": 0.3
+      },
+      {
+        "label": "tau=0.6",
+        "source_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0p60_localized_ho_s2_n24_signed_20260414.json",
+        "npts": 24,
+        "particle_entropy": 0.38135226003177514,
+        "particle_negativity": 0.8089787601594978,
+        "projected_weight": 0.92116935429519,
+        "dot_entropy": 0.3331465464435224,
+        "dot_negativity": 0.5084217166022937,
+        "dot_label_negativity": 0.0017234248457933113,
+        "sector_probabilities": {
+          "LL": 3.534016923642146e-05,
+          "LR": 5.12630218087094e-06,
+          "RL": 0.04909564543423918,
+          "RR": 0.9508638880943476
+        },
+        "projected_sector_probabilities": {
+          "LL": 3.277087436041512e-05,
+          "LR": 5.4028019996767034e-06,
+          "RL": 0.049137039229811545,
+          "RR": 0.9508247870938286
+        },
+        "tau": 0.6
+      },
+      {
+        "label": "tau=1.0",
+        "source_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau1p00_localized_ho_s2_n24_signed_20260414.json",
+        "npts": 24,
+        "particle_entropy": 0.3738223255494136,
+        "particle_negativity": 0.8308631469374812,
+        "projected_weight": 0.9497426609179924,
+        "dot_entropy": 0.30775378220840255,
+        "dot_negativity": 0.5005686828050984,
+        "dot_label_negativity": 0.00841126356874094,
+        "sector_probabilities": {
+          "LL": 0.00022235226685102155,
+          "LR": 1.7236270318243303e-05,
+          "RL": 0.029999846475397697,
+          "RR": 0.9697605649874379
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.00020852470687757614,
+          "LR": 1.723879576469686e-05,
+          "RL": 0.02973658962303415,
+          "RR": 0.9700376468743236
+        },
+        "tau": 1.0
+      },
+      {
+        "label": "tau=1.5",
+        "source_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau1p50_localized_ho_s2_n24_signed_20260414.json",
+        "npts": 24,
+        "particle_entropy": 0.3467750989072386,
+        "particle_negativity": 0.8391251670829654,
+        "projected_weight": 0.9527135668322251,
+        "dot_entropy": 0.2743112596240959,
+        "dot_negativity": 0.4889932645845262,
+        "dot_label_negativity": 0.0142509587667767,
+        "sector_probabilities": {
+          "LL": 0.0010926913559896963,
+          "LR": 3.4433597390967966e-05,
+          "RL": 0.07128756281602153,
+          "RR": 0.9275853122306051
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.0010473235906787726,
+          "LR": 3.371910364587279e-05,
+          "RL": 0.07105662925695208,
+          "RR": 0.9278623280487235
+        },
+        "tau": 1.5
+      },
+      {
+        "label": "tau=2.0",
+        "source_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau2p00_localized_ho_s2_n24_signed_20260414.json",
+        "npts": 24,
+        "particle_entropy": 0.3071706195391801,
+        "particle_negativity": 0.7929861363621433,
+        "projected_weight": 0.9510350241457108,
+        "dot_entropy": 0.2442672853362327,
+        "dot_negativity": 0.463876958514442,
+        "dot_label_negativity": 0.012703721288806574,
+        "sector_probabilities": {
+          "LL": 0.0028800451301167662,
+          "LR": 3.674304670440394e-05,
+          "RL": 0.2262531768323171,
+          "RR": 0.7708300349908679
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.0028121149645697983,
+          "LR": 3.562394110712386e-05,
+          "RL": 0.2275385115132523,
+          "RR": 0.7696137495810708
+        },
+        "tau": 2.0
+      }
+    ],
+    "warning": "Quench remains far from the d4 ground state at tau=2.0, so these are transient-state entanglement numbers."
+  },
+  "notes": [
+    "The old exp(log_psi) measurement path dropped sign information; this summary uses the corrected signed protocol.",
+    "Ground-state projected weights are high (~0.95-0.99), so the basis-capture problem is resolved.",
+    "d4 convergence improved only at higher npts; low-resolution scouting runs should not be used for claims."
+  ]
+}

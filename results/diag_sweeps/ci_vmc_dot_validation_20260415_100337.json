@@ -1,0 +1,1773 @@
+{
+  "date": "2026-04-15",
+  "purpose": "Grid-based CI validation for VMC dot-label entanglement using shared and one-per-well references.",
+  "caveats": {
+    "shared": "Shared exact-diag uses the soft-min double-well Hamiltonian and the same real-space dot projection observable as the VMC pipeline, but it does not enforce the one-per-well occupancy structure of the VMC ansatz.",
+    "one_per_well": "One-per-well exact-diag enforces left/right channel occupancy, but its one-body basis is built from separate localized harmonic wells rather than the shared soft-min potential used in training."
+  },
+  "sweep_config": {
+    "nx": 20,
+    "ny": 20,
+    "omega": 1.0,
+    "smooth_t": 0.2,
+    "kappa": 1.0,
+    "epsilon": 0.01,
+    "kinetic_prefactor": 0.5,
+    "b_field": 0.0,
+    "g_factor": 2.0,
+    "mu_b": 1.0,
+    "projection_basis": "localized_ho",
+    "max_ho_shell": 2
+  },
+  "labels": [
+    "d2",
+    "d4",
+    "d8"
+  ],
+  "n_sp_states": [
+    20,
+    30,
+    40
+  ],
+  "n_ci_compute": [
+    100,
+    200,
+    300
+  ],
+  "results": [
+    {
+      "label": "d2",
+      "separation": 2.0,
+      "vmc_reference": {
+        "label": "d2",
+        "source_json": "results/diag_sweeps/entanglement_n2_d2_localized_ho_s2_n32_signed_b128_20260414.json",
+        "npts": 32,
+        "particle_entropy": 0.3193201808509164,
+        "particle_negativity": 0.872651615197652,
+        "norm2_before_normalisation": 70.57600794011171,
+        "projected_weight": 0.9902893210021239,
+        "dot_entropy": 0.27889322651267157,
+        "dot_negativity": 0.5508274935880186,
+        "dot_label_negativity": 0.12452851017541543,
+        "sector_probabilities": {
+          "LL": 0.09688405580654336,
+          "LR": 0.3591002490184216,
+          "RL": 0.2996414176127499,
+          "RR": 0.24437427756229058
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.09578592261618153,
+          "LR": 0.36195747746950196,
+          "RL": 0.30163560444923404,
+          "RR": 0.24062099546508262
+        }
+      },
+      "references": {
+        "shared": {
+          "reference_model": "shared",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 1.657158999305174,
+            "particle_entropy": 0.21813921256246863,
+            "particle_negativity": 0.44524002055011713,
+            "projected_weight": 0.9980432789235043,
+            "dot_entropy": 0.21628873079955938,
+            "dot_negativity": 0.4390458847575971,
+            "dot_label_negativity": 0.13765397878100788,
+            "sector_probabilities": {
+              "LL": 0.17408985732810275,
+              "LR": 0.32591014267190144,
+              "RL": 0.32591014267190166,
+              "RR": 0.17408985732809673
+            },
+            "projected_sector_probabilities": {
+              "LL": 0.17375650553367164,
+              "LR": 0.3262434944663316,
+              "RL": 0.3262434944663312,
+              "RR": 0.17375650553366545
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 100,
+              "ground_energy": 1.6648136755966525,
+              "particle_entropy": 0.22062555322408664,
+              "particle_negativity": 0.37581696608726045,
+              "projected_weight": 0.998430046430375,
+              "dot_entropy": 0.22027801027801208,
+              "dot_negativity": 0.3751214696279733,
+              "dot_label_negativity": 0.1442163221759459,
+              "sector_probabilities": {
+                "LL": 0.17166578911837774,
+                "LR": 0.32833421088162595,
+                "RL": 0.3283342108816258,
+                "RR": 0.17166578911837213
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17140792732401106,
+                "LR": 0.328592072675992,
+                "RL": 0.3285920726759914,
+                "RR": 0.17140792732400567
+              },
+              "delta_to_preferred_energy": 0.007654676291478424,
+              "delta_to_preferred_dot_label_negativity": 0.006562343394938025,
+              "delta_to_preferred_projected_weight": 0.00038676750687072214
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 200,
+              "ground_energy": 1.6586174648202445,
+              "particle_entropy": 0.21937666994185812,
+              "particle_negativity": 0.42885295419202274,
+              "projected_weight": 0.9981534231437263,
+              "dot_entropy": 0.21794734340662314,
+              "dot_negativity": 0.42455787320883953,
+              "dot_label_negativity": 0.13924492679619876,
+              "sector_probabilities": {
+                "LL": 0.17322071716398027,
+                "LR": 0.3267792828360223,
+                "RL": 0.32677928283602287,
+                "RR": 0.17322071716397425
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17289252359037502,
+                "LR": 0.3271074764096277,
+                "RL": 0.32710747640962873,
+                "RR": 0.17289252359036855
+              },
+              "delta_to_preferred_energy": 0.0014584655150704506,
+              "delta_to_preferred_dot_label_negativity": 0.001590948015190885,
+              "delta_to_preferred_projected_weight": 0.00011014422022204151
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 300,
+              "ground_energy": 1.6571589993051736,
+              "particle_entropy": 0.21813921256246877,
+              "particle_negativity": 0.4452400205501186,
+              "projected_weight": 0.9980432789235043,
+              "dot_entropy": 0.21628873079955968,
+              "dot_negativity": 0.43904588475759765,
+              "dot_label_negativity": 0.1376539787810079,
+              "sector_probabilities": {
+                "LL": 0.1740898573281027,
+                "LR": 0.3259101426719015,
+                "RL": 0.32591014267190166,
+                "RR": 0.17408985732809673
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17375650553367167,
+                "LR": 0.32624349446633166,
+                "RL": 0.3262434944663313,
+                "RR": 0.17375650553366537
+              },
+              "delta_to_preferred_energy": -4.440892098500626e-16,
+              "delta_to_preferred_dot_label_negativity": 2.7755575615628914e-17,
+              "delta_to_preferred_projected_weight": 0.0
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 100,
+              "ground_energy": 1.6648136755966525,
+              "particle_entropy": 0.2206255532240866,
+              "particle_negativity": 0.3758169660872599,
+              "projected_weight": 0.998430046430375,
+              "dot_entropy": 0.22027801027801222,
+              "dot_negativity": 0.37512146962797355,
+              "dot_label_negativity": 0.14421632217594593,
+              "sector_probabilities": {
+                "LL": 0.17166578911837774,
+                "LR": 0.32833421088162595,
+                "RL": 0.3283342108816258,
+                "RR": 0.17166578911837213
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17140792732401106,
+                "LR": 0.328592072675992,
+                "RL": 0.3285920726759914,
+                "RR": 0.17140792732400567
+              },
+              "delta_to_preferred_energy": 0.007654676291478424,
+              "delta_to_preferred_dot_label_negativity": 0.006562343394938053,
+              "delta_to_preferred_projected_weight": 0.00038676750687072214
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 200,
+              "ground_energy": 1.6586174648202445,
+              "particle_entropy": 0.2193766699418581,
+              "particle_negativity": 0.4288529541920233,
+              "projected_weight": 0.9981534231437263,
+              "dot_entropy": 0.2179473434066231,
+              "dot_negativity": 0.42455787320883953,
+              "dot_label_negativity": 0.13924492679619876,
+              "sector_probabilities": {
+                "LL": 0.17322071716398027,
+                "LR": 0.3267792828360223,
+                "RL": 0.32677928283602287,
+                "RR": 0.17322071716397425
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17289252359037502,
+                "LR": 0.3271074764096277,
+                "RL": 0.32710747640962873,
+                "RR": 0.17289252359036855
+              },
+              "delta_to_preferred_energy": 0.0014584655150704506,
+              "delta_to_preferred_dot_label_negativity": 0.001590948015190885,
+              "delta_to_preferred_projected_weight": 0.00011014422022204151
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 300,
+              "ground_energy": 1.657158999305174,
+              "particle_entropy": 0.2181392125624686,
+              "particle_negativity": 0.44524002055011613,
+              "projected_weight": 0.9980432789235043,
+              "dot_entropy": 0.21628873079955924,
+              "dot_negativity": 0.4390458847575973,
+              "dot_label_negativity": 0.13765397878100788,
+              "sector_probabilities": {
+                "LL": 0.17408985732810275,
+                "LR": 0.32591014267190144,
+                "RL": 0.3259101426719016,
+                "RR": 0.17408985732809673
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17375650553367164,
+                "LR": 0.3262434944663316,
+                "RL": 0.3262434944663312,
+                "RR": 0.17375650553366545
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 100,
+              "ground_energy": 1.6648136755966525,
+              "particle_entropy": 0.2206255532240866,
+              "particle_negativity": 0.37581696608725956,
+              "projected_weight": 0.998430046430375,
+              "dot_entropy": 0.22027801027801208,
+              "dot_negativity": 0.3751214696279733,
+              "dot_label_negativity": 0.1442163221759459,
+              "sector_probabilities": {
+                "LL": 0.17166578911837774,
+                "LR": 0.32833421088162595,
+                "RL": 0.3283342108816258,
+                "RR": 0.17166578911837213
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17140792732401106,
+                "LR": 0.328592072675992,
+                "RL": 0.3285920726759914,
+                "RR": 0.17140792732400567
+              },
+              "delta_to_preferred_energy": 0.007654676291478424,
+              "delta_to_preferred_dot_label_negativity": 0.006562343394938025,
+              "delta_to_preferred_projected_weight": 0.00038676750687072214
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 200,
+              "ground_energy": 1.6586174648202445,
+              "particle_entropy": 0.21937666994185812,
+              "particle_negativity": 0.4288529541920266,
+              "projected_weight": 0.9981534231437265,
+              "dot_entropy": 0.2179473434066232,
+              "dot_negativity": 0.4245578732088402,
+              "dot_label_negativity": 0.1392449267961988,
+              "sector_probabilities": {
+                "LL": 0.1732207171639803,
+                "LR": 0.32677928283602237,
+                "RL": 0.3267792828360229,
+                "RR": 0.17322071716397427
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17289252359037502,
+                "LR": 0.3271074764096277,
+                "RL": 0.32710747640962884,
+                "RR": 0.1728925235903686
+              },
+              "delta_to_preferred_energy": 0.0014584655150704506,
+              "delta_to_preferred_dot_label_negativity": 0.0015909480151909128,
+              "delta_to_preferred_projected_weight": 0.00011014422022215253
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 1.657158999305174,
+              "particle_entropy": 0.21813921256246863,
+              "particle_negativity": 0.44524002055011713,
+              "projected_weight": 0.9980432789235043,
+              "dot_entropy": 0.21628873079955938,
+              "dot_negativity": 0.4390458847575971,
+              "dot_label_negativity": 0.13765397878100788,
+              "sector_probabilities": {
+                "LL": 0.17408985732810275,
+                "LR": 0.32591014267190144,
+                "RL": 0.32591014267190166,
+                "RR": 0.17408985732809673
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.17375650553367164,
+                "LR": 0.3262434944663316,
+                "RL": 0.3262434944663312,
+                "RR": 0.17375650553366545
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        },
+        "one_per_well": {
+          "reference_model": "one_per_well",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 2.5136440263410598,
+            "particle_entropy": 0.053694795094344334,
+            "particle_negativity": 0.19146361143643353,
+            "projected_weight": 0.9968519218223865,
+            "dot_entropy": 0.047832758967289134,
+            "dot_negativity": 0.15724048972234084,
+            "dot_label_negativity": 0.00018117154889870905,
+            "sector_probabilities": {
+              "LL": 0.026979337820438255,
+              "LR": 0.945639693073633,
+              "RL": 0.00040163128549281483,
+              "RR": 0.026979337820437262
+            },
+            "projected_sector_probabilities": {
+              "LL": 0.025769966572195265,
+              "LR": 0.9482449763533601,
+              "RL": 0.00021509050225039617,
+              "RR": 0.025769966572194266
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 100,
+              "ground_energy": 2.517471696358123,
+              "particle_entropy": 0.05741996222726181,
+              "particle_negativity": 0.17169936098351868,
+              "projected_weight": 0.997276809848052,
+              "dot_entropy": 0.05459634271247138,
+              "dot_negativity": 0.15914758227269754,
+              "dot_label_negativity": 0.00017321069451622673,
+              "sector_probabilities": {
+                "LL": 0.025768830305845522,
+                "LR": 0.9480059536968376,
+                "RL": 0.00045638569147890036,
+                "RR": 0.02576883030584389
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.02468875392980138,
+                "LR": 0.9502739905093199,
+                "RL": 0.00034850163107869384,
+                "RR": 0.024688753929799814
+              },
+              "delta_to_preferred_energy": 0.0038276700170634115,
+              "delta_to_preferred_dot_label_negativity": -7.960854382482323e-06,
+              "delta_to_preferred_projected_weight": 0.0004248880256655374
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 200,
+              "ground_energy": 2.514510434562546,
+              "particle_entropy": 0.054844444767526666,
+              "particle_negativity": 0.1888216292239998,
+              "projected_weight": 0.9969084584699587,
+              "dot_entropy": 0.04924603632812126,
+              "dot_negativity": 0.15656250269472882,
+              "dot_label_negativity": 0.00027371170910215367,
+              "sector_probabilities": {
+                "LL": 0.026819955698087736,
+                "LR": 0.9460015069162002,
+                "RL": 0.00035858168762469277,
+                "RR": 0.02681995569808721
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.025645018321985576,
+                "LR": 0.9485043992050503,
+                "RL": 0.0002055641509795142,
+                "RR": 0.025645018321985045
+              },
+              "delta_to_preferred_energy": 0.0008664082214862034,
+              "delta_to_preferred_dot_label_negativity": 9.254016020344462e-05,
+              "delta_to_preferred_projected_weight": 5.6536647572213994e-05
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 300,
+              "ground_energy": 2.513276986012232,
+              "particle_entropy": 0.05318063982012135,
+              "particle_negativity": 0.19172078372494517,
+              "projected_weight": 0.9968888018702858,
+              "dot_entropy": 0.047319623453994125,
+              "dot_negativity": 0.15643632417686082,
+              "dot_label_negativity": 0.00015913545551024825,
+              "sector_probabilities": {
+                "LL": 0.027236940907325292,
+                "LR": 0.9451383339499734,
+                "RL": 0.0003877842353779131,
+                "RR": 0.02723694090732453
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.026035029273771933,
+                "LR": 0.9476995050488775,
+                "RL": 0.0002304364035794181,
+                "RR": 0.026035029273771198
+              },
+              "delta_to_preferred_energy": -0.00036704032882761695,
+              "delta_to_preferred_dot_label_negativity": -2.20360933884608e-05,
+              "delta_to_preferred_projected_weight": 3.688004789936805e-05
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 100,
+              "ground_energy": 2.517471696358123,
+              "particle_entropy": 0.05741996222726181,
+              "particle_negativity": 0.17169936098351868,
+              "projected_weight": 0.997276809848052,
+              "dot_entropy": 0.05459634271247138,
+              "dot_negativity": 0.15914758227269754,
+              "dot_label_negativity": 0.00017321069451622738,
+              "sector_probabilities": {
+                "LL": 0.02576883030584552,
+                "LR": 0.9480059536968376,
+                "RL": 0.00045638569147890036,
+                "RR": 0.02576883030584389
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.02468875392980138,
+                "LR": 0.9502739905093199,
+                "RL": 0.00034850163107869384,
+                "RR": 0.024688753929799818
+              },
+              "delta_to_preferred_energy": 0.0038276700170634115,
+              "delta_to_preferred_dot_label_negativity": -7.960854382481672e-06,
+              "delta_to_preferred_projected_weight": 0.0004248880256655374
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 200,
+              "ground_energy": 2.5150331024691863,
+              "particle_entropy": 0.05532896083007294,
+              "particle_negativity": 0.18329103953096193,
+              "projected_weight": 0.9969183290968409,
+              "dot_entropy": 0.050023636714985074,
+              "dot_negativity": 0.15552036403181202,
+              "dot_label_negativity": 0.00021689466197577397,
+              "sector_probabilities": {
+                "LL": 0.026578488726546768,
+                "LR": 0.9464449820160634,
+                "RL": 0.00039804053084530435,
+                "RR": 0.026578488726545835
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.025396018888091343,
+                "LR": 0.9489640081805008,
+                "RL": 0.00024395404331771357,
+                "RR": 0.025396018888090493
+              },
+              "delta_to_preferred_energy": 0.001389076128126554,
+              "delta_to_preferred_dot_label_negativity": 3.572311307706492e-05,
+              "delta_to_preferred_projected_weight": 6.64072744543942e-05
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 300,
+              "ground_energy": 2.5135156307714155,
+              "particle_entropy": 0.053574575014533506,
+              "particle_negativity": 0.1919840084409098,
+              "projected_weight": 0.996828447529413,
+              "dot_entropy": 0.04758799282206657,
+              "dot_negativity": 0.15661242022286515,
+              "dot_label_negativity": 0.00017757416963615195,
+              "sector_probabilities": {
+                "LL": 0.02708470984908104,
+                "LR": 0.9454273889682359,
+                "RL": 0.00040319133360564144,
+                "RR": 0.027084709849080443
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.025868522417357712,
+                "LR": 0.948046228901594,
+                "RL": 0.00021672626369118408,
+                "RR": 0.025868522417357123
+              },
+              "delta_to_preferred_energy": -0.00012839556964427956,
+              "delta_to_preferred_dot_label_negativity": -3.5973792625571097e-06,
+              "delta_to_preferred_projected_weight": -2.347429297344661e-05
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 100,
+              "ground_energy": 2.517471696358123,
+              "particle_entropy": 0.05741996222726182,
+              "particle_negativity": 0.17169936098351823,
+              "projected_weight": 0.997276809848052,
+              "dot_entropy": 0.054596342712471435,
+              "dot_negativity": 0.15914758227269776,
+              "dot_label_negativity": 0.0001732106945162276,
+              "sector_probabilities": {
+                "LL": 0.025768830305845522,
+                "LR": 0.9480059536968376,
+                "RL": 0.00045638569147890036,
+                "RR": 0.025768830305843888
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.02468875392980138,
+                "LR": 0.9502739905093199,
+                "RL": 0.00034850163107869384,
+                "RR": 0.024688753929799818
+              },
+              "delta_to_preferred_energy": 0.0038276700170634115,
+              "delta_to_preferred_dot_label_negativity": -7.960854382481455e-06,
+              "delta_to_preferred_projected_weight": 0.0004248880256655374
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 200,
+              "ground_energy": 2.5150331024691863,
+              "particle_entropy": 0.05532896083007276,
+              "particle_negativity": 0.18329103953096382,
+              "projected_weight": 0.996918329096841,
+              "dot_entropy": 0.05002363671498506,
+              "dot_negativity": 0.15552036403181202,
+              "dot_label_negativity": 0.0002168946619757718,
+              "sector_probabilities": {
+                "LL": 0.02657848872654676,
+                "LR": 0.9464449820160632,
+                "RL": 0.0003980405308453043,
+                "RR": 0.02657848872654583
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.02539601888809133,
+                "LR": 0.9489640081805005,
+                "RL": 0.0002439540433177135,
+                "RR": 0.02539601888809048
+              },
+              "delta_to_preferred_energy": 0.001389076128126554,
+              "delta_to_preferred_dot_label_negativity": 3.572311307706275e-05,
+              "delta_to_preferred_projected_weight": 6.640727445450523e-05
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 2.5136440263410598,
+              "particle_entropy": 0.053694795094344334,
+              "particle_negativity": 0.19146361143643353,
+              "projected_weight": 0.9968519218223865,
+              "dot_entropy": 0.047832758967289134,
+              "dot_negativity": 0.15724048972234084,
+              "dot_label_negativity": 0.00018117154889870905,
+              "sector_probabilities": {
+                "LL": 0.026979337820438255,
+                "LR": 0.945639693073633,
+                "RL": 0.00040163128549281483,
+                "RR": 0.026979337820437262
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.025769966572195265,
+                "LR": 0.9482449763533601,
+                "RL": 0.00021509050225039617,
+                "RR": 0.025769966572194266
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        }
+      },
+      "vmc_vs_reference": {
+        "shared": {
+          "vmc_dot_label_negativity": 0.12452851017541543,
+          "reference_dot_label_negativity": 0.13765397878100788,
+          "absolute_difference": 0.013125468605592452,
+          "vmc_projected_weight": 0.9902893210021239,
+          "reference_projected_weight": 0.9980432789235043,
+          "reference_ground_energy": 1.657158999305174
+        },
+        "one_per_well": {
+          "vmc_dot_label_negativity": 0.12452851017541543,
+          "reference_dot_label_negativity": 0.00018117154889870905,
+          "absolute_difference": -0.12434733862651672,
+          "vmc_projected_weight": 0.9902893210021239,
+          "reference_projected_weight": 0.9968519218223865,
+          "reference_ground_energy": 2.5136440263410598
+        }
+      }
+    },
+    {
+      "label": "d4",
+      "separation": 4.0,
+      "vmc_reference": {
+        "label": "d4",
+        "source_json": "results/diag_sweeps/entanglement_n2_d4_localized_ho_s2_n32_signed_b128_20260414.json",
+        "npts": 32,
+        "particle_entropy": 0.11868377038742374,
+        "particle_negativity": 0.8205388767541955,
+        "norm2_before_normalisation": 31.975223903516653,
+        "projected_weight": 0.9875512096091925,
+        "dot_entropy": 0.03832967222701256,
+        "dot_negativity": 0.21760392603621825,
+        "dot_label_negativity": 0.003587769522689279,
+        "sector_probabilities": {
+          "LL": 0.24415038270473483,
+          "LR": 0.24951926414022735,
+          "RL": 0.24910495825373086,
+          "RR": 0.2572253949013141
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.24152771348308275,
+          "LR": 0.25226988870211,
+          "RL": 0.25184304308611427,
+          "RR": 0.2543593547286931
+        }
+      },
+      "references": {
+        "shared": {
+          "reference_model": "shared",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 1.8773988001173596,
+            "particle_entropy": 0.665171991089266,
+            "particle_negativity": 0.548095031451703,
+            "projected_weight": 0.9972704198506627,
+            "dot_entropy": 0.6652652095260627,
+            "dot_negativity": 0.5470307538320931,
+            "dot_label_negativity": 0.47561572720545287,
+            "sector_probabilities": {
+              "LL": 0.013179969789599367,
+              "LR": 0.4868200302104023,
+              "RL": 0.48682003021040743,
+              "RR": 0.013179969789590143
+            },
+            "projected_sector_probabilities": {
+              "LL": 0.011956083898567922,
+              "LR": 0.4880439161014345,
+              "RL": 0.4880439161014388,
+              "RR": 0.011956083898558702
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 100,
+              "ground_energy": 1.8777644116310994,
+              "particle_entropy": 0.6673057248386809,
+              "particle_negativity": 0.5256282956008071,
+              "projected_weight": 0.997351778168616,
+              "dot_entropy": 0.6674493216089397,
+              "dot_negativity": 0.5254758625266664,
+              "dot_label_negativity": 0.4774555534296952,
+              "sector_probabilities": {
+                "LL": 0.012249798144581565,
+                "LR": 0.4877502018554245,
+                "RL": 0.4877502018554222,
+                "RR": 0.012249798144573205
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011053060657513438,
+                "LR": 0.48894693934249195,
+                "RL": 0.4889469393424898,
+                "RR": 0.011053060657505102
+              },
+              "delta_to_preferred_energy": 0.0003656115137398164,
+              "delta_to_preferred_dot_label_negativity": 0.0018398262242423358,
+              "delta_to_preferred_projected_weight": 8.135831795330617e-05
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 200,
+              "ground_energy": 1.8775659585962559,
+              "particle_entropy": 0.6662121199504376,
+              "particle_negativity": 0.5371368251291297,
+              "projected_weight": 0.9972938144514938,
+              "dot_entropy": 0.666352994673554,
+              "dot_negativity": 0.5367982409282999,
+              "dot_label_negativity": 0.476390954204564,
+              "sector_probabilities": {
+                "LL": 0.012783312808432748,
+                "LR": 0.48721668719157496,
+                "RL": 0.48721668719156946,
+                "RR": 0.01278331280842439
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011570155218590098,
+                "LR": 0.48842984478141643,
+                "RL": 0.4884298447814116,
+                "RR": 0.011570155218581764
+              },
+              "delta_to_preferred_energy": 0.00016715847889625657,
+              "delta_to_preferred_dot_label_negativity": 0.0007752269991111449,
+              "delta_to_preferred_projected_weight": 2.3394600831116996e-05
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 300,
+              "ground_energy": 1.8773994285994218,
+              "particle_entropy": 0.6651813944264915,
+              "particle_negativity": 0.5480837293496001,
+              "projected_weight": 0.997270405146221,
+              "dot_entropy": 0.6652746432873791,
+              "dot_negativity": 0.5470203415371608,
+              "dot_label_negativity": 0.4756213887670843,
+              "sector_probabilities": {
+                "LL": 0.013177121556023184,
+                "LR": 0.48682287844398353,
+                "RL": 0.486822878443982,
+                "RR": 0.01317712155601421
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011953266927315678,
+                "LR": 0.4880467330726899,
+                "RL": 0.488046733072688,
+                "RR": 0.011953266927306718
+              },
+              "delta_to_preferred_energy": 6.284820621704768e-07,
+              "delta_to_preferred_dot_label_negativity": 5.661561631453704e-06,
+              "delta_to_preferred_projected_weight": -1.4704441664292744e-08
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 100,
+              "ground_energy": 1.8777644116310994,
+              "particle_entropy": 0.6673057248386808,
+              "particle_negativity": 0.5256282956008045,
+              "projected_weight": 0.997351778168616,
+              "dot_entropy": 0.6674493216089397,
+              "dot_negativity": 0.5254758625266664,
+              "dot_label_negativity": 0.4774555534296952,
+              "sector_probabilities": {
+                "LL": 0.012249798144581565,
+                "LR": 0.4877502018554245,
+                "RL": 0.4877502018554222,
+                "RR": 0.012249798144573205
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011053060657513436,
+                "LR": 0.48894693934249195,
+                "RL": 0.4889469393424898,
+                "RR": 0.011053060657505104
+              },
+              "delta_to_preferred_energy": 0.0003656115137398164,
+              "delta_to_preferred_dot_label_negativity": 0.0018398262242423358,
+              "delta_to_preferred_projected_weight": 8.135831795330617e-05
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 200,
+              "ground_energy": 1.8775659585962559,
+              "particle_entropy": 0.6662121199504376,
+              "particle_negativity": 0.5371368251291297,
+              "projected_weight": 0.9972938144514938,
+              "dot_entropy": 0.6663529946735539,
+              "dot_negativity": 0.5367982409282999,
+              "dot_label_negativity": 0.47639095420456395,
+              "sector_probabilities": {
+                "LL": 0.012783312808432748,
+                "LR": 0.48721668719157496,
+                "RL": 0.48721668719156946,
+                "RR": 0.01278331280842439
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011570155218590098,
+                "LR": 0.48842984478141643,
+                "RL": 0.4884298447814116,
+                "RR": 0.011570155218581766
+              },
+              "delta_to_preferred_energy": 0.00016715847889625657,
+              "delta_to_preferred_dot_label_negativity": 0.0007752269991110894,
+              "delta_to_preferred_projected_weight": 2.3394600831116996e-05
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 300,
+              "ground_energy": 1.8773988001173596,
+              "particle_entropy": 0.665171991089266,
+              "particle_negativity": 0.5480950314517035,
+              "projected_weight": 0.9972704198506627,
+              "dot_entropy": 0.6652652095260627,
+              "dot_negativity": 0.5470307538320933,
+              "dot_label_negativity": 0.47561572720545287,
+              "sector_probabilities": {
+                "LL": 0.013179969789599367,
+                "LR": 0.4868200302104023,
+                "RL": 0.48682003021040743,
+                "RR": 0.013179969789590143
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011956083898567922,
+                "LR": 0.4880439161014345,
+                "RL": 0.4880439161014388,
+                "RR": 0.011956083898558702
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 100,
+              "ground_energy": 1.8777644116310994,
+              "particle_entropy": 0.6673057248386808,
+              "particle_negativity": 0.5256282956008056,
+              "projected_weight": 0.997351778168616,
+              "dot_entropy": 0.6674493216089397,
+              "dot_negativity": 0.5254758625266664,
+              "dot_label_negativity": 0.4774555534296952,
+              "sector_probabilities": {
+                "LL": 0.012249798144581565,
+                "LR": 0.4877502018554245,
+                "RL": 0.4877502018554222,
+                "RR": 0.012249798144573205
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011053060657513436,
+                "LR": 0.48894693934249195,
+                "RL": 0.4889469393424898,
+                "RR": 0.011053060657505104
+              },
+              "delta_to_preferred_energy": 0.0003656115137398164,
+              "delta_to_preferred_dot_label_negativity": 0.0018398262242423358,
+              "delta_to_preferred_projected_weight": 8.135831795330617e-05
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 200,
+              "ground_energy": 1.8775659585962559,
+              "particle_entropy": 0.6662121199504375,
+              "particle_negativity": 0.5371368251291297,
+              "projected_weight": 0.9972938144514938,
+              "dot_entropy": 0.6663529946735539,
+              "dot_negativity": 0.5367982409282999,
+              "dot_label_negativity": 0.476390954204564,
+              "sector_probabilities": {
+                "LL": 0.012783312808432748,
+                "LR": 0.48721668719157496,
+                "RL": 0.48721668719156946,
+                "RR": 0.01278331280842439
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011570155218590098,
+                "LR": 0.48842984478141643,
+                "RL": 0.4884298447814116,
+                "RR": 0.011570155218581766
+              },
+              "delta_to_preferred_energy": 0.00016715847889625657,
+              "delta_to_preferred_dot_label_negativity": 0.0007752269991111449,
+              "delta_to_preferred_projected_weight": 2.3394600831116996e-05
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 1.8773988001173596,
+              "particle_entropy": 0.665171991089266,
+              "particle_negativity": 0.548095031451703,
+              "projected_weight": 0.9972704198506627,
+              "dot_entropy": 0.6652652095260627,
+              "dot_negativity": 0.5470307538320931,
+              "dot_label_negativity": 0.47561572720545287,
+              "sector_probabilities": {
+                "LL": 0.013179969789599367,
+                "LR": 0.4868200302104023,
+                "RL": 0.48682003021040743,
+                "RR": 0.013179969789590143
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.011956083898567922,
+                "LR": 0.4880439161014345,
+                "RL": 0.4880439161014388,
+                "RR": 0.011956083898558702
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        },
+        "one_per_well": {
+          "reference_model": "one_per_well",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 2.2544113121243714,
+            "particle_entropy": 0.0014969137725226813,
+            "particle_negativity": 0.020357507357275817,
+            "projected_weight": 0.9988749590606036,
+            "dot_entropy": 0.0013154753231206867,
+            "dot_negativity": 0.01659977042543992,
+            "dot_label_negativity": 0.0,
+            "sector_probabilities": {
+              "LL": 0.001158059287638439,
+              "LR": 0.9976835429129951,
+              "RL": 6.971976618708634e-07,
+              "RR": 0.001157700601709296
+            },
+            "projected_sector_probabilities": {
+              "LL": 0.0006011519196366979,
+              "LR": 0.9987977050986065,
+              "RL": 3.2312000114460605e-07,
+              "RR": 0.0006008198617557342
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 100,
+              "ground_energy": 2.254464168808554,
+              "particle_entropy": 0.0015942687383565578,
+              "particle_negativity": 0.0200250098828475,
+              "projected_weight": 0.9988890367616157,
+              "dot_entropy": 0.0013927753532981704,
+              "dot_negativity": 0.016999521574533993,
+              "dot_label_negativity": 6.244433230412211e-10,
+              "sector_probabilities": {
+                "LL": 0.0011411255630398172,
+                "LR": 0.9977176183738944,
+                "RL": 1.305000275472673e-07,
+                "RR": 0.001141125563039765
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.000594104303639822,
+                "LR": 0.9988117296286181,
+                "RL": 6.176410214668543e-08,
+                "RR": 0.0005941043036397923
+              },
+              "delta_to_preferred_energy": 5.285668418242295e-05,
+              "delta_to_preferred_dot_label_negativity": 6.244433230412211e-10,
+              "delta_to_preferred_projected_weight": 1.4077701012027433e-05
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 200,
+              "ground_energy": 2.254421245179408,
+              "particle_entropy": 0.0015159660298396606,
+              "particle_negativity": 0.020337148362878588,
+              "projected_weight": 0.9988804554644677,
+              "dot_entropy": 0.0013308130452008608,
+              "dot_negativity": 0.016545857049138357,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 0.001153778076547528,
+                "LR": 0.9976919267371753,
+                "RL": 5.171097317784624e-07,
+                "RR": 0.0011537780765474694
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.0006001981765420462,
+                "LR": 0.99879933200949,
+                "RL": 2.716374258329321e-07,
+                "RR": 0.0006001981765420122
+              },
+              "delta_to_preferred_energy": 9.933055036714933e-06,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 5.496403864047039e-06
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 300,
+              "ground_energy": 2.254407208138082,
+              "particle_entropy": 0.001485876800027369,
+              "particle_negativity": 0.020189363676596628,
+              "projected_weight": 0.9988786607744454,
+              "dot_entropy": 0.0013044218912096864,
+              "dot_negativity": 0.01650254043721655,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 0.0011572552002386102,
+                "LR": 0.9976847719513392,
+                "RL": 7.176481868893726e-07,
+                "RR": 0.0011572552002385508
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.0006023167715952136,
+                "LR": 0.9987951342821982,
+                "RL": 2.3217461114132948e-07,
+                "RR": 0.0006023167715951787
+              },
+              "delta_to_preferred_energy": -4.103986289472061e-06,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 3.7017138417860806e-06
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 100,
+              "ground_energy": 2.254464168808554,
+              "particle_entropy": 0.0015942687383565573,
+              "particle_negativity": 0.02002500988284661,
+              "projected_weight": 0.9988890367616157,
+              "dot_entropy": 0.0013927753532981695,
+              "dot_negativity": 0.016999521574533993,
+              "dot_label_negativity": 6.244433230412211e-10,
+              "sector_probabilities": {
+                "LL": 0.0011411255630398172,
+                "LR": 0.9977176183738944,
+                "RL": 1.305000275472673e-07,
+                "RR": 0.001141125563039765
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.000594104303639822,
+                "LR": 0.9988117296286181,
+                "RL": 6.176410214668542e-08,
+                "RR": 0.0005941043036397923
+              },
+              "delta_to_preferred_energy": 5.285668418242295e-05,
+              "delta_to_preferred_dot_label_negativity": 6.244433230412211e-10,
+              "delta_to_preferred_projected_weight": 1.4077701012027433e-05
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 200,
+              "ground_energy": 2.2544243078034416,
+              "particle_entropy": 0.0015234333136036346,
+              "particle_negativity": 0.020199896887619695,
+              "projected_weight": 0.998880774234964,
+              "dot_entropy": 0.0013387459573492733,
+              "dot_negativity": 0.016689933607167196,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 0.0011536001994808733,
+                "LR": 0.9976923113341594,
+                "RL": 4.882668792008412e-07,
+                "RR": 0.001153600199480814
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.0006001414614408678,
+                "LR": 0.9987994312537305,
+                "RL": 2.858233873914798e-07,
+                "RR": 0.000600141461440834
+              },
+              "delta_to_preferred_energy": 1.2995679070204602e-05,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 5.8151743603795936e-06
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 300,
+              "ground_energy": 2.254411309540418,
+              "particle_entropy": 0.0014969933541835265,
+              "particle_negativity": 0.020363074137641934,
+              "projected_weight": 0.9988749782243994,
+              "dot_entropy": 0.0013157028075494286,
+              "dot_negativity": 0.016603964721257358,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 0.0011578836106710796,
+                "LR": 0.9976835355617972,
+                "RL": 6.972168616939363e-07,
+                "RR": 0.0011578836106710217
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.0006010069614817241,
+                "LR": 0.998797663027631,
+                "RL": 3.2304940578852297e-07,
+                "RR": 0.000601006961481691
+              },
+              "delta_to_preferred_energy": -2.5839534956162424e-09,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 1.9163795772492165e-08
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 100,
+              "ground_energy": 2.254464168808554,
+              "particle_entropy": 0.0015942687383565578,
+              "particle_negativity": 0.020025009882846834,
+              "projected_weight": 0.9988890367616157,
+              "dot_entropy": 0.0013927753532981713,
+              "dot_negativity": 0.016999521574533993,
+              "dot_label_negativity": 6.244433230412211e-10,
+              "sector_probabilities": {
+                "LL": 0.0011411255630398172,
+                "LR": 0.9977176183738944,
+                "RL": 1.305000275472673e-07,
+                "RR": 0.001141125563039765
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.000594104303639822,
+                "LR": 0.9988117296286181,
+                "RL": 6.176410214668543e-08,
+                "RR": 0.0005941043036397923
+              },
+              "delta_to_preferred_energy": 5.285668418242295e-05,
+              "delta_to_preferred_dot_label_negativity": 6.244433230412211e-10,
+              "delta_to_preferred_projected_weight": 1.4077701012027433e-05
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 200,
+              "ground_energy": 2.2544243078034416,
+              "particle_entropy": 0.0015234333136036342,
+              "particle_negativity": 0.02019989688762014,
+              "projected_weight": 0.998880774234964,
+              "dot_entropy": 0.001338745957349272,
+              "dot_negativity": 0.016689933607167196,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 0.0011536001994808733,
+                "LR": 0.9976923113341594,
+                "RL": 4.882668792008412e-07,
+                "RR": 0.001153600199480814
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.0006001414614408678,
+                "LR": 0.9987994312537305,
+                "RL": 2.8582338739147984e-07,
+                "RR": 0.000600141461440834
+              },
+              "delta_to_preferred_energy": 1.2995679070204602e-05,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 5.8151743603795936e-06
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 2.2544113121243714,
+              "particle_entropy": 0.0014969137725226813,
+              "particle_negativity": 0.020357507357275817,
+              "projected_weight": 0.9988749590606036,
+              "dot_entropy": 0.0013154753231206867,
+              "dot_negativity": 0.01659977042543992,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 0.001158059287638439,
+                "LR": 0.9976835429129951,
+                "RL": 6.971976618708634e-07,
+                "RR": 0.001157700601709296
+              },
+              "projected_sector_probabilities": {
+                "LL": 0.0006011519196366979,
+                "LR": 0.9987977050986065,
+                "RL": 3.2312000114460605e-07,
+                "RR": 0.0006008198617557342
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        }
+      },
+      "vmc_vs_reference": {
+        "shared": {
+          "vmc_dot_label_negativity": 0.003587769522689279,
+          "reference_dot_label_negativity": 0.47561572720545287,
+          "absolute_difference": 0.47202795768276357,
+          "vmc_projected_weight": 0.9875512096091925,
+          "reference_projected_weight": 0.9972704198506627,
+          "reference_ground_energy": 1.8773988001173596
+        },
+        "one_per_well": {
+          "vmc_dot_label_negativity": 0.003587769522689279,
+          "reference_dot_label_negativity": 0.0,
+          "absolute_difference": -0.003587769522689279,
+          "vmc_projected_weight": 0.9875512096091925,
+          "reference_projected_weight": 0.9988749590606036,
+          "reference_ground_energy": 2.2544113121243714
+        }
+      }
+    },
+    {
+      "label": "d8",
+      "separation": 8.0,
+      "vmc_reference": {
+        "label": "d8",
+        "source_json": "results/diag_sweeps/entanglement_n2_d8_localized_ho_s2_n32_signed_20260414.json",
+        "npts": 32,
+        "particle_entropy": 0.4404791836242867,
+        "particle_negativity": 1.496962125087016,
+        "norm2_before_normalisation": 14.897931590451595,
+        "projected_weight": 0.9855509781442151,
+        "dot_entropy": 0.3293396195295894,
+        "dot_negativity": 0.45932765237380835,
+        "dot_label_negativity": 0.2830095598158738,
+        "sector_probabilities": {
+          "LL": 0.35017128567608663,
+          "LR": 0.10341481580685007,
+          "RL": 0.1034148152069706,
+          "RR": 0.4429990833100969
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.3486185180176637,
+          "LR": 0.1049307321444779,
+          "RL": 0.10493073190707583,
+          "RR": 0.44152001793078255
+        }
+      },
+      "references": {
+        "shared": {
+          "reference_model": "shared",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 1.7600447917831943,
+            "particle_entropy": 0.6931471805600142,
+            "particle_negativity": 0.5000007530256583,
+            "projected_weight": 0.9999999840286352,
+            "dot_entropy": 0.693147180559955,
+            "dot_negativity": 0.5000007375704185,
+            "dot_label_negativity": 0.49999999998118927,
+            "sector_probabilities": {
+              "LL": 4.020015451879997e-09,
+              "LR": 0.4999999959799897,
+              "RL": 0.49999999597998945,
+              "RR": 4.020015427620018e-09
+            },
+            "projected_sector_probabilities": {
+              "LL": 9.331729493444804e-12,
+              "LR": 0.4999999999906679,
+              "RL": 0.4999999999906687,
+              "RR": 9.33170246078431e-12
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 100,
+              "ground_energy": 1.7600447917833093,
+              "particle_entropy": 0.693147180559763,
+              "particle_negativity": 0.5000006179575762,
+              "projected_weight": 0.9999999840312364,
+              "dot_entropy": 0.6931471805597635,
+              "dot_negativity": 0.5000006179574563,
+              "dot_label_negativity": 0.4999999999813286,
+              "sector_probabilities": {
+                "LL": 4.018516347941318e-09,
+                "LR": 0.4999999959814899,
+                "RL": 0.49999999598148503,
+                "RR": 4.0185163214225435e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.261923227333397e-12,
+                "LR": 0.49999999999073974,
+                "RL": 0.49999999999073624,
+                "RR": 9.261896764206958e-12
+              },
+              "delta_to_preferred_energy": 1.1501910535116622e-13,
+              "delta_to_preferred_dot_label_negativity": 1.3933298959045715e-13,
+              "delta_to_preferred_projected_weight": 2.6011415243942793e-12
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 200,
+              "ground_energy": 1.7600447917832502,
+              "particle_entropy": 0.693147180559939,
+              "particle_negativity": 0.5000007265776487,
+              "projected_weight": 0.9999999840290612,
+              "dot_entropy": 0.6931471805599396,
+              "dot_negativity": 0.5000007265774682,
+              "dot_label_negativity": 0.49999999998124767,
+              "sector_probabilities": {
+                "LL": 4.019107888080373e-09,
+                "LR": 0.49999999598089684,
+                "RL": 0.49999999598089595,
+                "RR": 4.0191078611499256e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.301693332533685e-12,
+                "LR": 0.49999999999069805,
+                "RL": 0.4999999999906984,
+                "RR": 9.30166639805602e-12
+              },
+              "delta_to_preferred_energy": 5.595524044110789e-14,
+              "delta_to_preferred_dot_label_negativity": 5.839773109528323e-14,
+              "delta_to_preferred_projected_weight": 4.2599257454867256e-13
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 300,
+              "ground_energy": 1.7600447917832,
+              "particle_entropy": 0.6931471805600758,
+              "particle_negativity": 0.5000007911604045,
+              "projected_weight": 0.999999984029277,
+              "dot_entropy": 0.6931471805600129,
+              "dot_negativity": 0.5000007734309884,
+              "dot_label_negativity": 0.49999999998121325,
+              "sector_probabilities": {
+                "LL": 4.01955170538937e-09,
+                "LR": 0.49999999598045064,
+                "RL": 0.4999999959804535,
+                "RR": 4.019551678478188e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.319709073593555e-12,
+                "LR": 0.49999999999067885,
+                "RL": 0.4999999999906817,
+                "RR": 9.31968209236449e-12
+              },
+              "delta_to_preferred_energy": 5.773159728050814e-15,
+              "delta_to_preferred_dot_label_negativity": 2.398081733190338e-14,
+              "delta_to_preferred_projected_weight": 6.41819930535803e-13
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 100,
+              "ground_energy": 1.7600447917833093,
+              "particle_entropy": 0.693147180559763,
+              "particle_negativity": 0.5000006179575758,
+              "projected_weight": 0.9999999840312366,
+              "dot_entropy": 0.6931471805597634,
+              "dot_negativity": 0.500000617957457,
+              "dot_label_negativity": 0.4999999999813287,
+              "sector_probabilities": {
+                "LL": 4.018516347941318e-09,
+                "LR": 0.4999999959814899,
+                "RL": 0.49999999598148503,
+                "RR": 4.018516321422544e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.26192322733173e-12,
+                "LR": 0.49999999999073985,
+                "RL": 0.49999999999073624,
+                "RR": 9.26189676420969e-12
+              },
+              "delta_to_preferred_energy": 1.1501910535116622e-13,
+              "delta_to_preferred_dot_label_negativity": 1.3944401189291966e-13,
+              "delta_to_preferred_projected_weight": 2.6013635689992043e-12
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 200,
+              "ground_energy": 1.7600447917832502,
+              "particle_entropy": 0.6931471805599388,
+              "particle_negativity": 0.50000072657765,
+              "projected_weight": 0.9999999840290612,
+              "dot_entropy": 0.6931471805599395,
+              "dot_negativity": 0.5000007265774686,
+              "dot_label_negativity": 0.49999999998124767,
+              "sector_probabilities": {
+                "LL": 4.019107888080375e-09,
+                "LR": 0.49999999598089684,
+                "RL": 0.49999999598089595,
+                "RR": 4.019107861149926e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.301693332535081e-12,
+                "LR": 0.49999999999069805,
+                "RL": 0.4999999999906984,
+                "RR": 9.301666398051886e-12
+              },
+              "delta_to_preferred_energy": 5.595524044110789e-14,
+              "delta_to_preferred_dot_label_negativity": 5.839773109528323e-14,
+              "delta_to_preferred_projected_weight": 4.2599257454867256e-13
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 300,
+              "ground_energy": 1.7600447917831943,
+              "particle_entropy": 0.6931471805600143,
+              "particle_negativity": 0.5000007530256567,
+              "projected_weight": 0.9999999840286352,
+              "dot_entropy": 0.693147180559955,
+              "dot_negativity": 0.5000007375704185,
+              "dot_label_negativity": 0.49999999998118927,
+              "sector_probabilities": {
+                "LL": 4.020015451879995e-09,
+                "LR": 0.4999999959799897,
+                "RL": 0.49999999597998945,
+                "RR": 4.020015427620017e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.331729493440711e-12,
+                "LR": 0.4999999999906679,
+                "RL": 0.4999999999906687,
+                "RR": 9.331702460780658e-12
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 100,
+              "ground_energy": 1.7600447917833093,
+              "particle_entropy": 0.693147180559763,
+              "particle_negativity": 0.5000006179575776,
+              "projected_weight": 0.9999999840312364,
+              "dot_entropy": 0.6931471805597635,
+              "dot_negativity": 0.5000006179574563,
+              "dot_label_negativity": 0.4999999999813286,
+              "sector_probabilities": {
+                "LL": 4.018516347941318e-09,
+                "LR": 0.4999999959814899,
+                "RL": 0.49999999598148503,
+                "RR": 4.018516321422545e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.261923227334087e-12,
+                "LR": 0.49999999999073974,
+                "RL": 0.49999999999073624,
+                "RR": 9.261896764209181e-12
+              },
+              "delta_to_preferred_energy": 1.1501910535116622e-13,
+              "delta_to_preferred_dot_label_negativity": 1.3933298959045715e-13,
+              "delta_to_preferred_projected_weight": 2.6011415243942793e-12
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 200,
+              "ground_energy": 1.7600447917832502,
+              "particle_entropy": 0.6931471805599388,
+              "particle_negativity": 0.5000007265776494,
+              "projected_weight": 0.9999999840290612,
+              "dot_entropy": 0.6931471805599395,
+              "dot_negativity": 0.5000007265774686,
+              "dot_label_negativity": 0.49999999998124767,
+              "sector_probabilities": {
+                "LL": 4.0191078880803745e-09,
+                "LR": 0.49999999598089684,
+                "RL": 0.49999999598089595,
+                "RR": 4.0191078611499256e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.30169333253306e-12,
+                "LR": 0.49999999999069805,
+                "RL": 0.4999999999906984,
+                "RR": 9.301666398050327e-12
+              },
+              "delta_to_preferred_energy": 5.595524044110789e-14,
+              "delta_to_preferred_dot_label_negativity": 5.839773109528323e-14,
+              "delta_to_preferred_projected_weight": 4.2599257454867256e-13
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 1.7600447917831943,
+              "particle_entropy": 0.6931471805600142,
+              "particle_negativity": 0.5000007530256583,
+              "projected_weight": 0.9999999840286352,
+              "dot_entropy": 0.693147180559955,
+              "dot_negativity": 0.5000007375704185,
+              "dot_label_negativity": 0.49999999998118927,
+              "sector_probabilities": {
+                "LL": 4.020015451879997e-09,
+                "LR": 0.4999999959799897,
+                "RL": 0.49999999597998945,
+                "RR": 4.020015427620018e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 9.331729493444804e-12,
+                "LR": 0.4999999999906679,
+                "RL": 0.4999999999906687,
+                "RR": 9.33170246078431e-12
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        },
+        "one_per_well": {
+          "reference_model": "one_per_well",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 2.125754960340716,
+            "particle_entropy": 1.9922343902290488e-05,
+            "particle_negativity": 0.0015676423737681633,
+            "projected_weight": 0.9999999726493763,
+            "dot_entropy": 1.9894547492107243e-05,
+            "dot_negativity": 0.001561726525032503,
+            "dot_label_negativity": 0.0,
+            "sector_probabilities": {
+              "LL": 1.7172219347425885e-09,
+              "LR": 0.9999999965655597,
+              "RL": 1.8064948796080535e-18,
+              "RR": 1.717221934729436e-09
+            },
+            "projected_sector_probabilities": {
+              "LL": 7.101850453297522e-13,
+              "LR": 0.9999999999985794,
+              "RL": 2.677223098731144e-25,
+              "RR": 7.101850453289034e-13
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 100,
+              "ground_energy": 2.12575496078079,
+              "particle_entropy": 1.9921462310493776e-05,
+              "particle_negativity": 0.0015688790000608632,
+              "projected_weight": 0.9999999726946335,
+              "dot_entropy": 1.9894762284268093e-05,
+              "dot_negativity": 0.0015617478265230744,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.722791614715307e-09,
+                "LR": 0.999999996554422,
+                "RL": 2.1447072532170654e-18,
+                "RR": 1.7227916147021751e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.134438093679803e-13,
+                "LR": 0.9999999999985728,
+                "RL": 3.4366621790444464e-25,
+                "RR": 7.134438093671515e-13
+              },
+              "delta_to_preferred_energy": 4.400741993038082e-10,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 4.525713137581988e-11
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 200,
+              "ground_energy": 2.125754960365888,
+              "particle_entropy": 1.9922310326383724e-05,
+              "particle_negativity": 0.0015685022964539996,
+              "projected_weight": 0.9999999726330778,
+              "dot_entropy": 1.9894556827339943e-05,
+              "dot_negativity": 0.001561728085888947,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.7196650444067658e-09,
+                "LR": 0.9999999965606732,
+                "RL": 1.933806710011453e-18,
+                "RR": 1.7196650443936202e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.118097630079023e-13,
+                "LR": 0.9999999999985761,
+                "RL": 2.973850749001996e-25,
+                "RR": 7.118097630070616e-13
+              },
+              "delta_to_preferred_energy": 2.517186459272125e-11,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": -1.6298518090707148e-11
+            },
+            {
+              "n_sp_states": 20,
+              "n_ci_compute": 300,
+              "ground_energy": 2.125754960345565,
+              "particle_entropy": 1.9922344150834505e-05,
+              "particle_negativity": 0.0015673284808918053,
+              "projected_weight": 0.9999999726306286,
+              "dot_entropy": 1.9894545883582386e-05,
+              "dot_negativity": 0.0015617262213795113,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.7196684525885956e-09,
+                "LR": 0.9999999965606685,
+                "RL": 1.7787984728655334e-18,
+                "RR": 1.71966845257545e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.118113745275282e-13,
+                "LR": 0.9999999999985765,
+                "RL": 2.614278868087817e-25,
+                "RR": 7.118113745266877e-13
+              },
+              "delta_to_preferred_energy": 4.849010082352834e-12,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": -1.8747781105332706e-11
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 100,
+              "ground_energy": 2.12575496078079,
+              "particle_entropy": 1.9921462310493762e-05,
+              "particle_negativity": 0.0015688790000615294,
+              "projected_weight": 0.9999999726946335,
+              "dot_entropy": 1.989476228426816e-05,
+              "dot_negativity": 0.0015617478265230744,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.722791614715307e-09,
+                "LR": 0.999999996554422,
+                "RL": 2.1447072532170654e-18,
+                "RR": 1.722791614702175e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.134438093679803e-13,
+                "LR": 0.9999999999985728,
+                "RL": 3.4366621790444464e-25,
+                "RR": 7.134438093671515e-13
+              },
+              "delta_to_preferred_energy": 4.400741993038082e-10,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 4.525713137581988e-11
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 200,
+              "ground_energy": 2.1257549603685577,
+              "particle_entropy": 1.99222974051303e-05,
+              "particle_negativity": 0.001568364717537185,
+              "projected_weight": 0.9999999726333858,
+              "dot_entropy": 1.9894560661444496e-05,
+              "dot_negativity": 0.0015617288948103214,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.7196658849697286e-09,
+                "LR": 0.9999999965606714,
+                "RL": 1.9336183934463466e-18,
+                "RR": 1.7196658849565826e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.118098891558069e-13,
+                "LR": 0.9999999999985764,
+                "RL": 2.9737998675876765e-25,
+                "RR": 7.118098891549664e-13
+              },
+              "delta_to_preferred_energy": 2.7841728922339826e-11,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": -1.599054222367613e-11
+            },
+            {
+              "n_sp_states": 30,
+              "n_ci_compute": 300,
+              "ground_energy": 2.125754960340699,
+              "particle_entropy": 1.9922344248611313e-05,
+              "particle_negativity": 0.0015676120573232533,
+              "projected_weight": 0.9999999726493722,
+              "dot_entropy": 1.9894547413425027e-05,
+              "dot_negativity": 0.0015617265241405498,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.7172226052393924e-09,
+                "LR": 0.9999999965655592,
+                "RL": 1.806508113785755e-18,
+                "RR": 1.7172226052262388e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.101854342884527e-13,
+                "LR": 0.9999999999985796,
+                "RL": 2.677227736247336e-25,
+                "RR": 7.10185434287605e-13
+              },
+              "delta_to_preferred_energy": -1.687538997430238e-14,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": -4.107825191113079e-15
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 100,
+              "ground_energy": 2.12575496078079,
+              "particle_entropy": 1.992146231049383e-05,
+              "particle_negativity": 0.0015688790000613073,
+              "projected_weight": 0.9999999726946335,
+              "dot_entropy": 1.9894762284268134e-05,
+              "dot_negativity": 0.0015617478265230744,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.722791614715307e-09,
+                "LR": 0.999999996554422,
+                "RL": 2.1447072532170654e-18,
+                "RR": 1.7227916147021751e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.134438093679803e-13,
+                "LR": 0.9999999999985728,
+                "RL": 3.4366621790444464e-25,
+                "RR": 7.134438093671515e-13
+              },
+              "delta_to_preferred_energy": 4.400741993038082e-10,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 4.525713137581988e-11
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 200,
+              "ground_energy": 2.1257549603685577,
+              "particle_entropy": 1.9922297405352353e-05,
+              "particle_negativity": 0.001568364717537185,
+              "projected_weight": 0.9999999726333858,
+              "dot_entropy": 1.9894560661444818e-05,
+              "dot_negativity": 0.0015617288948103214,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.7196658849697286e-09,
+                "LR": 0.9999999965606714,
+                "RL": 1.933618393446347e-18,
+                "RR": 1.7196658849565826e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.118098891558071e-13,
+                "LR": 0.9999999999985764,
+                "RL": 2.9737998675876775e-25,
+                "RR": 7.118098891549664e-13
+              },
+              "delta_to_preferred_energy": 2.7841728922339826e-11,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": -1.599054222367613e-11
+            },
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 2.125754960340716,
+              "particle_entropy": 1.9922343902290488e-05,
+              "particle_negativity": 0.0015676423737681633,
+              "projected_weight": 0.9999999726493763,
+              "dot_entropy": 1.9894547492107243e-05,
+              "dot_negativity": 0.001561726525032503,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 1.7172219347425885e-09,
+                "LR": 0.9999999965655597,
+                "RL": 1.8064948796080535e-18,
+                "RR": 1.717221934729436e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 7.101850453297522e-13,
+                "LR": 0.9999999999985794,
+                "RL": 2.677223098731144e-25,
+                "RR": 7.101850453289034e-13
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        }
+      },
+      "vmc_vs_reference": {
+        "shared": {
+          "vmc_dot_label_negativity": 0.2830095598158738,
+          "reference_dot_label_negativity": 0.49999999998118927,
+          "absolute_difference": 0.2169904401653155,
+          "vmc_projected_weight": 0.9855509781442151,
+          "reference_projected_weight": 0.9999999840286352,
+          "reference_ground_energy": 1.7600447917831943
+        },
+        "one_per_well": {
+          "vmc_dot_label_negativity": 0.2830095598158738,
+          "reference_dot_label_negativity": 0.0,
+          "absolute_difference": -0.2830095598158738,
+          "vmc_projected_weight": 0.9855509781442151,
+          "reference_projected_weight": 0.9999999726493763,
+          "reference_ground_energy": 2.125754960340716
+        }
+      }
+    }
+  ]
+}

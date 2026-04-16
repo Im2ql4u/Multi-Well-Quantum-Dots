@@ -1,0 +1,56 @@
+allow_missing_dmc: true
+architecture:
+  arch_type: pinn
+  bf_hidden: 32
+  bf_layers: 2
+  pinn_hidden: 64
+  pinn_layers: 2
+  use_backflow: false
+  use_well_features: true
+run_name: p4_n2_nonmcmc_residual_anneal_d2_wellaware_s42
+system:
+  coulomb: true
+  dim: 2
+  n_left: 1
+  n_right: 1
+  omega: 1.0
+  separation: 2.0
+  type: double_dot
+training:
+  alpha_decay_frac: 0.6
+  alpha_end: 1.0
+  alpha_start: 0.0
+  device: cuda:0
+  dtype: float64
+  epochs: 1000
+  fd_h: 0.01
+  grad_clip: 0.2
+  laplacian_mode: fd
+  local_energy_clip_width: 5.0
+  loss_type: residual
+  lr: 0.0001
+  lr_min_factor: 0.1
+  lr_warmup_epochs: 200
+  n_coll: 512
+  non_mcmc_only: true
+  occupancy_margin: 0.0
+  occupancy_penalty_weight: 0.05
+  print_every: 100
+  residual_objective: energy_var
+  residual_target_energy: 2.5150331
+  sampler: stratified
+  sampler_dimer_eps_max: 0.05
+  sampler_dimer_pairs: 1
+  sampler_mix_weights:
+  - 0.55
+  - 0.05
+  - 0.2
+  - 0.15
+  - 0.05
+  sampler_shell_radius: 1.0
+  sampler_shell_radius_sigma: 0.05
+  sampler_sigma_center: 0.15
+  sampler_sigma_mixed_in: 0.2
+  sampler_sigma_mixed_out: 0.5
+  sampler_sigma_tails: 0.8
+  seed: 42

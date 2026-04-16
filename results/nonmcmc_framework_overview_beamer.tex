@@ -1,0 +1,94 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\usepackage{amsmath, amssymb}
+\title{Non-MCMC Neural VMC Framework for Multi-Well Quantum Dots}
+\author{Project Technical Overview}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% --- Slide: Architecture Overview ---
+\begin{frame}{Wavefunction Architecture: What is Learned vs. Hand-Written}
+\begin{itemize}
+  \item \textbf{Total log-wavefunction:}
+    \[ \log \Psi(x) = \log |\mathrm{SD}(x_{\mathrm{bf}})| + f_{\mathrm{NN}}(x) + u_{\mathrm{cusp}}(x) \]
+  \item \textbf{Slater determinant (hand-coded):}
+    \begin{itemize}
+      \item Antisymmetry, Gaussian envelope, multi-well LCAO
+      \item No learnable parameters
+    \end{itemize}
+  \item \textbf{PINN correlator $f_{\mathrm{NN}}(x)$ (learned):}
+    \begin{itemize}
+      \item Permutation-invariant MLP, pairwise safe features, well-aware pooling
+      \item ~25K parameters (scales modestly with $N$)
+    \end{itemize}
+  \item \textbf{Analytic cusp (hand-coded):} Kato cusp, $u_{\mathrm{cusp}} = \sum_{i<j} \gamma_{ij} r_{ij} e^{-r_{ij}/\ell}$
+  \item \textbf{Backflow (optional, learned):} Message-passing GNN for nodal adaptation
+\end{itemize}
+\end{frame}
+
+% --- Slide: Sampling ---
+\begin{frame}{Sampling: Stratified Non-MCMC}
+\begin{itemize}
+  \item \textbf{Stratified sampler:} 5-component mixture, label-preserving
+  \item Components:
+    \begin{itemize}
+      \item Center (0.55): $\mathcal{N}(x_{\mathrm{well}}, \sigma_c a_{\mathrm{ho}})$
+      \item Tails (0.05): $\mathcal{N}(x_{\mathrm{well}}, \sigma_t a_{\mathrm{ho}})$
+      \item Mixed (0.20): inner/outer $\sigma$
+      \item Shell (0.15): radial at $r=1.4 a_{\mathrm{ho}}$
+      \item Dimer (0.05): close pairs
+    \end{itemize}
+  \item \textbf{No random permutations:} preserves multi-well occupancy
+  \item \textbf{Closed-form log-pdf:} enables importance weighting
+\end{itemize}
+\end{frame}
+
+% --- Slide: Loss Functions ---
+\begin{frame}{Loss Functions: What is Optimized}
+\begin{itemize}
+  \item \textbf{Local energy:}
+    \[ E_L(x) = \frac{H\Psi(x)}{\Psi(x)} = -\frac{1}{2}\frac{\nabla^2 \Psi}{\Psi} + V(x) \]
+  \item \textbf{Residual loss (primary):}
+    \[ \mathcal{L} = \langle (E_L - E_{\mathrm{eff}})^2 \rangle \]
+    $E_{\mathrm{eff}}$ annealed from running mean $\mu$ to target $E_{\mathrm{ref}}$
+  \item \textbf{Other losses:} weak form, REINFORCE, fd-colloc
+  \item \textbf{MAD clipping:} robust to outliers
+\end{itemize}
+\end{frame}
+
+% --- Slide: Imaginary-Time Evolution ---
+\begin{frame}{Imaginary-Time Evolution: Spectroscopy}
+\begin{itemize}
+  \item \textbf{PDE:} $\partial_\tau \Psi(x,\tau) = -(H-E_0)\Psi(x,\tau)$
+  \item \textbf{Network:} $\log\Psi(x,\tau) = \log\Psi_0(x) + g_\theta(x,\tau)$
+  \item \textbf{Loss:} PDE residual + IC/BC, curriculum on $\tau$
+  \item \textbf{Extract gaps:} $E(\tau) = E_0 + \sum_k \Delta E_k e^{-2(E_k-E_0)\tau}$
+\end{itemize}
+\end{frame}
+
+% --- Slide: Results Summary ---
+\begin{frame}{Results: Non-MCMC Seed Sweep}
+\begin{itemize}
+  \item \textbf{N=2,3,4:} Model energies match or beat CI reference
+  \item \textbf{Max exceedance:} $<0.007\%$ (all others below CI)
+  \item \textbf{N=6:} $E \approx 8.18$, variance $\approx 0.0003$
+  \item \textbf{N=8:} $E \approx 11.31$ (early), training stable
+  \item \textbf{N=3 Quench:} Gaps $[0.57, 1.04, 1.50]$, PDE loss $0.011$
+\end{itemize}
+\end{frame}
+
+% --- Slide: Scaling and Physical Trends ---
+\begin{frame}{Scaling and Physical Trends}
+\begin{itemize}
+  \item \textbf{Energy per particle:} increases monotonically with $N$
+  \item \textbf{No mode collapse:} ESS full, variance low
+  \item \textbf{Physical consistency:} All metrics as expected
+\end{itemize}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,42 @@
+{
+  "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42_20260414_150947",
+  "npts": 28,
+  "dot_basis": "localized_ho",
+  "dot_max_shell": 2,
+  "slater_only": {
+    "projected_weight": 0.9988999327251854,
+    "dot_entropy": -0.0,
+    "dot_negativity": 2.220446049250313e-16,
+    "dot_label_negativity": 0.0,
+    "sector_probabilities": {
+      "LL": 0.2500000000000015,
+      "LR": 0.2500000000000015,
+      "RL": 0.2500000000000015,
+      "RR": 0.2500000000000015
+    },
+    "projected_sector_probabilities": {
+      "LL": 0.25,
+      "LR": 0.2499999999999999,
+      "RL": 0.25000000000000017,
+      "RR": 0.25
+    }
+  },
+  "full_state": {
+    "projected_weight": 0.9864422938044712,
+    "dot_entropy": 0.04075515882263295,
+    "dot_negativity": 0.2255373949110071,
+    "dot_label_negativity": 0.0047609209006402664,
+    "sector_probabilities": {
+      "LL": 0.24391501456795886,
+      "LR": 0.24974281242680288,
+      "RL": 0.24933010133240543,
+      "RR": 0.2570120716728378
+    },
+    "projected_sector_probabilities": {
+      "LL": 0.24092915368018553,
+      "LR": 0.25285481056504305,
+      "RL": 0.2524297355835666,
+      "RR": 0.2537863001712048
+    }
+  }
+}

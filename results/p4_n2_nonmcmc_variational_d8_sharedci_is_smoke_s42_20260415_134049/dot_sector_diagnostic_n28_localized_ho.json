@@ -1,0 +1,42 @@
+{
+  "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_variational_d8_sharedci_is_smoke_s42_20260415_134049",
+  "npts": 28,
+  "dot_basis": "localized_ho",
+  "dot_max_shell": 2,
+  "slater_only": {
+    "projected_weight": 0.9999999981370831,
+    "dot_entropy": -0.0,
+    "dot_negativity": 4.440892098500626e-16,
+    "dot_label_negativity": 0.0,
+    "sector_probabilities": {
+      "LL": 0.2500000000000009,
+      "LR": 0.2500000000000009,
+      "RL": 0.2500000000000009,
+      "RR": 0.2500000000000009
+    },
+    "projected_sector_probabilities": {
+      "LL": 0.24999999999999997,
+      "LR": 0.24999999999999986,
+      "RL": 0.2500000000000001,
+      "RR": 0.25000000000000006
+    }
+  },
+  "full_state": {
+    "projected_weight": 0.9858704729204143,
+    "dot_entropy": 0.883858204660499,
+    "dot_negativity": 1.2842646788021441,
+    "dot_label_negativity": 0.2790460365356285,
+    "sector_probabilities": {
+      "LL": 0.4147055240329648,
+      "LR": 0.018149540789439717,
+      "RL": 0.01814954076475305,
+      "RR": 0.5489953944128455
+    },
+    "projected_sector_probabilities": {
+      "LL": 0.41485202143410177,
+      "LR": 0.018340954581897877,
+      "RL": 0.01834095473465141,
+      "RR": 0.5484660692493488
+    }
+  }
+}

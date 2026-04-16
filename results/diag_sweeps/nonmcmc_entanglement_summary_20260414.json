@@ -1,0 +1,105 @@
+{
+  "date": "2026-04-14",
+  "measurement_grid": {
+    "npts_per_dim": 16,
+    "n_grid_per_particle": 256,
+    "notes": "Gauss-Legendre box quadrature for stable non-MCMC aggregation"
+  },
+  "ground_states": [
+    {
+      "label": "d2",
+      "result_dir": "results/p4_n2_nonmcmc_residual_anneal_d2_s42_20260414_160054",
+      "entanglement_json": "results/diag_sweeps/entanglement_n2_d2_nonmcmc_n16.json",
+      "von_neumann_entropy": 0.3736131894098496,
+      "purity": 0.8522016621502132,
+      "negativity": 0.8736557738304558,
+      "effective_schmidt_rank": 4
+    },
+    {
+      "label": "d4",
+      "result_dir": "results/p4_n2_nonmcmc_residual_anneal_s42_20260414_150947",
+      "entanglement_json": "results/diag_sweeps/entanglement_n2_d4_nonmcmc_n16.json",
+      "von_neumann_entropy": 0.2332644770887639,
+      "purity": 0.924334824760672,
+      "negativity": 0.7501350253293375,
+      "effective_schmidt_rank": 4
+    },
+    {
+      "label": "d8",
+      "result_dir": "results/p4_n2_nonmcmc_residual_anneal_d8_s42_20260414_160016",
+      "entanglement_json": "results/diag_sweeps/entanglement_n2_d8_nonmcmc_n16.json",
+      "von_neumann_entropy": 0.4790887775336189,
+      "purity": 0.7961656041307955,
+      "negativity": 1.022860718942476,
+      "effective_schmidt_rank": 4
+    }
+  ],
+  "quench": {
+    "label": "d8_to_d4",
+    "quench_json": "results/imag_time_pinn/pinn_quench_sep_fast_d8p00_to_d4p00.json",
+    "checkpoint": "results/imag_time_pinn/quench_sep_fast_d8p00_to_d4p00_checkpoint.pt",
+    "samples": [
+      {
+        "tau": 0.0,
+        "entanglement_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0.json",
+        "von_neumann_entropy": 0.714167110737393,
+        "purity": 0.5472047859412668,
+        "negativity": 0.8201402209827154,
+        "effective_schmidt_rank": 3
+      },
+      {
+        "tau": 0.1,
+        "entanglement_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0p10_n16.json",
+        "von_neumann_entropy": 0.7209022161456243,
+        "purity": 0.5552781801862813,
+        "negativity": 0.902516231221146,
+        "effective_schmidt_rank": 3
+      },
+      {
+        "tau": 0.3,
+        "entanglement_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0p30_n16.json",
+        "von_neumann_entropy": 0.5587943505328727,
+        "purity": 0.7100931791680574,
+        "negativity": 0.8918236085916319,
+        "effective_schmidt_rank": 3
+      },
+      {
+        "tau": 0.6,
+        "entanglement_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau0p60_n16.json",
+        "von_neumann_entropy": 0.38002320619114094,
+        "purity": 0.8302922919912753,
+        "negativity": 0.7003286823681959,
+        "effective_schmidt_rank": 3
+      },
+      {
+        "tau": 1.0,
+        "entanglement_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau1p00_n16.json",
+        "von_neumann_entropy": 0.3949544855573193,
+        "purity": 0.8229740685514745,
+        "negativity": 0.726703217110421,
+        "effective_schmidt_rank": 3
+      },
+      {
+        "tau": 1.5,
+        "entanglement_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau1p50_n16.json",
+        "von_neumann_entropy": 0.3831225319497201,
+        "purity": 0.8351931073804296,
+        "negativity": 0.7574910621635595,
+        "effective_schmidt_rank": 3
+      },
+      {
+        "tau": 2.0,
+        "entanglement_json": "results/diag_sweeps/entanglement_quench_d8_to_d4_tau2p00_n16.json",
+        "von_neumann_entropy": 0.33476891362517436,
+        "purity": 0.8628896837998119,
+        "negativity": 0.7158260997757827,
+        "effective_schmidt_rank": 2
+      }
+    ]
+  },
+  "validation": {
+    "test_command": ".venv/bin/python -m pytest tests/test_potential.py -q",
+    "status": "passed",
+    "tests_passed": 6
+  }
+}
