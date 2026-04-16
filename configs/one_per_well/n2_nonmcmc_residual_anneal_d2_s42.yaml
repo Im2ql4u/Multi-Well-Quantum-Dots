@@ -1,0 +1,55 @@
+# N=2 (1+1) non-MCMC residual config at d=2.0.
+# Reference (exact diag, one_per_well localized, kappa=1.0, eps=0.01): E0=2.51503310
+allow_missing_dmc: true
+run_name: p4_n2_nonmcmc_residual_anneal_d2_s42
+
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 32
+  bf_layers: 2
+  use_backflow: false
+
+system:
+  type: double_dot
+  n_left: 1
+  n_right: 1
+  separation: 2.0
+  omega: 1.0
+  dim: 2
+  coulomb: true
+
+training:
+  epochs: 3000
+  lr: 0.0001
+  lr_warmup_epochs: 200
+  lr_min_factor: 0.1
+  n_coll: 512
+  loss_type: residual
+  residual_objective: energy_var
+  residual_target_energy: 2.51503310
+  alpha_start: 0.0
+  alpha_end: 1.0
+  alpha_decay_frac: 0.6
+  local_energy_clip_width: 5.0
+  laplacian_mode: fd
+  fd_h: 0.01
+
+  sampler: stratified
+  non_mcmc_only: true
+  sampler_mix_weights: [0.55, 0.05, 0.20, 0.15, 0.05]
+  sampler_sigma_center: 0.15
+  sampler_sigma_tails: 0.80
+  sampler_sigma_mixed_in: 0.20
+  sampler_sigma_mixed_out: 0.50
+  sampler_shell_radius: 1.00
+  sampler_shell_radius_sigma: 0.05
+  sampler_dimer_pairs: 1
+  sampler_dimer_eps_max: 0.05
+
+  grad_clip: 0.2
+  print_every: 100
+  seed: 42
+  device: "cuda:2"
+  dtype: float64

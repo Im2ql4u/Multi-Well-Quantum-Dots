@@ -1,0 +1,56 @@
+# N=2 singlet ansatz (permanent + symmetrized PINN) at d=8.
+# Target: shared-CI singlet E0=1.76004479 (d=8, omega=1, kappa=1, 2D).
+# Smoke test: 300 epochs to verify the ansatz trains without NaN and
+# moves toward the singlet manifold rather than the LL/RR sector.
+allow_missing_dmc: true
+run_name: p4_n2_singlet_d8_smoke_s42
+
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  use_backflow: false
+  singlet: true
+
+system:
+  type: double_dot
+  n_left: 1
+  n_right: 1
+  separation: 8.0
+  omega: 1.0
+  dim: 2
+  coulomb: true
+
+training:
+  epochs: 300
+  lr: 0.0001
+  lr_warmup_epochs: 50
+  lr_min_factor: 0.1
+  n_coll: 512
+  loss_type: residual
+  residual_objective: energy_var
+  residual_target_energy: 1.76004479
+  alpha_start: 0.0
+  alpha_end: 1.0
+  alpha_decay_frac: 0.6
+  local_energy_clip_width: 5.0
+  laplacian_mode: fd
+  fd_h: 0.01
+
+  sampler: stratified
+  non_mcmc_only: true
+  sampler_mix_weights: [0.55, 0.05, 0.20, 0.15, 0.05]
+  sampler_sigma_center: 0.15
+  sampler_sigma_tails: 0.80
+  sampler_sigma_mixed_in: 0.20
+  sampler_sigma_mixed_out: 0.50
+  sampler_shell_radius: 1.00
+  sampler_shell_radius_sigma: 0.05
+  sampler_dimer_pairs: 1
+  sampler_dimer_eps_max: 0.05
+
+  grad_clip: 0.2
+  print_every: 50
+  seed: 42
+  device: "cuda:0"
+  dtype: float64

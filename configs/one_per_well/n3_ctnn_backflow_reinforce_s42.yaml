@@ -1,0 +1,49 @@
+# Phase 4: N=3 (1+1+1) with CTNNBackflowNet applied to Slater-determinant coordinates.
+# Baseline (no backflow) plateaued at E=3.634 (11% above diag ref E0=3.272).
+# This run tests whether backflow expressiveness closes the gap.
+# PINN correlator still uses physical coordinates; only SD input is backflow-shifted.
+allow_missing_dmc: true
+run_name: p4_n3_ctnn_bf_reinforce_s42
+
+architecture:
+  arch_type: ctnn        # selects CTNNBackflowNet when use_backflow: true
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 64          # wider than baseline (32) — 3 particles → 3 pairwise messages
+  bf_layers: 2
+  use_backflow: true
+  use_well_backflow: false
+
+system:
+  type: custom
+  dim: 2
+  coulomb: true
+  wells:
+    - center: [-4.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [0.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [4.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+
+training:
+  epochs: 6000
+  lr: 0.001
+  lr_warmup_epochs: 100
+  lr_min_factor: 0.1
+  n_coll: 512
+  loss_type: reinforce
+  fd_h: 0.01
+  reinforce_clip_width: 5.0
+  sampler: mh
+  mh_steps: 20
+  mh_step_scale: 0.25
+  mh_decorrelation: 2
+  grad_clip: 1.0
+  print_every: 200
+  seed: 42
+  device: "cuda:5"
+  dtype: float64

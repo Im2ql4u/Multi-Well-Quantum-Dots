@@ -1,0 +1,54 @@
+# N=2 singlet-permanent ansatz at d=6, full run.
+# Target: shared-CI singlet E0=1.83320031 (nx=20, ny=20, smooth_t=0.2, kappa=1, eps=0.01).
+allow_missing_dmc: true
+run_name: p4_n2_singlet_d6_s42
+
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  use_backflow: false
+  singlet: true
+
+system:
+  type: double_dot
+  n_left: 1
+  n_right: 1
+  separation: 6.0
+  omega: 1.0
+  dim: 2
+  coulomb: true
+
+training:
+  epochs: 3000
+  lr: 0.0001
+  lr_warmup_epochs: 200
+  lr_min_factor: 0.1
+  n_coll: 512
+  loss_type: residual
+  residual_objective: energy_var
+  residual_target_energy: 1.83320031
+  alpha_start: 0.0
+  alpha_end: 1.0
+  alpha_decay_frac: 0.6
+  local_energy_clip_width: 5.0
+  laplacian_mode: fd
+  fd_h: 0.01
+
+  sampler: stratified
+  non_mcmc_only: true
+  sampler_mix_weights: [0.55, 0.05, 0.20, 0.15, 0.05]
+  sampler_sigma_center: 0.17
+  sampler_sigma_tails: 0.90
+  sampler_sigma_mixed_in: 0.22
+  sampler_sigma_mixed_out: 0.60
+  sampler_shell_radius: 1.10
+  sampler_shell_radius_sigma: 0.06
+  sampler_dimer_pairs: 1
+  sampler_dimer_eps_max: 0.06
+
+  grad_clip: 0.2
+  print_every: 200
+  seed: 42
+  device: "cuda:6"
+  dtype: float64
