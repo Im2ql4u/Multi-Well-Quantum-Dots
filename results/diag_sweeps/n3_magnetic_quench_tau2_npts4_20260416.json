@@ -1,0 +1,92 @@
+{
+  "source": "results/imag_time_pinn/quench_single_fast_B0p50_checkpoint.pt",
+  "tau": 2.0,
+  "npts": 4,
+  "n_grid_per_particle": 16,
+  "partition": {
+    "mode": "auto_left_right_well_blocks",
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "left_well_indices": [
+      0
+    ],
+    "right_well_indices": [
+      1,
+      2
+    ]
+  },
+  "dot_projection_config": {
+    "basis": "localized_ho",
+    "max_ho_shell": 1
+  },
+  "system": {
+    "n_particles": 3,
+    "dim": 2,
+    "omega": 1.0,
+    "n_wells": 3,
+    "well_centers": [
+      [
+        -4.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        4.0,
+        0.0
+      ]
+    ]
+  },
+  "entanglement": {
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "subsystem_dimension": 16,
+    "complement_dimension": 256,
+    "norm2_before_normalisation": 11.351909906352535,
+    "norm_tensor_squared": 1.0000000000000002,
+    "von_neumann_entropy": 0.02124540874138731,
+    "purity": 0.994191427041995,
+    "linear_entropy": 0.005808572958004965,
+    "n_schmidt_terms": 16,
+    "effective_schmidt_rank": 1,
+    "negativity": 0.0854004885700349,
+    "log_negativity": 0.22749585492023786,
+    "schmidt_values_top10": [
+      0.9985429881138115,
+      0.050891138033630455,
+      0.012606519869447722,
+      0.011143286475941164,
+      0.006062602779927975,
+      0.0012847921967394213,
+      0.0005321916693942201,
+      0.0003477541042270568,
+      0.00018851012361657644,
+      0.00016339727011484788
+    ],
+    "schmidt_probs_top10": [
+      0.9970880991112595,
+      0.0025899079303580283,
+      0.0001589243432187802,
+      0.00012417283348489325,
+      3.6755152467190406e-05,
+      1.6506909888025079e-06,
+      2.8322797297260683e-07,
+      1.209329170067627e-07,
+      3.5536066705936934e-08,
+      2.6698667880984562e-08
+    ]
+  },
+  "dot_projected_entanglement": null
+}

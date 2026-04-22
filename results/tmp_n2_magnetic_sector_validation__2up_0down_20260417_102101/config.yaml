@@ -1,0 +1,51 @@
+allow_missing_dmc: true
+architecture:
+  arch_type: pinn
+  bf_hidden: 16
+  bf_layers: 2
+  pinn_hidden: 16
+  pinn_layers: 1
+  use_backflow: false
+  use_well_features: false
+magnetic_assessment:
+  mode: 'off'
+run_name: tmp_n2_magnetic_sector_validation__2up_0down
+spin:
+  pattern:
+  - 0
+  - 0
+system:
+  B_direction:
+  - 0.0
+  - 0.0
+  - 1.0
+  B_magnitude: 0.5
+  coulomb: false
+  dim: 2
+  g_factor: 2.0
+  mu_B: 1.0
+  n_particles: 2
+  omega: 1.0
+  type: single_dot
+training:
+  alpha_decay_frac: 0.5
+  alpha_end: 1.0
+  alpha_start: 0.0
+  device: cpu
+  dtype: float64
+  epochs: 5
+  fd_h: 0.01
+  grad_clip: 0.2
+  laplacian_mode: fd
+  local_energy_clip_width: 5.0
+  loss_type: residual
+  lr: 0.0001
+  lr_min_factor: 1.0
+  lr_warmup_epochs: 0
+  n_coll: 64
+  non_mcmc_only: true
+  print_every: 10
+  residual_objective: energy_var
+  residual_target_energy: 2.0
+  sampler: stratified
+  seed: 42

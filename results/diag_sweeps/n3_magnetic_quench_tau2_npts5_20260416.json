@@ -1,0 +1,92 @@
+{
+  "source": "results/imag_time_pinn/quench_single_fast_B0p50_checkpoint.pt",
+  "tau": 2.0,
+  "npts": 5,
+  "n_grid_per_particle": 25,
+  "partition": {
+    "mode": "auto_left_right_well_blocks",
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "left_well_indices": [
+      0
+    ],
+    "right_well_indices": [
+      1,
+      2
+    ]
+  },
+  "dot_projection_config": {
+    "basis": "localized_ho",
+    "max_ho_shell": 1
+  },
+  "system": {
+    "n_particles": 3,
+    "dim": 2,
+    "omega": 1.0,
+    "n_wells": 3,
+    "well_centers": [
+      [
+        -4.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        4.0,
+        0.0
+      ]
+    ]
+  },
+  "entanglement": {
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "subsystem_dimension": 25,
+    "complement_dimension": 625,
+    "norm2_before_normalisation": 13.69982398283944,
+    "norm_tensor_squared": 1.0,
+    "von_neumann_entropy": 0.2180638344055617,
+    "purity": 0.8939949497448024,
+    "linear_entropy": 0.10600505025519757,
+    "n_schmidt_terms": 25,
+    "effective_schmidt_rank": 2,
+    "negativity": 0.26887503273978786,
+    "log_negativity": 0.6208210373735228,
+    "schmidt_values_top10": [
+      0.9715243678521268,
+      0.2364161338591685,
+      0.012654638425690604,
+      0.007077705719046841,
+      0.005009717216634542,
+      0.0023680023300447725,
+      0.0021615491431646694,
+      0.0011612518825215936,
+      0.000821962272296774,
+      0.00032226879148882615
+    ],
+    "schmidt_probs_top10": [
+      0.9438595973304746,
+      0.05589258834891627,
+      0.00016013987368496515,
+      5.0093918245428367e-05,
+      2.5097266590644546e-05,
+      5.6074350350974715e-06,
+      4.672294698315916e-06,
+      1.3485059346599452e-06,
+      6.75621977079276e-07,
+      1.0385717396766851e-07
+    ]
+  },
+  "dot_projected_entanglement": null
+}

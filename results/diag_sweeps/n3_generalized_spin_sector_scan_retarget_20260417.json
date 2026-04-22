@@ -1,0 +1,314 @@
+{
+  "sector_competition_required": true,
+  "notes": [
+    "Each fixed-spin run still sees a constant Zeeman offset within that sector.",
+    "Nontrivial uniform-B response in the present generalized lane comes from comparing sectors and selecting the lowest-energy one."
+  ],
+  "runs": [
+    {
+      "sector": {
+        "label": "0up_3down",
+        "n_up": 0,
+        "n_down": 3,
+        "pattern": [
+          1,
+          1,
+          1
+        ]
+      },
+      "out_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__0up_3down_20260417_104949",
+      "final_energy": 1.5001307617509425,
+      "final_loss": 0.007754446451730283,
+      "final_ess": 512.0,
+      "magnetic_assessment": {
+        "magnetic_field_configured": true,
+        "magnetic_field_vector": [
+          0.0,
+          0.0,
+          0.5
+        ],
+        "longitudinal_component": 0.5,
+        "transverse_components_present": false,
+        "zeeman_scope": "all_particles",
+        "selected_particle_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_spin_projection": -3.0,
+        "constant_energy_shift": -1.5,
+        "ansatz_fixed_spin_sector": true,
+        "supports_spin_superposition": false,
+        "state_response_supported": false,
+        "structurally_trivial_uniform_zeeman": true,
+        "classification": "constant_zeeman_shift_only",
+        "notes": [
+          "Current generalized GroundStateWF uses one fixed spin template, so uniform longitudinal Zeeman coupling is a constant offset rather than a state-changing interaction."
+        ],
+        "mode": "off"
+      },
+      "spin_configuration": {
+        "pattern": [
+          1,
+          1,
+          1
+        ],
+        "n_up": 0,
+        "n_down": 3,
+        "source": "explicit_pattern",
+        "label": "0up_3down"
+      },
+      "scan_adjustments": {
+        "base_residual_target_energy": 3.0,
+        "sector_residual_target_energy": 1.5,
+        "constant_energy_shift": -1.5
+      }
+    },
+    {
+      "sector": {
+        "label": "1up_2down",
+        "n_up": 1,
+        "n_down": 2,
+        "pattern": [
+          0,
+          1,
+          1
+        ]
+      },
+      "out_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__1up_2down_20260417_105323",
+      "final_energy": 2.4960806116096466,
+      "final_loss": 0.006587562175983434,
+      "final_ess": 512.0,
+      "magnetic_assessment": {
+        "magnetic_field_configured": true,
+        "magnetic_field_vector": [
+          0.0,
+          0.0,
+          0.5
+        ],
+        "longitudinal_component": 0.5,
+        "transverse_components_present": false,
+        "zeeman_scope": "all_particles",
+        "selected_particle_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_spin_projection": -1.0,
+        "constant_energy_shift": -0.5,
+        "ansatz_fixed_spin_sector": true,
+        "supports_spin_superposition": false,
+        "state_response_supported": false,
+        "structurally_trivial_uniform_zeeman": true,
+        "classification": "constant_zeeman_shift_only",
+        "notes": [
+          "Current generalized GroundStateWF uses one fixed spin template, so uniform longitudinal Zeeman coupling is a constant offset rather than a state-changing interaction."
+        ],
+        "mode": "off"
+      },
+      "spin_configuration": {
+        "pattern": [
+          0,
+          1,
+          1
+        ],
+        "n_up": 1,
+        "n_down": 2,
+        "source": "explicit_pattern",
+        "label": "1up_2down"
+      },
+      "scan_adjustments": {
+        "base_residual_target_energy": 3.0,
+        "sector_residual_target_energy": 2.5,
+        "constant_energy_shift": -0.5
+      }
+    },
+    {
+      "sector": {
+        "label": "2up_1down",
+        "n_up": 2,
+        "n_down": 1,
+        "pattern": [
+          0,
+          0,
+          1
+        ]
+      },
+      "out_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__2up_1down_20260417_105656",
+      "final_energy": 3.5018187084518866,
+      "final_loss": 0.0065224194578291286,
+      "final_ess": 512.0,
+      "magnetic_assessment": {
+        "magnetic_field_configured": true,
+        "magnetic_field_vector": [
+          0.0,
+          0.0,
+          0.5
+        ],
+        "longitudinal_component": 0.5,
+        "transverse_components_present": false,
+        "zeeman_scope": "all_particles",
+        "selected_particle_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_spin_projection": 1.0,
+        "constant_energy_shift": 0.5,
+        "ansatz_fixed_spin_sector": true,
+        "supports_spin_superposition": false,
+        "state_response_supported": false,
+        "structurally_trivial_uniform_zeeman": true,
+        "classification": "constant_zeeman_shift_only",
+        "notes": [
+          "Current generalized GroundStateWF uses one fixed spin template, so uniform longitudinal Zeeman coupling is a constant offset rather than a state-changing interaction."
+        ],
+        "mode": "off"
+      },
+      "spin_configuration": {
+        "pattern": [
+          0,
+          0,
+          1
+        ],
+        "n_up": 2,
+        "n_down": 1,
+        "source": "explicit_pattern",
+        "label": "2up_1down"
+      },
+      "scan_adjustments": {
+        "base_residual_target_energy": 3.0,
+        "sector_residual_target_energy": 3.5,
+        "constant_energy_shift": 0.5
+      }
+    },
+    {
+      "sector": {
+        "label": "3up_0down",
+        "n_up": 3,
+        "n_down": 0,
+        "pattern": [
+          0,
+          0,
+          0
+        ]
+      },
+      "out_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__3up_0down_20260417_110021",
+      "final_energy": 4.495853687619196,
+      "final_loss": 0.004449522008951387,
+      "final_ess": 512.0,
+      "magnetic_assessment": {
+        "magnetic_field_configured": true,
+        "magnetic_field_vector": [
+          0.0,
+          0.0,
+          0.5
+        ],
+        "longitudinal_component": 0.5,
+        "transverse_components_present": false,
+        "zeeman_scope": "all_particles",
+        "selected_particle_indices": [
+          0,
+          1,
+          2
+        ],
+        "selected_spin_projection": 3.0,
+        "constant_energy_shift": 1.5,
+        "ansatz_fixed_spin_sector": true,
+        "supports_spin_superposition": false,
+        "state_response_supported": false,
+        "structurally_trivial_uniform_zeeman": true,
+        "classification": "constant_zeeman_shift_only",
+        "notes": [
+          "Current generalized GroundStateWF uses one fixed spin template, so uniform longitudinal Zeeman coupling is a constant offset rather than a state-changing interaction."
+        ],
+        "mode": "off"
+      },
+      "spin_configuration": {
+        "pattern": [
+          0,
+          0,
+          0
+        ],
+        "n_up": 3,
+        "n_down": 0,
+        "source": "explicit_pattern",
+        "label": "3up_0down"
+      },
+      "scan_adjustments": {
+        "base_residual_target_energy": 3.0,
+        "sector_residual_target_energy": 4.5,
+        "constant_energy_shift": 1.5
+      }
+    }
+  ],
+  "best_run": {
+    "sector": {
+      "label": "0up_3down",
+      "n_up": 0,
+      "n_down": 3,
+      "pattern": [
+        1,
+        1,
+        1
+      ]
+    },
+    "out_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__0up_3down_20260417_104949",
+    "final_energy": 1.5001307617509425,
+    "final_loss": 0.007754446451730283,
+    "final_ess": 512.0,
+    "magnetic_assessment": {
+      "magnetic_field_configured": true,
+      "magnetic_field_vector": [
+        0.0,
+        0.0,
+        0.5
+      ],
+      "longitudinal_component": 0.5,
+      "transverse_components_present": false,
+      "zeeman_scope": "all_particles",
+      "selected_particle_indices": [
+        0,
+        1,
+        2
+      ],
+      "selected_spin_projection": -3.0,
+      "constant_energy_shift": -1.5,
+      "ansatz_fixed_spin_sector": true,
+      "supports_spin_superposition": false,
+      "state_response_supported": false,
+      "structurally_trivial_uniform_zeeman": true,
+      "classification": "constant_zeeman_shift_only",
+      "notes": [
+        "Current generalized GroundStateWF uses one fixed spin template, so uniform longitudinal Zeeman coupling is a constant offset rather than a state-changing interaction."
+      ],
+      "mode": "off"
+    },
+    "spin_configuration": {
+      "pattern": [
+        1,
+        1,
+        1
+      ],
+      "n_up": 0,
+      "n_down": 3,
+      "source": "explicit_pattern",
+      "label": "0up_3down"
+    },
+    "scan_adjustments": {
+      "base_residual_target_energy": 3.0,
+      "sector_residual_target_energy": 1.5,
+      "constant_energy_shift": -1.5
+    }
+  },
+  "config": {
+    "base_config": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/configs/generalized/n3_uniform_b_fixedspin_guard_s42.yaml",
+    "n_particles": 3,
+    "n_up_values": [
+      0,
+      1,
+      2,
+      3
+    ]
+  }
+}

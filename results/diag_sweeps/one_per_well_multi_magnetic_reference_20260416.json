@@ -1,0 +1,173 @@
+{
+  "sweep_config": {
+    "n_wells_values": [
+      3,
+      4
+    ],
+    "sep": 4.0,
+    "B_pre": 0.0,
+    "B_post_values": [
+      0.0,
+      0.5,
+      1.0
+    ],
+    "omega": 1.0,
+    "smooth_t": 0.2,
+    "kappa": 0.7,
+    "epsilon": 0.02,
+    "nx": 20,
+    "ny": 20,
+    "n_sp_states": 16,
+    "n_ci_compute": 200,
+    "kinetic_prefactor": 0.5
+  },
+  "runs": [
+    {
+      "n_wells": 3,
+      "sep": 4.0,
+      "B_pre": 0.0,
+      "B_post": 0.0,
+      "pre_energy": 3.447518082482964,
+      "post_energy": 3.447518082482964,
+      "pre_gap": 0.9821636520985075,
+      "post_gap": 0.9821636520985075,
+      "expected_energy_shift": 0.0,
+      "actual_energy_shift": 0.0,
+      "energy_shift_error": 0.0,
+      "ground_state_overlap_abs": 0.9999999999999998,
+      "pre_entropy": 0.0010023951243336437,
+      "post_entropy": 0.0010023951243336437,
+      "entropy_delta": 0.0,
+      "pre_negativity": 0.014968646723913404,
+      "post_negativity": 0.014968646723913404,
+      "negativity_delta": 0.0,
+      "partition_axes": [
+        0
+      ],
+      "trivial_uniform_b": true
+    },
+    {
+      "n_wells": 3,
+      "sep": 4.0,
+      "B_pre": 0.0,
+      "B_post": 0.5,
+      "pre_energy": 3.447518082482964,
+      "post_energy": 3.947518082482965,
+      "pre_gap": 0.9821636520985075,
+      "post_gap": 0.9821636520985102,
+      "expected_energy_shift": 0.5,
+      "actual_energy_shift": 0.5000000000000009,
+      "energy_shift_error": 8.881784197001252e-16,
+      "ground_state_overlap_abs": 0.9999999999999998,
+      "pre_entropy": 0.0010023951243336437,
+      "post_entropy": 0.0010023951243334217,
+      "entropy_delta": -2.220446049250313e-16,
+      "pre_negativity": 0.014968646723913404,
+      "post_negativity": 0.014968646723913626,
+      "negativity_delta": 2.220446049250313e-16,
+      "partition_axes": [
+        0
+      ],
+      "trivial_uniform_b": true
+    },
+    {
+      "n_wells": 3,
+      "sep": 4.0,
+      "B_pre": 0.0,
+      "B_post": 1.0,
+      "pre_energy": 3.447518082482964,
+      "post_energy": 4.447518082482964,
+      "pre_gap": 0.9821636520985075,
+      "post_gap": 0.982163652098512,
+      "expected_energy_shift": 1.0,
+      "actual_energy_shift": 1.0,
+      "energy_shift_error": 0.0,
+      "ground_state_overlap_abs": 0.9999999999999998,
+      "pre_entropy": 0.0010023951243336437,
+      "post_entropy": 0.0010023951243336455,
+      "entropy_delta": 1.734723475976807e-18,
+      "pre_negativity": 0.014968646723913404,
+      "post_negativity": 0.014968646723913404,
+      "negativity_delta": 0.0,
+      "partition_axes": [
+        0
+      ],
+      "trivial_uniform_b": true
+    },
+    {
+      "n_wells": 4,
+      "sep": 4.0,
+      "B_pre": 0.0,
+      "B_post": 0.0,
+      "pre_energy": 4.775098672318273,
+      "post_energy": 4.775098672318273,
+      "pre_gap": 0.9790595109775007,
+      "post_gap": 0.9790595109775007,
+      "expected_energy_shift": 0.0,
+      "actual_energy_shift": 0.0,
+      "energy_shift_error": 0.0,
+      "ground_state_overlap_abs": 0.9999999999999996,
+      "pre_entropy": 0.0011210909165298418,
+      "post_entropy": 0.0011210909165298418,
+      "entropy_delta": 0.0,
+      "pre_negativity": 0.015920014530148907,
+      "post_negativity": 0.015920014530148907,
+      "negativity_delta": 0.0,
+      "partition_axes": [
+        0,
+        1
+      ],
+      "trivial_uniform_b": true
+    },
+    {
+      "n_wells": 4,
+      "sep": 4.0,
+      "B_pre": 0.0,
+      "B_post": 0.5,
+      "pre_energy": 4.775098672318273,
+      "post_energy": 5.275098672318271,
+      "pre_gap": 0.9790595109775007,
+      "post_gap": 0.9790595109775033,
+      "expected_energy_shift": 0.5,
+      "actual_energy_shift": 0.4999999999999982,
+      "energy_shift_error": -1.7763568394002505e-15,
+      "ground_state_overlap_abs": 0.9999999999999996,
+      "pre_entropy": 0.0011210909165298418,
+      "post_entropy": 0.0011210909165298415,
+      "entropy_delta": -2.168404344971009e-19,
+      "pre_negativity": 0.015920014530148907,
+      "post_negativity": 0.015920014530148907,
+      "negativity_delta": 0.0,
+      "partition_axes": [
+        0,
+        1
+      ],
+      "trivial_uniform_b": true
+    },
+    {
+      "n_wells": 4,
+      "sep": 4.0,
+      "B_pre": 0.0,
+      "B_post": 1.0,
+      "pre_energy": 4.775098672318273,
+      "post_energy": 5.775098672318271,
+      "pre_gap": 0.9790595109775007,
+      "post_gap": 0.9790595109775033,
+      "expected_energy_shift": 1.0,
+      "actual_energy_shift": 0.9999999999999982,
+      "energy_shift_error": -1.7763568394002505e-15,
+      "ground_state_overlap_abs": 0.9999999999999996,
+      "pre_entropy": 0.0011210909165298418,
+      "post_entropy": 0.001121090916529843,
+      "entropy_delta": 1.3010426069826053e-18,
+      "pre_negativity": 0.015920014530148907,
+      "post_negativity": 0.015920014530148907,
+      "negativity_delta": 0.0,
+      "partition_axes": [
+        0,
+        1
+      ],
+      "trivial_uniform_b": true
+    }
+  ]
+}

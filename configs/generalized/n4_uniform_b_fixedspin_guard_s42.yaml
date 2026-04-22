@@ -1,0 +1,72 @@
+# N=4 generalized multi-well magnetic scaffold.
+# This config is intentionally guarded: with a fixed-spin generalized ansatz,
+# uniform longitudinal B does not mix spin sectors or change the wavefunction.
+allow_missing_dmc: true
+run_name: p4_n4_generalized_uniform_b_fixedspin_guard_s42
+
+architecture:
+  arch_type: pinn
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 32
+  bf_layers: 2
+  use_backflow: false
+  use_well_features: true
+
+system:
+  type: custom
+  dim: 2
+  coulomb: true
+  B_magnitude: 0.5
+  B_direction: [0.0, 0.0, 1.0]
+  g_factor: 2.0
+  mu_B: 1.0
+  wells:
+    - center: [-6.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [-2.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [2.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [6.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+
+training:
+  epochs: 2000
+  lr: 0.0001
+  lr_warmup_epochs: 200
+  lr_min_factor: 0.1
+  n_coll: 512
+  loss_type: residual
+  residual_objective: energy_var
+  residual_target_energy: 4.0
+  alpha_start: 0.0
+  alpha_end: 1.0
+  alpha_decay_frac: 0.6
+  local_energy_clip_width: 5.0
+  laplacian_mode: fd
+  fd_h: 0.01
+  sampler: stratified
+  non_mcmc_only: true
+  sampler_mix_weights: [0.25, 0.20, 0.25, 0.20, 0.10]
+  sampler_sigma_center: 0.20
+  sampler_sigma_tails: 1.20
+  sampler_sigma_mixed_in: 0.25
+  sampler_sigma_mixed_out: 0.90
+  sampler_shell_radius: 1.40
+  sampler_shell_radius_sigma: 0.08
+  sampler_dimer_pairs: 2
+  sampler_dimer_eps_max: 0.08
+  grad_clip: 0.2
+  print_every: 100
+  seed: 42
+  device: cuda
+  dtype: float64
+
+magnetic_assessment:
+  # Block runs whose magnetic content is only a constant shift under the current ansatz.
+  mode: error

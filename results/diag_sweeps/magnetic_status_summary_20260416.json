@@ -1,0 +1,173 @@
+{
+  "summary_scope": "magnetic_reference_vs_current_model",
+  "reference_summary_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/diag_sweeps/magnetic_reference_n2_20260416_summary.json",
+  "energy_alignment_tol": 0.05,
+  "entanglement_spread_tol": 0.05,
+  "systems": [
+    {
+      "n_particles": 2,
+      "status": "reference_only",
+      "has_reference": true,
+      "has_current_artifact": false,
+      "current_model": {
+        "n_particles": 2,
+        "source_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/imag_time_pinn/pinn_quench_single_fast_B0p50.json",
+        "artifact_kind": "json",
+        "protocol_family": "uniform_field_all_electrons",
+        "zeeman_mode": "all-electrons",
+        "legacy_sep": 8.0,
+        "b_pre": 0.0,
+        "b_post": 0.5,
+        "initial_energy": 3.634332560549415,
+        "post_energy_estimate": 4.132636693281044,
+        "post_energy_source": "fit_restricted",
+        "late_tau_energy": 4.137153603202939,
+        "energy_shift": 0.4983041327316289,
+        "fit_gap": 0.8449886675237965,
+        "checkpoint_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/imag_time_pinn/quench_single_fast_B0p50_checkpoint.pt",
+        "checkpoint_exists": true,
+        "checkpoint_n_particles": 3,
+        "checkpoint_ground_state_dir": "results/p4setup_n3_pinn_rf_mh40_dec3_coll512_s42_20260411_230234",
+        "artifact_matches_expected_n_particles": false,
+        "has_post_entanglement_measurement": false,
+        "notes": [
+          "artifact_n_particles_mismatch:3"
+        ]
+      },
+      "reference": {
+        "sep": 8.0,
+        "B_pre": 0.0,
+        "B_post": 0.5,
+        "pre_energy": 2.7519597659879174,
+        "post_energy": 2.328607153289828,
+        "pre_gap": 0.07664738730190024,
+        "post_gap": 0.4233526126980891,
+        "pre_spin": "singlet",
+        "post_spin": "triplet_m",
+        "spin_flip": true,
+        "pre_entropy": 0.6931470521953501,
+        "post_entropy": 0.6931471805599453,
+        "pre_negativity": 0.500057892790452,
+        "post_negativity": 0.5
+      },
+      "comparison": {
+        "comparable": false,
+        "energy_alignment_tol": 0.05
+      },
+      "evidence_gaps": [
+        "artifact_n_particles_mismatch",
+        "no_current_model_magnetic_artifact"
+      ],
+      "assessment": "N=2: reference magnetic physics exists, but there is no current-model artifact to compare against."
+    },
+    {
+      "n_particles": 3,
+      "status": "current_only_unvalidated",
+      "has_reference": false,
+      "has_current_artifact": true,
+      "current_model": {
+        "n_particles": 3,
+        "source_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/phase0_logs/n3_quench_fast.log",
+        "artifact_kind": "log",
+        "protocol_family": "uniform_field_all_electrons",
+        "zeeman_mode": "all-electrons",
+        "legacy_sep": 0.0,
+        "b_pre": 0.0,
+        "b_post": 0.5,
+        "initial_energy": 3.63433,
+        "post_energy_estimate": 4.1327,
+        "post_energy_source": "exp_fit",
+        "late_tau_energy": 4.13715,
+        "energy_shift": 0.49837,
+        "fit_gap": 0.845,
+        "ground_state_dir": "results/p4setup_n3_pinn_rf_mh40_dec3_coll512_s42_20260411_230234",
+        "saved_json_path": null,
+        "saved_json_exists": null,
+        "checkpoint_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/imag_time_pinn/quench_single_fast_B0p50_checkpoint.pt",
+        "checkpoint_exists": true,
+        "has_post_entanglement_measurement": true,
+        "notes": [
+          "locked_ground_state=results/p4setup_n3_pinn_rf_mh40_dec3_coll512_s42_20260411_230234"
+        ],
+        "post_quench_entanglement": {
+          "runs": [
+            {
+              "path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/diag_sweeps/n3_magnetic_quench_tau2_npts4_20260416.json",
+              "tau": 2.0,
+              "npts": 4,
+              "partition_mode": "auto_left_right_well_blocks",
+              "von_neumann_entropy": 0.02124540874138731,
+              "negativity": 0.0854004885700349,
+              "effective_schmidt_rank": 1
+            },
+            {
+              "path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/diag_sweeps/n3_magnetic_quench_tau2_npts5_20260416.json",
+              "tau": 2.0,
+              "npts": 5,
+              "partition_mode": "auto_left_right_well_blocks",
+              "von_neumann_entropy": 0.2180638344055617,
+              "negativity": 0.26887503273978786,
+              "effective_schmidt_rank": 2
+            },
+            {
+              "path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/diag_sweeps/n3_magnetic_quench_tau2_npts6_20260416.json",
+              "tau": 2.0,
+              "npts": 6,
+              "partition_mode": "auto_left_right_well_blocks",
+              "von_neumann_entropy": 0.5981082289320556,
+              "negativity": 0.4977372369384655,
+              "effective_schmidt_rank": 2
+            },
+            {
+              "path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/diag_sweeps/n3_magnetic_quench_tau2_npts7_20260416.json",
+              "tau": 2.0,
+              "npts": 7,
+              "partition_mode": "auto_left_right_well_blocks",
+              "von_neumann_entropy": 0.6951393352801477,
+              "negativity": 0.5468468982636978,
+              "effective_schmidt_rank": 2
+            }
+          ],
+          "n_measurements": 4,
+          "entropy_range": [
+            0.02124540874138731,
+            0.6951393352801477
+          ],
+          "negativity_range": [
+            0.0854004885700349,
+            0.5468468982636978
+          ],
+          "max_entropy_spread": 0.6738939265387603,
+          "max_negativity_spread": 0.4614464096936629
+        }
+      },
+      "reference": null,
+      "comparison": {
+        "comparable": false,
+        "energy_alignment_tol": 0.05
+      },
+      "evidence_gaps": [
+        "no_reference_magnetic_sweep",
+        "post_quench_entanglement_not_converged"
+      ],
+      "assessment": "N=3: current-model magnetic artifact exists (uniform_field_all_electrons), but there is no reference lane yet; post-quench entropy spans 0.021245 to 0.695139 across the measured grids."
+    },
+    {
+      "n_particles": 4,
+      "status": "missing_evidence",
+      "has_reference": false,
+      "has_current_artifact": false,
+      "current_model": null,
+      "reference": null,
+      "comparison": {
+        "comparable": false,
+        "energy_alignment_tol": 0.05
+      },
+      "evidence_gaps": [
+        "no_current_model_magnetic_artifact",
+        "no_reference_magnetic_sweep"
+      ],
+      "assessment": "N=4: no magnetic artifact and no magnetic reference are available."
+    }
+  ]
+}
