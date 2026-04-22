@@ -1,10 +1,6 @@
-# N=8 (1+1+1+1+1+1+1+1) non-MCMC residual config
-# Wells at x=-14, -10, -6, -2, +2, +6, +10, +14 (sep=4.0), omega=1.0.
-# CI reference (one_per_well localized, n_sp=6 n_ci=100, nx=16 ny=16): E0=10.51244069
-# SP energies [0.842, 0.923, 1.043] indicate nx=16 is under-resolved; true E0 likely ~10.55.
-# nx=24 grid times out for N=8 (n_sp^8 product-basis enumeration). Use 10.56 as safe estimate.
+# N=8 seed-sweep s901 — same physics as n8_nonmcmc_residual_s42.yaml
 allow_missing_dmc: true
-run_name: p5_n8_nonmcmc_residual_s42
+run_name: p5_n8_nonmcmc_residual_s901
 
 architecture:
   arch_type: pinn
@@ -52,7 +48,7 @@ training:
   n_coll: 2048
   loss_type: residual
   residual_objective: energy_var
-  residual_target_energy: 10.56  # Provisional; nx=16 CI gives 10.512 (under-resolved)
+  residual_target_energy: 10.56
   alpha_start: 0.0
   alpha_end: 1.0
   alpha_decay_frac: 0.6
@@ -74,6 +70,6 @@ training:
 
   grad_clip: 0.2
   print_every: 100
-  seed: 42
+  seed: 901
   device: "cuda:0"
   dtype: float64

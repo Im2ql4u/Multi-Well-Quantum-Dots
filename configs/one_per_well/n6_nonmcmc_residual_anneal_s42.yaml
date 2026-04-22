@@ -1,6 +1,7 @@
 # N=6 (1+1+1+1+1+1) non-MCMC residual config with annealed reference target.
+# Reference (exact diag, one_per_well localized, n_sp=10 n_ci=500, nx=24 ny=16,
+#            kappa=1.0, eps=0.01, smooth-t=0.2): E0=8.21703150
 # Wells at x=-10, -6, -2, +2, +6, +10 (sep=4.0), omega=1.0.
-# NOTE: fill residual_target_energy after exact diag completes (see results/phase0_logs/diag_n6.log).
 allow_missing_dmc: true
 run_name: p5_n6_nonmcmc_residual_anneal_s42
 
@@ -44,7 +45,7 @@ training:
   n_coll: 1024
   loss_type: residual
   residual_objective: energy_var
-  residual_target_energy: 7.50000000  # placeholder; update from exact diag before launch
+  residual_target_energy: 8.21703150
   alpha_start: 0.0
   alpha_end: 1.0
   alpha_decay_frac: 0.6
