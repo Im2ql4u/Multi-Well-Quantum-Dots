@@ -1,0 +1,102 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916",
+  "device": "cuda:3",
+  "batch_size": 512,
+  "npts_values": [
+    4,
+    5,
+    6
+  ],
+  "partitions": [
+    "auto"
+  ],
+  "runs": [
+    {
+      "output_json": "results/diag_sweeps/n3_convergence_20260416__npts4__part_auto.json",
+      "npts": 4,
+      "n_grid_per_particle": 16,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0
+        ],
+        "complement_axes": [
+          1,
+          2
+        ],
+        "left_well_indices": [
+          0
+        ],
+        "right_well_indices": [
+          1,
+          2
+        ]
+      },
+      "von_neumann_entropy": 0.1826218990824571,
+      "negativity": 0.31340714424104554,
+      "log_negativity": 0.7020495673115816,
+      "purity": 0.925445051698689,
+      "effective_schmidt_rank": 2,
+      "norm2_before_normalisation": 0.027297122515591542,
+      "norm_tensor_squared": 1.0
+    },
+    {
+      "output_json": "results/diag_sweeps/n3_convergence_20260416__npts5__part_auto.json",
+      "npts": 5,
+      "n_grid_per_particle": 25,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0
+        ],
+        "complement_axes": [
+          1,
+          2
+        ],
+        "left_well_indices": [
+          0
+        ],
+        "right_well_indices": [
+          1,
+          2
+        ]
+      },
+      "von_neumann_entropy": 0.46157726765875406,
+      "negativity": 0.3828819620320155,
+      "log_negativity": 0.8202924730268201,
+      "purity": 0.7131101733917408,
+      "effective_schmidt_rank": 2,
+      "norm2_before_normalisation": 460.1372940874297,
+      "norm_tensor_squared": 0.9999999999999999
+    },
+    {
+      "output_json": "results/diag_sweeps/n3_convergence_20260416__npts6__part_auto.json",
+      "npts": 6,
+      "n_grid_per_particle": 36,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0
+        ],
+        "complement_axes": [
+          1,
+          2
+        ],
+        "left_well_indices": [
+          0
+        ],
+        "right_well_indices": [
+          1,
+          2
+        ]
+      },
+      "von_neumann_entropy": 0.6339549456163737,
+      "negativity": 0.6238931455255237,
+      "log_negativity": 1.168504877419586,
+      "purity": 0.5769791519785924,
+      "effective_schmidt_rank": 2,
+      "norm2_before_normalisation": 4.198118901187483,
+      "norm_tensor_squared": 1.0000000000000002
+    }
+  ]
+}

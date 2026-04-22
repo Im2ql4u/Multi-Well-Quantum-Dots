@@ -1,0 +1,89 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916",
+  "device": "cuda:3",
+  "batch_size": 512,
+  "particle_grid": "hermite_local",
+  "npts_values": [
+    6
+  ],
+  "partitions": [
+    "auto",
+    "1",
+    "2"
+  ],
+  "runs": [
+    {
+      "output_json": "results/diag_sweeps/n3_partition_hermite_hi_20260416__npts6__part_auto.json",
+      "npts": 6,
+      "n_grid_per_particle": 36,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0
+        ],
+        "complement_axes": [
+          1,
+          2
+        ],
+        "left_well_indices": [
+          0
+        ],
+        "right_well_indices": [
+          1,
+          2
+        ]
+      },
+      "von_neumann_entropy": 0.562498757224728,
+      "negativity": 0.4895914973548914,
+      "log_negativity": 0.9849050097350945,
+      "purity": 0.6287606075330785,
+      "effective_schmidt_rank": 2,
+      "norm2_before_normalisation": 28.080217030947367,
+      "norm_tensor_squared": 1.0
+    },
+    {
+      "output_json": "results/diag_sweeps/n3_partition_hermite_hi_20260416__npts6__part_1.json",
+      "npts": 6,
+      "n_grid_per_particle": 36,
+      "partition": {
+        "mode": "explicit_particle_partition",
+        "subsystem_axes": [
+          1
+        ],
+        "complement_axes": [
+          0,
+          2
+        ]
+      },
+      "von_neumann_entropy": 0.5619582804094201,
+      "negativity": 0.5096592869401824,
+      "log_negativity": 1.0138685326114911,
+      "purity": 0.6289504178014114,
+      "effective_schmidt_rank": 2,
+      "norm2_before_normalisation": 28.080217030947367,
+      "norm_tensor_squared": 1.0
+    },
+    {
+      "output_json": "results/diag_sweeps/n3_partition_hermite_hi_20260416__npts6__part_2.json",
+      "npts": 6,
+      "n_grid_per_particle": 36,
+      "partition": {
+        "mode": "explicit_particle_partition",
+        "subsystem_axes": [
+          2
+        ],
+        "complement_axes": [
+          0,
+          1
+        ]
+      },
+      "von_neumann_entropy": 0.010621217884574818,
+      "negativity": 0.062207895445390515,
+      "log_negativity": 0.16917561966320696,
+      "purity": 0.9973889521529449,
+      "effective_schmidt_rank": 1,
+      "norm2_before_normalisation": 28.080217030947367,
+      "norm_tensor_squared": 1.0
+    }
+  ]
+}

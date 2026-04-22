@@ -1,0 +1,108 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42_20260416_113343",
+  "device": "cuda:2",
+  "batch_size": 512,
+  "npts_values": [
+    4,
+    5,
+    6
+  ],
+  "partitions": [
+    "auto"
+  ],
+  "runs": [
+    {
+      "output_json": "results/diag_sweeps/n4_convergence_20260416__npts4__part_auto.json",
+      "npts": 4,
+      "n_grid_per_particle": 16,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0,
+          1
+        ],
+        "complement_axes": [
+          2,
+          3
+        ],
+        "left_well_indices": [
+          0,
+          1
+        ],
+        "right_well_indices": [
+          2,
+          3
+        ]
+      },
+      "von_neumann_entropy": 0.008468584915338365,
+      "negativity": 0.055391125644678185,
+      "log_negativity": 0.15157603025157151,
+      "purity": 0.9980085362157617,
+      "effective_schmidt_rank": 1,
+      "norm2_before_normalisation": 13431.124249365894,
+      "norm_tensor_squared": 1.0000000000000007
+    },
+    {
+      "output_json": "results/diag_sweeps/n4_convergence_20260416__npts5__part_auto.json",
+      "npts": 5,
+      "n_grid_per_particle": 25,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0,
+          1
+        ],
+        "complement_axes": [
+          2,
+          3
+        ],
+        "left_well_indices": [
+          0,
+          1
+        ],
+        "right_well_indices": [
+          2,
+          3
+        ]
+      },
+      "von_neumann_entropy": 0.0002275868724820656,
+      "negativity": 0.007943280190507829,
+      "log_negativity": 0.02273931164458708,
+      "purity": 0.9999649928384743,
+      "effective_schmidt_rank": 1,
+      "norm2_before_normalisation": 590725063.1815529,
+      "norm_tensor_squared": 0.9999999999999998
+    },
+    {
+      "output_json": "results/diag_sweeps/n4_convergence_20260416__npts6__part_auto.json",
+      "npts": 6,
+      "n_grid_per_particle": 36,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0,
+          1
+        ],
+        "complement_axes": [
+          2,
+          3
+        ],
+        "left_well_indices": [
+          0,
+          1
+        ],
+        "right_well_indices": [
+          2,
+          3
+        ]
+      },
+      "von_neumann_entropy": 0.007979471922727402,
+      "negativity": 0.06492808904445846,
+      "log_negativity": 0.17613914046051932,
+      "purity": 0.9983023804262825,
+      "effective_schmidt_rank": 1,
+      "norm2_before_normalisation": 2301801.6076318747,
+      "norm_tensor_squared": 1.0000000000000002
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "date": "2026-04-16",
+  "purpose": "Grid-based CI validation for VMC dot-label entanglement using shared and one-per-well references.",
+  "caveats": {
+    "shared": "Shared exact-diag uses the soft-min double-well Hamiltonian and the same real-space dot projection observable as the VMC pipeline, but it does not enforce the one-per-well occupancy structure of the VMC ansatz.",
+    "one_per_well": "One-per-well exact-diag enforces left/right channel occupancy, but its one-body basis is built from separate localized harmonic wells rather than the shared soft-min potential used in training."
+  },
+  "sweep_config": {
+    "nx": 24,
+    "ny": 24,
+    "omega": 1.0,
+    "smooth_t": 0.2,
+    "kappa": 1.0,
+    "epsilon": 0.01,
+    "kinetic_prefactor": 0.5,
+    "b_field": 0.0,
+    "g_factor": 2.0,
+    "mu_b": 1.0,
+    "projection_basis": "localized_ho",
+    "max_ho_shell": 2
+  },
+  "labels": [
+    "d8"
+  ],
+  "n_sp_states": [
+    40
+  ],
+  "n_ci_compute": [
+    300
+  ],
+  "results": [
+    {
+      "label": "d8",
+      "separation": 8.0,
+      "vmc_reference": {
+        "label": "d8",
+        "source_json": "results/diag_sweeps/entanglement_n2_d8_localized_ho_s2_n32_signed_20260414.json",
+        "npts": 32,
+        "particle_entropy": 0.4404791836242867,
+        "particle_negativity": 1.496962125087016,
+        "norm2_before_normalisation": 14.897931590451595,
+        "projected_weight": 0.9855509781442151,
+        "dot_entropy": 0.3293396195295894,
+        "dot_negativity": 0.45932765237380835,
+        "dot_label_negativity": 0.2830095598158738,
+        "sector_probabilities": {
+          "LL": 0.35017128567608663,
+          "LR": 0.10341481580685007,
+          "RL": 0.1034148152069706,
+          "RR": 0.4429990833100969
+        },
+        "projected_sector_probabilities": {
+          "LL": 0.3486185180176637,
+          "LR": 0.1049307321444779,
+          "RL": 0.10493073190707583,
+          "RR": 0.44152001793078255
+        }
+      },
+      "references": {
+        "shared": {
+          "reference_model": "shared",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 1.9080614535084108,
+            "particle_entropy": 0.693147180553972,
+            "particle_negativity": 0.5000005647575563,
+            "projected_weight": 0.999999988963931,
+            "dot_entropy": 0.6931471805539704,
+            "dot_negativity": 0.5000005637538543,
+            "dot_label_negativity": 0.4999999999695507,
+            "sector_probabilities": {
+              "LL": 4.8715653095636895e-09,
+              "LR": 0.49999999512844595,
+              "RL": 0.49999999512844584,
+              "RR": 4.871549472010211e-09
+            },
+            "projected_sector_probabilities": {
+              "LL": 1.3431772450636026e-11,
+              "LR": 0.49999999998657646,
+              "RL": 0.4999999999865766,
+              "RR": 1.3415335345616785e-11
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 1.9080614535084108,
+              "particle_entropy": 0.693147180553972,
+              "particle_negativity": 0.5000005647575563,
+              "projected_weight": 0.999999988963931,
+              "dot_entropy": 0.6931471805539704,
+              "dot_negativity": 0.5000005637538543,
+              "dot_label_negativity": 0.4999999999695507,
+              "sector_probabilities": {
+                "LL": 4.8715653095636895e-09,
+                "LR": 0.49999999512844595,
+                "RL": 0.49999999512844584,
+                "RR": 4.871549472010211e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 1.3431772450636026e-11,
+                "LR": 0.49999999998657646,
+                "RL": 0.4999999999865766,
+                "RR": 1.3415335345616785e-11
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        },
+        "one_per_well": {
+          "reference_model": "one_per_well",
+          "preferred": {
+            "n_sp_states": 40,
+            "n_ci_compute": 300,
+            "ground_energy": 2.1257550617793894,
+            "particle_entropy": 1.992217971038617e-05,
+            "particle_negativity": 0.0015676177872303576,
+            "projected_weight": 0.999999973053299,
+            "dot_entropy": 1.9894385260956288e-05,
+            "dot_negativity": 0.001561721820785622,
+            "dot_label_negativity": 0.0,
+            "sector_probabilities": {
+              "LL": 2.335736890097925e-09,
+              "LR": 0.999999995328529,
+              "RL": 3.361770902944905e-18,
+              "RR": 2.335735478853953e-09
+            },
+            "projected_sector_probabilities": {
+              "LL": 1.4489344231650354e-12,
+              "LR": 0.9999999999971021,
+              "RL": 1.2999262895516888e-24,
+              "RR": 1.448933693949186e-12
+            },
+            "delta_to_preferred_energy": 0.0,
+            "delta_to_preferred_dot_label_negativity": 0.0,
+            "delta_to_preferred_projected_weight": 0.0
+          },
+          "sweep": [
+            {
+              "n_sp_states": 40,
+              "n_ci_compute": 300,
+              "ground_energy": 2.1257550617793894,
+              "particle_entropy": 1.992217971038617e-05,
+              "particle_negativity": 0.0015676177872303576,
+              "projected_weight": 0.999999973053299,
+              "dot_entropy": 1.9894385260956288e-05,
+              "dot_negativity": 0.001561721820785622,
+              "dot_label_negativity": 0.0,
+              "sector_probabilities": {
+                "LL": 2.335736890097925e-09,
+                "LR": 0.999999995328529,
+                "RL": 3.361770902944905e-18,
+                "RR": 2.335735478853953e-09
+              },
+              "projected_sector_probabilities": {
+                "LL": 1.4489344231650354e-12,
+                "LR": 0.9999999999971021,
+                "RL": 1.2999262895516888e-24,
+                "RR": 1.448933693949186e-12
+              },
+              "delta_to_preferred_energy": 0.0,
+              "delta_to_preferred_dot_label_negativity": 0.0,
+              "delta_to_preferred_projected_weight": 0.0
+            }
+          ]
+        }
+      },
+      "vmc_vs_reference": {
+        "shared": {
+          "vmc_dot_label_negativity": 0.2830095598158738,
+          "reference_dot_label_negativity": 0.4999999999695507,
+          "absolute_difference": 0.2169904401536769,
+          "vmc_projected_weight": 0.9855509781442151,
+          "reference_projected_weight": 0.999999988963931,
+          "reference_ground_energy": 1.9080614535084108
+        },
+        "one_per_well": {
+          "vmc_dot_label_negativity": 0.2830095598158738,
+          "reference_dot_label_negativity": 0.0,
+          "absolute_difference": -0.2830095598158738,
+          "vmc_projected_weight": 0.9855509781442151,
+          "reference_projected_weight": 0.999999973053299,
+          "reference_ground_energy": 2.1257550617793894
+        }
+      }
+    }
+  ]
+}

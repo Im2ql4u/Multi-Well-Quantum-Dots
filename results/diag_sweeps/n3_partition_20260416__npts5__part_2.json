@@ -1,0 +1,85 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916",
+  "tau": null,
+  "npts": 5,
+  "n_grid_per_particle": 25,
+  "partition": {
+    "mode": "explicit_particle_partition",
+    "subsystem_axes": [
+      2
+    ],
+    "complement_axes": [
+      0,
+      1
+    ]
+  },
+  "dot_projection_config": {
+    "basis": "localized_ho",
+    "max_ho_shell": 1
+  },
+  "system": {
+    "n_particles": 3,
+    "dim": 2,
+    "omega": 1.0,
+    "n_wells": 3,
+    "well_centers": [
+      [
+        -4.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        4.0,
+        0.0
+      ]
+    ]
+  },
+  "entanglement": {
+    "subsystem_axes": [
+      2
+    ],
+    "complement_axes": [
+      0,
+      1
+    ],
+    "subsystem_dimension": 25,
+    "complement_dimension": 625,
+    "norm2_before_normalisation": 460.1372940874297,
+    "norm_tensor_squared": 0.9999999999999999,
+    "von_neumann_entropy": 4.493866162429845e-05,
+    "purity": 0.999993754000289,
+    "linear_entropy": 6.245999710996486e-06,
+    "n_schmidt_terms": 25,
+    "effective_schmidt_rank": 1,
+    "negativity": 0.0026717100130652094,
+    "log_negativity": 0.007688402635430608,
+    "schmidt_values_top10": [
+      0.9999984384951731,
+      0.001350778371936717,
+      0.0011311868714876541,
+      0.00012773259820316555,
+      4.9544348660120766e-05,
+      6.6275135071108695e-06,
+      2.5170175842616134e-06,
+      7.440789612782538e-07,
+      4.197636163409567e-07,
+      1.3715793538265102e-07
+    ],
+    "schmidt_probs_top10": [
+      0.9999968769927845,
+      1.824602210092008e-06,
+      1.2795837382260266e-06,
+      1.631561664373133e-08,
+      2.4546424841556102e-09,
+      4.392393528693702e-11,
+      6.335377519482168e-12,
+      5.536535006169251e-13,
+      1.7620149360363788e-13,
+      1.8812299238431473e-14
+    ]
+  },
+  "dot_projected_entanglement": null
+}

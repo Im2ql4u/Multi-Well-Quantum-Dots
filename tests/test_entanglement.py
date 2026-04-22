@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import json
 import math
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 import numpy as np
 
 from config import SystemConfig
-from observables.entanglement import compute_dot_projected_entanglement
+from observables.entanglement import compute_block_partition_entanglement, compute_dot_projected_entanglement
 
 
 def _toy_points() -> np.ndarray:
@@ -170,3 +175,80 @@ def test_localized_ho_projection_captures_excited_product_state() -> None:
     assert localized_result["projected_subspace_weight"] > 0.95
     assert abs(localized_result["negativity"]) < 1e-6
     assert localized_result["projected_subspace_weight"] > region_result["projected_subspace_weight"] + 0.25
+
+
+def test_d8_ci_calibration_separates_shared_from_one_per_well(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    out_json = tmp_path / "ci_vmc_dot_validation_d8_test.json"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(repo_root / "src")
+
+    command = [
+        sys.executable,
+        "scripts/compare_ci_vmc_dot_entanglement.py",
+        "--labels",
+        "d8",
+        "--projection-basis",
+        "localized_ho",
+        "--max-ho-shell",
+        "2",
+        "--nx",
+        "12",
+        "--ny",
+        "12",
+        "--n-sp-states",
+        "12",
+        "--n-ci-compute",
+        "60",
+        "--out-json",
+        str(out_json),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=repo_root,
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0
+    with out_json.open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+
+    result = payload["results"][0]
+    shared = result["references"]["shared"]["preferred"]
+    one_per_well = result["references"]["one_per_well"]["preferred"]
+
+    assert abs(shared["dot_label_negativity"] - 0.5) < 1e-3
+    assert abs(one_per_well["dot_label_negativity"]) < 1e-9
+    assert shared["projected_weight"] > 0.999
+    assert one_per_well["projected_weight"] > 0.999
+
+
+def test_block_partition_entanglement_product_state_is_separable() -> None:
+    psi_tensor = np.zeros((2, 2, 2), dtype=np.float64)
+    psi_tensor[0, 0, 0] = 1.0
+    weights = [np.ones(2, dtype=np.float64) for _ in range(3)]
+
+    result = compute_block_partition_entanglement(psi_tensor, weights, subsystem_axes=[0])
+
+    assert abs(result["norm2_before_normalisation"] - 1.0) < 1e-12
+    assert abs(result["norm_tensor_squared"] - 1.0) < 1e-12
+    assert abs(result["von_neumann_entropy"]) < 1e-12
+    assert abs(result["negativity"]) < 1e-12
+
+
+def test_block_partition_entanglement_ghz_state_matches_known_values() -> None:
+    psi_tensor = np.zeros((2, 2, 2), dtype=np.float64)
+    psi_tensor[0, 0, 0] = 1.0 / np.sqrt(2.0)
+    psi_tensor[1, 1, 1] = 1.0 / np.sqrt(2.0)
+    weights = [np.ones(2, dtype=np.float64) for _ in range(3)]
+
+    result = compute_block_partition_entanglement(psi_tensor, weights, subsystem_axes=[0])
+
+    assert abs(result["von_neumann_entropy"] - np.log(2.0)) < 1e-12
+    assert abs(result["negativity"] - 0.5) < 1e-12
+    assert abs(result["log_negativity"] - 1.0) < 1e-12
+    assert result["subsystem_dimension"] == 2
+    assert result["complement_dimension"] == 4

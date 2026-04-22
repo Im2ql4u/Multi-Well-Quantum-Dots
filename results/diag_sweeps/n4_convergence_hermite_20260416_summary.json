@@ -1,0 +1,109 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42_20260416_113343",
+  "device": "cuda:2",
+  "batch_size": 512,
+  "particle_grid": "hermite_local",
+  "npts_values": [
+    4,
+    5,
+    6
+  ],
+  "partitions": [
+    "auto"
+  ],
+  "runs": [
+    {
+      "output_json": "results/diag_sweeps/n4_convergence_hermite_20260416__npts4__part_auto.json",
+      "npts": 4,
+      "n_grid_per_particle": 16,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0,
+          1
+        ],
+        "complement_axes": [
+          2,
+          3
+        ],
+        "left_well_indices": [
+          0,
+          1
+        ],
+        "right_well_indices": [
+          2,
+          3
+        ]
+      },
+      "von_neumann_entropy": 0.004362269929932942,
+      "negativity": 0.0470880136462869,
+      "log_negativity": 0.12984485263994008,
+      "purity": 0.999127598798154,
+      "effective_schmidt_rank": 1,
+      "norm2_before_normalisation": 7817059.241810081,
+      "norm_tensor_squared": 1.0000000000000002
+    },
+    {
+      "output_json": "results/diag_sweeps/n4_convergence_hermite_20260416__npts5__part_auto.json",
+      "npts": 5,
+      "n_grid_per_particle": 25,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0,
+          1
+        ],
+        "complement_axes": [
+          2,
+          3
+        ],
+        "left_well_indices": [
+          0,
+          1
+        ],
+        "right_well_indices": [
+          2,
+          3
+        ]
+      },
+      "von_neumann_entropy": 0.0030315407050144675,
+      "negativity": 0.042786319081045576,
+      "log_negativity": 0.11845626322631597,
+      "purity": 0.9994332636403389,
+      "effective_schmidt_rank": 1,
+      "norm2_before_normalisation": 10163121.175310828,
+      "norm_tensor_squared": 0.9999999999999998
+    },
+    {
+      "output_json": "results/diag_sweeps/n4_convergence_hermite_20260416__npts6__part_auto.json",
+      "npts": 6,
+      "n_grid_per_particle": 36,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0,
+          1
+        ],
+        "complement_axes": [
+          2,
+          3
+        ],
+        "left_well_indices": [
+          0,
+          1
+        ],
+        "right_well_indices": [
+          2,
+          3
+        ]
+      },
+      "von_neumann_entropy": 0.003325038599648969,
+      "negativity": 0.044664383602790125,
+      "log_negativity": 0.12343943544572798,
+      "purity": 0.9993696738267499,
+      "effective_schmidt_rank": 1,
+      "norm2_before_normalisation": 14763839.231007028,
+      "norm_tensor_squared": 1.0
+    }
+  ]
+}

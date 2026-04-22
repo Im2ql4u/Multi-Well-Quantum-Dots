@@ -1,0 +1,92 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916",
+  "tau": null,
+  "npts": 4,
+  "n_grid_per_particle": 16,
+  "partition": {
+    "mode": "auto_left_right_well_blocks",
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "left_well_indices": [
+      0
+    ],
+    "right_well_indices": [
+      1,
+      2
+    ]
+  },
+  "dot_projection_config": {
+    "basis": "localized_ho",
+    "max_ho_shell": 1
+  },
+  "system": {
+    "n_particles": 3,
+    "dim": 2,
+    "omega": 1.0,
+    "n_wells": 3,
+    "well_centers": [
+      [
+        -4.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        4.0,
+        0.0
+      ]
+    ]
+  },
+  "entanglement": {
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "subsystem_dimension": 16,
+    "complement_dimension": 256,
+    "norm2_before_normalisation": 19.374218032177907,
+    "norm_tensor_squared": 1.0,
+    "von_neumann_entropy": 0.027376997525218848,
+    "purity": 0.9925155440101135,
+    "linear_entropy": 0.0074844559898864516,
+    "n_schmidt_terms": 16,
+    "effective_schmidt_rank": 1,
+    "negativity": 0.10282875278204529,
+    "log_negativity": 0.2698201350987944,
+    "schmidt_values_top10": [
+      0.9981215429740329,
+      0.05211912741437749,
+      0.030274570827427887,
+      0.009056394374275334,
+      0.0060854724129931455,
+      0.0008024092829808861,
+      0.0007025089346933809,
+      0.00044639942717587117,
+      0.00015011582221656722,
+      0.000109606680847782
+    ],
+    "schmidt_probs_top10": [
+      0.9962466145488642,
+      0.0027164034424361156,
+      0.0009165496387849477,
+      8.201827906240591e-05,
+      3.7032974489300615e-05,
+      6.438606574138998e-07,
+      4.935188033240289e-07,
+      1.992724485829459e-07,
+      2.2534760079756016e-08,
+      1.201362448646754e-08
+    ]
+  },
+  "dot_projected_entanglement": null
+}

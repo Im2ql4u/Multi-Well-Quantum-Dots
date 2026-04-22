@@ -1,0 +1,73 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916",
+  "device": "cuda:3",
+  "batch_size": 512,
+  "particle_grid": "hermite_local",
+  "npts_values": [
+    7,
+    8
+  ],
+  "partitions": [
+    "auto"
+  ],
+  "runs": [
+    {
+      "output_json": "results/diag_sweeps/n3_convergence_hermite_hi_20260416__npts7__part_auto.json",
+      "npts": 7,
+      "n_grid_per_particle": 49,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0
+        ],
+        "complement_axes": [
+          1,
+          2
+        ],
+        "left_well_indices": [
+          0
+        ],
+        "right_well_indices": [
+          1,
+          2
+        ]
+      },
+      "von_neumann_entropy": 0.6875682761558944,
+      "negativity": 0.557294240028688,
+      "log_negativity": 1.0803769278622706,
+      "purity": 0.5092178922547859,
+      "effective_schmidt_rank": 2,
+      "norm2_before_normalisation": 37.749756030129504,
+      "norm_tensor_squared": 0.9999999999999996
+    },
+    {
+      "output_json": "results/diag_sweeps/n3_convergence_hermite_hi_20260416__npts8__part_auto.json",
+      "npts": 8,
+      "n_grid_per_particle": 64,
+      "partition": {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": [
+          0
+        ],
+        "complement_axes": [
+          1,
+          2
+        ],
+        "left_well_indices": [
+          0
+        ],
+        "right_well_indices": [
+          1,
+          2
+        ]
+      },
+      "von_neumann_entropy": 0.6973406855986534,
+      "negativity": 0.5697560194918785,
+      "log_negativity": 1.0972817969951938,
+      "purity": 0.49955947533095246,
+      "effective_schmidt_rank": 2,
+      "norm2_before_normalisation": 43.11897469895791,
+      "norm_tensor_squared": 1.0
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916",
+  "tau": null,
+  "npts": 6,
+  "n_grid_per_particle": 36,
+  "partition": {
+    "mode": "auto_left_right_well_blocks",
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "left_well_indices": [
+      0
+    ],
+    "right_well_indices": [
+      1,
+      2
+    ]
+  },
+  "dot_projection_config": {
+    "basis": "localized_ho",
+    "max_ho_shell": 1
+  },
+  "system": {
+    "n_particles": 3,
+    "dim": 2,
+    "omega": 1.0,
+    "n_wells": 3,
+    "well_centers": [
+      [
+        -4.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        4.0,
+        0.0
+      ]
+    ]
+  },
+  "entanglement": {
+    "subsystem_axes": [
+      0
+    ],
+    "complement_axes": [
+      1,
+      2
+    ],
+    "subsystem_dimension": 36,
+    "complement_dimension": 1296,
+    "norm2_before_normalisation": 28.080217030947367,
+    "norm_tensor_squared": 1.0,
+    "von_neumann_entropy": 0.562498757224728,
+    "purity": 0.6287606075330785,
+    "linear_entropy": 0.3712393924669215,
+    "n_schmidt_terms": 36,
+    "effective_schmidt_rank": 2,
+    "negativity": 0.4895914973548914,
+    "log_negativity": 0.9849050097350945,
+    "schmidt_values_top10": [
+      0.8683485080665708,
+      0.4953359320288705,
+      0.022998840034553443,
+      0.006736094075515114,
+      0.005111886297386678,
+      0.0024072880851980214,
+      0.0019254420875577613,
+      0.0013282568904953987,
+      0.0009893689992831118,
+      0.0004925422379357014
+    ],
+    "schmidt_probs_top10": [
+      0.7540291314614395,
+      0.2453576855589098,
+      0.0005289466429349782,
+      4.537496339418982e-05,
+      2.6131381517409683e-05,
+      5.795035925136356e-06,
+      3.7073272325387894e-06,
+      1.7642663671485055e-06,
+      9.788510167424661e-07,
+      2.425978561507091e-07
+    ]
+  },
+  "dot_projected_entanglement": null
+}

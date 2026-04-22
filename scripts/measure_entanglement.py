@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Measure spatial entanglement of a VMC N=2 one-per-well wavefunction.
+Measure entanglement of one-per-well wavefunctions.
 
 Method:
   ψ(x1, x2) is evaluated on a 2D grid per particle.
@@ -40,6 +40,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from config import SystemConfig
 from imaginary_time_pinn import SpectralG, TauConditionedG
 from observables.entanglement import (
+    compute_block_partition_entanglement,
     compute_dot_projected_entanglement,
     compute_particle_entanglement,
 )
@@ -55,8 +56,6 @@ def _load_ground_state_from_state(
     device: str,
 ) -> tuple[GroundStateWF, SystemConfig]:
     system = _build_system(raw_cfg["system"])
-    if system.n_particles != 2:
-        raise ValueError(f"Entanglement measurement requires N=2, got N={system.n_particles}")
 
     arch_cfg = raw_cfg.get("architecture", {})
     allow_missing_dmc = bool(raw_cfg.get("allow_missing_dmc", True))
@@ -330,6 +329,61 @@ def build_grids(
     return pts, pts, w, w
 
 
+def build_particle_local_grids(
+    system: SystemConfig,
+    npts: int,
+    grid_family: str = "hermite_local",
+) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    """Build per-particle local quadrature grids centered on assigned wells."""
+    omega = system.omega
+    ho_len = 1.0 / np.sqrt(max(omega, 1e-8))
+    margin = 5.0 * ho_len
+
+    particle_centers: list[tuple[float, ...]] = []
+    for well in system.wells:
+        for _ in range(int(well.n_particles)):
+            particle_centers.append(tuple(float(c) for c in well.center))
+
+    particle_points: list[np.ndarray] = []
+    particle_weights: list[np.ndarray] = []
+    for center in particle_centers:
+        if grid_family == "hermite_local":
+            x_1d, wx_1d = _gauss_hermite_grid(center[0], omega, npts)
+        elif grid_family == "legendre_local":
+            x_lo = center[0] - margin
+            x_hi = center[0] + margin
+            xi_x, wi_x = np.polynomial.legendre.leggauss(npts)
+            x_1d = 0.5 * (x_hi - x_lo) * xi_x + 0.5 * (x_hi + x_lo)
+            wx_1d = 0.5 * (x_hi - x_lo) * wi_x
+        else:
+            raise ValueError(f"Unsupported particle grid family '{grid_family}'.")
+
+        if system.dim == 2:
+            y_center = center[1]
+            if grid_family == "hermite_local":
+                y_1d, wy_1d = _gauss_hermite_grid(y_center, omega, npts)
+            else:
+                y_lo = y_center - margin
+                y_hi = y_center + margin
+                xi_y, wi_y = np.polynomial.legendre.leggauss(npts)
+                y_1d = 0.5 * (y_hi - y_lo) * xi_y + 0.5 * (y_hi + y_lo)
+                wy_1d = 0.5 * (y_hi - y_lo) * wi_y
+            X, Y = np.meshgrid(x_1d, y_1d, indexing="ij")
+            WX, WY = np.meshgrid(wx_1d, wy_1d, indexing="ij")
+            points = np.stack([X.ravel(), Y.ravel()], axis=1)
+            weights = (WX * WY).ravel()
+        elif system.dim == 1:
+            points = x_1d[:, None]
+            weights = wx_1d
+        else:
+            raise ValueError(f"Unsupported dim={system.dim} for local measurement grids.")
+
+        particle_points.append(points)
+        particle_weights.append(weights)
+
+    return particle_points, particle_weights
+
+
 # ─── Wavefunction evaluation ──────────────────────────────────────────────────
 
 @torch.no_grad()
@@ -380,6 +434,110 @@ def evaluate_psi_matrix(
     return psi_matrix
 
 
+@torch.no_grad()
+def evaluate_psi_tensor(
+    model: GroundStateWF,
+    particle_points: np.ndarray | list[np.ndarray] | tuple[np.ndarray, ...],
+    n_particles: int,
+    device: str,
+    batch_size: int = 512,
+) -> np.ndarray:
+    """Evaluate ψ on a Cartesian product grid for arbitrary particle count."""
+    dev = torch.device(device)
+    if isinstance(particle_points, np.ndarray):
+        particle_points_seq = [particle_points] * n_particles
+    else:
+        particle_points_seq = list(particle_points)
+    if len(particle_points_seq) != n_particles:
+        raise ValueError(
+            f"Expected {n_particles} particle point sets, got {len(particle_points_seq)}."
+        )
+
+    grid_shape = tuple(int(points.shape[0]) for points in particle_points_seq)
+    total = int(np.prod(grid_shape, dtype=np.int64))
+    point_tensors = [torch.tensor(points, dtype=torch.float64, device=dev) for points in particle_points_seq]
+    psi_flat = np.zeros(total, dtype=np.float64)
+
+    for start in range(0, total, batch_size):
+        end = min(start + batch_size, total)
+        flat_indices = np.arange(start, end, dtype=np.int64)
+        multi_indices = np.stack(np.unravel_index(flat_indices, grid_shape), axis=1)
+        coordinate_chunks = []
+        for particle_idx, points_t in enumerate(point_tensors):
+            axis_indices = torch.tensor(multi_indices[:, particle_idx], dtype=torch.long, device=dev)
+            coordinate_chunks.append(points_t[axis_indices])
+        x = torch.stack(coordinate_chunks, dim=1)
+
+        if hasattr(model, "signed_log_psi"):
+            sign, log_psi = model.signed_log_psi(x)  # type: ignore[attr-defined]
+            psi_vals = (sign * torch.exp(log_psi)).cpu().numpy()
+        else:
+            log_psi = model(x)
+            psi_vals = torch.exp(log_psi).cpu().numpy()
+
+        psi_flat[start:end] = psi_vals.reshape(-1)
+
+        if start % (10 * batch_size) == 0:
+            frac = end / total
+            print(f"  evaluating ψ tensor: {end}/{total} ({100*frac:.0f}%)", flush=True)
+
+    return psi_flat.reshape(grid_shape)
+
+
+def _auto_block_partition(system: SystemConfig) -> dict[str, object]:
+    if system.n_particles < 2:
+        raise ValueError("Block partition requires at least 2 particles.")
+
+    ordered_wells = sorted(
+        enumerate(system.wells),
+        key=lambda item: (float(item[1].center[0]), item[0]),
+    )
+    split = len(ordered_wells) // 2
+    if split <= 0 or split >= len(ordered_wells):
+        raise ValueError("Auto block partition requires at least two wells.")
+
+    left_well_indices = {well_idx for well_idx, _well in ordered_wells[:split]}
+    right_well_indices = {well_idx for well_idx, _well in ordered_wells[split:]}
+
+    subsystem_axes: list[int] = []
+    complement_axes: list[int] = []
+    particle_index = 0
+    for well_idx, well in enumerate(system.wells):
+        target = subsystem_axes if well_idx in left_well_indices else complement_axes
+        for _ in range(int(well.n_particles)):
+            target.append(particle_index)
+            particle_index += 1
+
+    if len(subsystem_axes) == 0 or len(complement_axes) == 0:
+        raise ValueError("Auto block partition produced an empty subsystem.")
+
+    return {
+        "mode": "auto_left_right_well_blocks",
+        "subsystem_axes": subsystem_axes,
+        "complement_axes": complement_axes,
+        "left_well_indices": sorted(left_well_indices),
+        "right_well_indices": sorted(right_well_indices),
+    }
+
+
+def _parse_partition_argument(partition: str | None, system: SystemConfig) -> dict[str, object]:
+    if partition is None or partition == "auto":
+        return _auto_block_partition(system)
+
+    subsystem_axes = [int(token.strip()) for token in partition.split(",") if token.strip()]
+    if len(subsystem_axes) == 0:
+        raise ValueError("--partition-particles must specify at least one particle index.")
+    complement_axes = [axis for axis in range(system.n_particles) if axis not in subsystem_axes]
+    if len(complement_axes) == 0:
+        raise ValueError("--partition-particles cannot include all particle indices.")
+
+    return {
+        "mode": "explicit_particle_partition",
+        "subsystem_axes": subsystem_axes,
+        "complement_axes": complement_axes,
+    }
+
+
 # ─── Entanglement measures ────────────────────────────────────────────────────
 
 def compute_entanglement(
@@ -393,7 +551,7 @@ def compute_entanglement(
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Measure entanglement of VMC N=2 wavefunction.")
+    parser = argparse.ArgumentParser(description="Measure entanglement of one-per-well wavefunctions.")
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--result-dir", help="Path to ground-state result directory (model.pt + config.yaml)")
     source.add_argument("--quench-checkpoint", help="Path to quench checkpoint.pt produced by imaginary_time_pinn.py")
@@ -401,6 +559,17 @@ def main() -> None:
     parser.add_argument("--npts", type=int, default=30, help="Number of Gauss-Hermite quadrature points per dimension (default 30 → 900 pts per particle)")
     parser.add_argument("--device", default="cuda:0", help="Torch device for wavefunction evaluation")
     parser.add_argument("--batch-size", type=int, default=512, help="Batch size for ψ evaluation")
+    parser.add_argument(
+        "--partition-particles",
+        default="auto",
+        help="Comma-separated particle indices for subsystem A, or 'auto' for left/right well blocks.",
+    )
+    parser.add_argument(
+        "--particle-grid",
+        choices=["hermite_local", "legendre_local"],
+        default="hermite_local",
+        help="Per-particle grid family for N>=3 measurements (default: hermite_local).",
+    )
     parser.add_argument(
         "--dot-basis",
         choices=["localized_ho", "region_average"],
@@ -434,20 +603,72 @@ def main() -> None:
     print(f"  w1 range: [{w1.min():.3e}, {w1.max():.3e}], sum={w1.sum():.4f}")
     print(f"  w2 range: [{w2.min():.3e}, {w2.max():.3e}], sum={w2.sum():.4f}")
 
-    print(f"\nEvaluating ψ(x1, x2) on {pts1.shape[0]}×{pts2.shape[0]} grid ...")
-    psi_matrix = evaluate_psi_matrix(model, pts1, pts2, args.device, batch_size=args.batch_size)
-    print(f"  ψ range: [{psi_matrix.min():.4e}, {psi_matrix.max():.4e}]")
-    print(f"  Non-finite values: {int(~np.isfinite(psi_matrix).all())}")
+    result: dict
+    dot_result = None
+    partition_info = None
+    if system.n_particles == 2:
+        print(f"\nEvaluating ψ(x1, x2) on {pts1.shape[0]}×{pts2.shape[0]} grid ...")
+        psi_matrix = evaluate_psi_matrix(model, pts1, pts2, args.device, batch_size=args.batch_size)
+        print(f"  ψ range: [{psi_matrix.min():.4e}, {psi_matrix.max():.4e}]")
+        print(f"  Non-finite values: {int(~np.isfinite(psi_matrix).all())}")
 
-    if not np.isfinite(psi_matrix).all():
-        n_bad = int(np.sum(~np.isfinite(psi_matrix)))
-        print(f"  WARNING: {n_bad} non-finite values in ψ matrix. Replacing with 0.")
-        psi_matrix = np.nan_to_num(psi_matrix, nan=0.0, posinf=0.0, neginf=0.0)
+        if not np.isfinite(psi_matrix).all():
+            n_bad = int(np.sum(~np.isfinite(psi_matrix)))
+            print(f"  WARNING: {n_bad} non-finite values in ψ matrix. Replacing with 0.")
+            psi_matrix = np.nan_to_num(psi_matrix, nan=0.0, posinf=0.0, neginf=0.0)
 
-    print("\nComputing particle-coordinate entanglement measures ...")
-    result = compute_entanglement(psi_matrix, w1, w2)
-    print(f"  ‖ψ‖²  (before normalisation)    = {result['norm2_before_normalisation']:.8f}  (should be ≈1 if grid matches training)")
-    print(f"  ‖M‖² (should be 1.0 after normalisation) = {result['norm_M_squared']:.8f}")
+        print("\nComputing particle-coordinate entanglement measures ...")
+        result = compute_entanglement(psi_matrix, w1, w2)
+        print(f"  ‖ψ‖²  (before normalisation)    = {result['norm2_before_normalisation']:.8f}  (should be ≈1 if grid matches training)")
+        print(f"  ‖M‖² (should be 1.0 after normalisation) = {result['norm_M_squared']:.8f}")
+
+        if len(system.wells) == 2:
+            print("\nComputing dot-projected entanglement measures ...")
+            dot_result = compute_dot_projected_entanglement(
+                psi_matrix,
+                pts1,
+                pts2,
+                w1,
+                w2,
+                system,
+                projection_basis=args.dot_basis,
+                max_ho_shell=args.dot_max_shell,
+            )
+    else:
+        partition_info = _parse_partition_argument(args.partition_particles, system)
+        particle_points, particle_weights = build_particle_local_grids(
+            system,
+            args.npts,
+            grid_family=args.particle_grid,
+        )
+        total_configurations = int(np.prod([points.shape[0] for points in particle_points], dtype=np.int64))
+        print(
+            f"\nEvaluating ψ on {args.particle_grid} product grid for N={system.n_particles} with "
+            f"{particle_points[0].shape[0]} points/particle (total {total_configurations} configurations) ..."
+        )
+        psi_tensor = evaluate_psi_tensor(
+            model,
+            particle_points,
+            system.n_particles,
+            args.device,
+            batch_size=args.batch_size,
+        )
+        print(f"  ψ range: [{psi_tensor.min():.4e}, {psi_tensor.max():.4e}]")
+        print(f"  Non-finite values: {int(~np.isfinite(psi_tensor).all())}")
+
+        if not np.isfinite(psi_tensor).all():
+            n_bad = int(np.sum(~np.isfinite(psi_tensor)))
+            print(f"  WARNING: {n_bad} non-finite values in ψ tensor. Replacing with 0.")
+            psi_tensor = np.nan_to_num(psi_tensor, nan=0.0, posinf=0.0, neginf=0.0)
+
+        print("\nComputing well-block bipartition entanglement measures ...")
+        result = compute_block_partition_entanglement(
+            psi_tensor,
+            particle_weights=particle_weights,
+            subsystem_axes=partition_info["subsystem_axes"],
+        )
+        print(f"  ‖ψ‖²  (before normalisation)    = {result['norm2_before_normalisation']:.8f}")
+        print(f"  ‖T‖² (should be 1.0 after normalisation) = {result['norm_tensor_squared']:.8f}")
 
     print("\n" + "="*60)
     print("  ENTANGLEMENT RESULTS")
@@ -462,19 +683,8 @@ def main() -> None:
     print(f"  Schmidt probs  (top 10):    {[f'{v:.4f}' for v in result['schmidt_probs_top10']]}")
     print("="*60)
 
-    dot_result = None
-    if len(system.wells) == 2:
+    if dot_result is not None:
         print("\nComputing dot-projected entanglement measures ...")
-        dot_result = compute_dot_projected_entanglement(
-            psi_matrix,
-            pts1,
-            pts2,
-            w1,
-            w2,
-            system,
-            projection_basis=args.dot_basis,
-            max_ho_shell=args.dot_max_shell,
-        )
         print("\n" + "="*60)
         print("  DOT-PROJECTED RESULTS")
         print("="*60)
@@ -511,6 +721,7 @@ def main() -> None:
         "tau": args.tau if args.quench_checkpoint else None,
         "npts": args.npts,
         "n_grid_per_particle": int(pts1.shape[0]),
+        "partition": partition_info,
         "dot_projection_config": {
             "basis": args.dot_basis,
             "max_ho_shell": args.dot_max_shell,

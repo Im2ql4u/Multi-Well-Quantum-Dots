@@ -84,6 +84,88 @@ def compute_particle_entanglement(
     }
 
 
+def build_weighted_wavefunction_tensor(
+    psi_tensor: np.ndarray,
+    particle_weights: list[np.ndarray] | tuple[np.ndarray, ...],
+) -> dict[str, Any]:
+    """Return the normalized quadrature-weighted coefficient tensor."""
+    if psi_tensor.ndim == 0:
+        raise ValueError("psi_tensor must have at least one axis.")
+    if len(particle_weights) != psi_tensor.ndim:
+        raise ValueError(
+            "particle_weights length must match psi_tensor.ndim: "
+            f"{len(particle_weights)} != {psi_tensor.ndim}."
+        )
+
+    abs_sq = np.abs(psi_tensor) ** 2
+    norm_sq_array = abs_sq
+    for axis in reversed(range(psi_tensor.ndim)):
+        weights = np.asarray(particle_weights[axis], dtype=np.float64)
+        if weights.ndim != 1:
+            raise ValueError(f"Weights for axis {axis} must be 1D, got shape {weights.shape}.")
+        if weights.shape[0] != psi_tensor.shape[axis]:
+            raise ValueError(
+                f"Weights for axis {axis} have length {weights.shape[0]}, expected {psi_tensor.shape[axis]}."
+            )
+        norm_sq_array = np.tensordot(norm_sq_array, weights, axes=([axis], [0]))
+
+    norm_sq = float(norm_sq_array)
+    if norm_sq < 1e-30:
+        raise RuntimeError("Wavefunction norm is essentially zero on the grid. Check grid coverage.")
+
+    weighted_tensor = psi_tensor / np.sqrt(norm_sq)
+    for axis, weights in enumerate(particle_weights):
+        sqrt_w = np.sqrt(np.maximum(np.asarray(weights, dtype=np.float64), 0.0))
+        shape = [1] * psi_tensor.ndim
+        shape[axis] = sqrt_w.shape[0]
+        weighted_tensor = weighted_tensor * sqrt_w.reshape(shape)
+
+    norm_weighted = float(np.sum(np.abs(weighted_tensor) ** 2))
+    return {
+        "norm2_before_normalisation": norm_sq,
+        "norm_tensor_squared": norm_weighted,
+        "weighted_tensor": weighted_tensor,
+    }
+
+
+def compute_block_partition_entanglement(
+    psi_tensor: np.ndarray,
+    particle_weights: list[np.ndarray] | tuple[np.ndarray, ...],
+    subsystem_axes: list[int] | tuple[int, ...],
+) -> dict[str, Any]:
+    prepared = build_weighted_wavefunction_tensor(psi_tensor, particle_weights)
+
+    if len(subsystem_axes) == 0:
+        raise ValueError("subsystem_axes must not be empty.")
+    axes = tuple(int(axis) for axis in subsystem_axes)
+    if len(set(axes)) != len(axes):
+        raise ValueError(f"subsystem_axes must be unique, got {subsystem_axes}.")
+    if min(axes) < 0 or max(axes) >= psi_tensor.ndim:
+        raise ValueError(
+            f"subsystem_axes {subsystem_axes} out of range for tensor rank {psi_tensor.ndim}."
+        )
+
+    complement_axes = tuple(axis for axis in range(psi_tensor.ndim) if axis not in axes)
+    if len(complement_axes) == 0:
+        raise ValueError("subsystem_axes cannot contain all tensor axes.")
+
+    permuted = np.transpose(prepared["weighted_tensor"], axes + complement_axes)
+    dim_a = int(np.prod([psi_tensor.shape[axis] for axis in axes], dtype=np.int64))
+    dim_b = int(np.prod([psi_tensor.shape[axis] for axis in complement_axes], dtype=np.int64))
+    bipartite_matrix = permuted.reshape(dim_a, dim_b)
+    sigma = np.linalg.svd(bipartite_matrix, compute_uv=False, full_matrices=False)
+
+    return {
+        "subsystem_axes": list(axes),
+        "complement_axes": list(complement_axes),
+        "subsystem_dimension": dim_a,
+        "complement_dimension": dim_b,
+        "norm2_before_normalisation": prepared["norm2_before_normalisation"],
+        "norm_tensor_squared": prepared["norm_tensor_squared"],
+        **_schmidt_metrics_from_sigma(sigma),
+    }
+
+
 def _nearest_well_assignments(points: np.ndarray, system: SystemConfig) -> np.ndarray:
     if len(system.wells) != 2:
         raise ValueError("Dot-projected entanglement currently requires exactly two wells.")

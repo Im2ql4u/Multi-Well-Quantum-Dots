@@ -1,0 +1,99 @@
+{
+  "source": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42_20260416_113343",
+  "tau": null,
+  "npts": 6,
+  "n_grid_per_particle": 36,
+  "partition": {
+    "mode": "auto_left_right_well_blocks",
+    "subsystem_axes": [
+      0,
+      1
+    ],
+    "complement_axes": [
+      2,
+      3
+    ],
+    "left_well_indices": [
+      0,
+      1
+    ],
+    "right_well_indices": [
+      2,
+      3
+    ]
+  },
+  "dot_projection_config": {
+    "basis": "localized_ho",
+    "max_ho_shell": 1
+  },
+  "system": {
+    "n_particles": 4,
+    "dim": 2,
+    "omega": 1.0,
+    "n_wells": 4,
+    "well_centers": [
+      [
+        -6.0,
+        0.0
+      ],
+      [
+        -2.0,
+        0.0
+      ],
+      [
+        2.0,
+        0.0
+      ],
+      [
+        6.0,
+        0.0
+      ]
+    ]
+  },
+  "entanglement": {
+    "subsystem_axes": [
+      0,
+      1
+    ],
+    "complement_axes": [
+      2,
+      3
+    ],
+    "subsystem_dimension": 1296,
+    "complement_dimension": 1296,
+    "norm2_before_normalisation": 14763839.231007028,
+    "norm_tensor_squared": 1.0,
+    "von_neumann_entropy": 0.003325038599648969,
+    "purity": 0.9993696738267499,
+    "linear_entropy": 0.0006303261732500953,
+    "n_schmidt_terms": 1296,
+    "effective_schmidt_rank": 1,
+    "negativity": 0.044664383602790125,
+    "log_negativity": 0.12343943544572798,
+    "schmidt_values_top10": [
+      0.9998423738615337,
+      0.012133247706375031,
+      0.00831646324001523,
+      0.006225729848253771,
+      0.005436396731193528,
+      0.004585933028100692,
+      0.0025649043361276836,
+      0.0011395208982441416,
+      0.0010307640476302077,
+      0.00037551316941360495
+    ],
+    "schmidt_probs_top10": [
+      0.999684772569067,
+      0.00014721569990425496,
+      6.916356082252461e-05,
+      3.875971214343792e-05,
+      2.9554409418931678e-05,
+      2.1030781738224786e-05,
+      6.578734253486593e-06,
+      1.2985078775351353e-06,
+      1.062474521887009e-06,
+      1.4101014040305078e-07
+    ]
+  },
+  "dot_projected_entanglement": null
+}
