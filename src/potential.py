@@ -36,6 +36,7 @@ def compute_potential(
             for j in range(i + 1, n_particles):
                 r2 = ((x[:, i, :] - x[:, j, :]) ** 2).sum(dim=-1)
                 v_coul = v_coul + 1.0 / torch.sqrt(r2 + eps * eps)
+        v_coul = v_coul * float(system.coulomb_strength)
 
     v = v_conf + v_coul
 

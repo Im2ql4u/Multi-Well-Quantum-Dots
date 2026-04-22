@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import torch
 from config import SystemConfig
-from wavefunction import GroundStateWF, SlaterOnlyWF, setup_closed_shell_system
+from wavefunction import (
+    GroundStateWF,
+    SlaterOnlyWF,
+    assess_magnetic_response_capability,
+    resolve_spin_configuration,
+    setup_closed_shell_system,
+)
 
 
 def _assert_finite_grads(model: torch.nn.Module) -> None:
@@ -44,6 +50,37 @@ def test_ground_state_wavefunction_supports_all_architectures():
     _assert_finite_grads(model)
 
 
+def test_resolve_spin_configuration_accepts_explicit_sector_counts() -> None:
+    system = SystemConfig.single_dot(N=4, omega=1.0, dim=2)
+
+    spin_meta = resolve_spin_configuration(system, {"n_up": 3, "n_down": 1})
+
+    assert spin_meta["pattern"] == [0, 0, 0, 1]
+    assert spin_meta["n_up"] == 3
+    assert spin_meta["n_down"] == 1
+    assert spin_meta["label"] == "3up_1down"
+
+
+def test_setup_closed_shell_system_honors_explicit_spin_pattern() -> None:
+    system = SystemConfig.single_dot(N=4, omega=1.0, dim=2)
+
+    c_occ, spin, params = setup_closed_shell_system(
+        system,
+        device="cpu",
+        dtype=torch.float64,
+        E_ref="auto",
+        allow_missing_dmc=True,
+        spin_pattern=[0, 0, 0, 1],
+    )
+
+    assert spin.tolist() == [0, 0, 0, 1]
+    assert params["n_up"] == 3
+    assert params["n_down"] == 1
+    assert params["up_col_idx"] == [0, 1, 2]
+    assert params["down_col_idx"] == [3]
+    assert c_occ.shape[1] == 4
+
+
 def test_setup_supports_open_shell_odd_n():
     system = SystemConfig.triple_dot(Ns=(1, 1, 1), spacing=4.0, omega=1.0, dim=2)
     (c_occ, spin, params) = setup_closed_shell_system(
@@ -77,6 +114,88 @@ def test_ground_state_wavefunction_three_wells_forward_is_finite():
     out.sum().backward()
     assert torch.isfinite(x.grad).all()
     _assert_finite_grads(model)
+
+
+def test_magnetic_assessment_flags_uniform_b_as_constant_shift_for_fixed_spin() -> None:
+    system = SystemConfig.triple_dot(
+        Ns=(1, 1, 1),
+        spacing=4.0,
+        omega=1.0,
+        dim=2,
+    )
+    system = SystemConfig(
+        wells=system.wells,
+        dim=system.dim,
+        coulomb=system.coulomb,
+        smooth_T=system.smooth_T,
+        B_magnitude=0.5,
+        B_direction=(0.0, 0.0, 1.0),
+        g_factor=2.0,
+        mu_B=1.0,
+        zeeman_electron1_only=False,
+        zeeman_particle_indices=None,
+    )
+    spin = torch.tensor([0, 0, 1], dtype=torch.long)
+
+    assessment = assess_magnetic_response_capability(system, spin)
+
+    assert assessment["classification"] == "constant_zeeman_shift_only"
+    assert assessment["structurally_trivial_uniform_zeeman"] is True
+    assert assessment["state_response_supported"] is False
+    assert assessment["selected_spin_projection"] == 1.0
+    assert assessment["constant_energy_shift"] == 0.5
+
+
+def test_magnetic_assessment_tracks_particle_subset_projection() -> None:
+    base = SystemConfig.triple_dot(
+        Ns=(1, 1, 1),
+        spacing=4.0,
+        omega=1.0,
+        dim=2,
+    )
+    system = SystemConfig(
+        wells=base.wells,
+        dim=base.dim,
+        coulomb=base.coulomb,
+        smooth_T=base.smooth_T,
+        B_magnitude=0.5,
+        B_direction=(0.0, 0.0, 1.0),
+        g_factor=2.0,
+        mu_B=1.0,
+        zeeman_electron1_only=False,
+        zeeman_particle_indices=(1, 2),
+    )
+    spin = torch.tensor([0, 0, 1], dtype=torch.long)
+
+    assessment = assess_magnetic_response_capability(system, spin)
+
+    assert assessment["zeeman_scope"] == "particle_subset"
+    assert assessment["selected_particle_indices"] == [1, 2]
+    assert assessment["selected_spin_projection"] == 0.0
+    assert assessment["constant_energy_shift"] == 0.0
+
+
+def test_magnetic_assessment_flags_transverse_components_as_unimplemented() -> None:
+    base = SystemConfig.single_dot(N=2, omega=1.0, dim=2)
+    system = SystemConfig(
+        wells=base.wells,
+        dim=base.dim,
+        coulomb=base.coulomb,
+        smooth_T=base.smooth_T,
+        B_magnitude=0.5,
+        B_direction=(1.0, 0.0, 0.0),
+        g_factor=2.0,
+        mu_B=1.0,
+        zeeman_electron1_only=False,
+        zeeman_particle_indices=None,
+    )
+    spin = torch.tensor([0, 1], dtype=torch.long)
+
+    assessment = assess_magnetic_response_capability(system, spin)
+
+    assert assessment["classification"] == "no_implemented_longitudinal_coupling"
+    assert assessment["transverse_components_present"] is True
+    assert any("transverse" in note.lower() for note in assessment["notes"])
 
 
 def test_setup_multi_well_even_n_covers_all_wells():

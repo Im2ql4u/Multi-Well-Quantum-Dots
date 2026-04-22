@@ -230,6 +230,11 @@ def train_ground_state(
         "ess": [],
     }
 
+    spin_template: torch.Tensor | None = None
+    model_spin = getattr(model, "spin_template", None)
+    if isinstance(model_spin, torch.Tensor):
+        spin_template = model_spin.detach().to(device=device)
+
     def psi_log_fn(x: torch.Tensor) -> torch.Tensor:
         return model(x)
 
@@ -367,6 +372,7 @@ def train_ground_state(
                 system=system,
                 h=train_cfg.fd_h,
                 laplacian_mode=train_cfg.laplacian_mode,
+                spin=spin_template,
             )
             e_used = clip_local_energy_by_mad(e_weak, train_cfg.local_energy_clip_width)
             loss = weighted_mean(e_used)
@@ -382,6 +388,7 @@ def train_ground_state(
                 direct_weight=train_cfg.direct_weight,
                 h=train_cfg.fd_h,
                 laplacian_mode=train_cfg.laplacian_mode,
+                spin=spin_template,
             )
             e_used = clip_local_energy_by_mad(e_eff, train_cfg.local_energy_clip_width)
             loss = weighted_mean(e_used)
@@ -396,6 +403,7 @@ def train_ground_state(
                 system=system,
                 h=train_cfg.fd_h,
                 laplacian_mode=train_cfg.laplacian_mode,
+                spin=spin_template,
             )
             e_used = clip_local_energy_by_mad(e_loc, train_cfg.local_energy_clip_width)
             loss = weighted_mean(e_used)
@@ -415,6 +423,7 @@ def train_ground_state(
                     system=system,
                     h=train_cfg.fd_h,
                     laplacian_mode=train_cfg.laplacian_mode,
+                    spin=spin_template,
                 )
                 e_loc = e_loc.detach()
             else:
@@ -427,6 +436,7 @@ def train_ground_state(
                         system=system,
                         h=train_cfg.fd_h,
                         laplacian_mode=train_cfg.laplacian_mode,
+                        spin=spin_template,
                     )
             # MAD-based outlier clipping (matches old code's clip_el).
             clip_w = float(train_cfg.reinforce_clip_width)
@@ -448,6 +458,7 @@ def train_ground_state(
                 system=system,
                 h=train_cfg.fd_h,
                 laplacian_mode=train_cfg.laplacian_mode,
+                spin=spin_template,
             )
             e_used = clip_local_energy_by_mad(e_loc, train_cfg.local_energy_clip_width)
             mu = float(e_used.detach().mean().item())

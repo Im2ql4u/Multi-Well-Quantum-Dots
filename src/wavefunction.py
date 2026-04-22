@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any, Sequence
+
 import torch
 import torch.nn as nn
 
@@ -34,6 +36,156 @@ def resolve_reference_energy(
         raise
 
 
+def resolve_spin_configuration(
+    system: SystemConfig,
+    spin_cfg: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Resolve an explicit spin pattern or sector for a fixed-spin run."""
+    n_particles = int(system.n_particles)
+    default_n_up = (n_particles + 1) // 2
+    default_n_down = n_particles // 2
+
+    if spin_cfg is None:
+        pattern = [0] * default_n_up + [1] * default_n_down
+        source = "default_closed_shell"
+    else:
+        if not isinstance(spin_cfg, dict):
+            raise ValueError("spin config must be a mapping when provided.")
+        pattern_cfg = spin_cfg.get("pattern")
+        n_up_cfg = spin_cfg.get("n_up")
+        n_down_cfg = spin_cfg.get("n_down")
+        if pattern_cfg is not None and (n_up_cfg is not None or n_down_cfg is not None):
+            raise ValueError("spin config must specify either pattern or n_up/n_down, not both.")
+
+        if pattern_cfg is not None:
+            pattern = [int(value) for value in pattern_cfg]
+            source = "explicit_pattern"
+        elif n_up_cfg is not None or n_down_cfg is not None:
+            if n_up_cfg is None or n_down_cfg is None:
+                raise ValueError("spin config must provide both n_up and n_down.")
+            n_up = int(n_up_cfg)
+            n_down = int(n_down_cfg)
+            if n_up < 0 or n_down < 0:
+                raise ValueError("spin counts must be non-negative.")
+            if n_up + n_down != n_particles:
+                raise ValueError(
+                    f"spin counts must sum to system.n_particles={n_particles}, got {n_up}+{n_down}."
+                )
+            pattern = [0] * n_up + [1] * n_down
+            source = "sector_counts"
+        else:
+            pattern = [0] * default_n_up + [1] * default_n_down
+            source = "default_closed_shell"
+
+    if len(pattern) != n_particles:
+        raise ValueError(
+            f"spin pattern length must equal system.n_particles={n_particles}, got {len(pattern)}."
+        )
+    if any(value not in (0, 1) for value in pattern):
+        raise ValueError("spin pattern must contain only 0 (up) and 1 (down).")
+
+    n_up = sum(1 for value in pattern if value == 0)
+    n_down = n_particles - n_up
+    return {
+        "pattern": pattern,
+        "n_up": n_up,
+        "n_down": n_down,
+        "source": source,
+        "label": f"{n_up}up_{n_down}down",
+    }
+
+
+def assess_magnetic_response_capability(
+    system: SystemConfig,
+    spin_template: torch.Tensor,
+    *,
+    supports_spin_superposition: bool = False,
+) -> dict[str, Any]:
+    """Summarize whether the current fixed-spin ansatz can represent a magnetic response.
+
+    The current generalized path uses a single fixed spin sector. Under that
+    assumption, the implemented Zeeman coupling contributes only a constant
+    energy offset for any uniform longitudinal field.
+    """
+    spin_1d = spin_template.detach().to(device="cpu")
+    if spin_1d.ndim != 1 or spin_1d.numel() != system.n_particles:
+        raise ValueError(
+            "assess_magnetic_response_capability expects a 1D spin template with length system.n_particles."
+        )
+
+    bx, by, bz = system.magnetic_field_vector
+    transverse_components_present = abs(float(bx)) > 0.0 or abs(float(by)) > 0.0
+    longitudinal_component = float(bz)
+
+    if system.zeeman_particle_indices is not None:
+        selected_indices = [int(idx) for idx in system.zeeman_particle_indices]
+        zeeman_scope = "particle_subset"
+    elif system.zeeman_electron1_only:
+        selected_indices = [0]
+        zeeman_scope = "electron1_only"
+    else:
+        selected_indices = list(range(system.n_particles))
+        zeeman_scope = "all_particles"
+
+    spin_cpu = spin_1d.to(dtype=torch.float64)
+    if torch.all((spin_1d == 0) | (spin_1d == 1)):
+        spin_z = 1.0 - 2.0 * spin_cpu
+    else:
+        spin_z = spin_cpu
+    selected_spin_projection = float(spin_z[selected_indices].sum().item())
+    constant_energy_shift = (
+        0.5
+        * float(system.g_factor)
+        * float(system.mu_B)
+        * longitudinal_component
+        * selected_spin_projection
+    )
+
+    notes: list[str] = []
+    if transverse_components_present:
+        notes.append(
+            "Current potential implementation uses only B_direction[2]; transverse magnetic-field components are ignored."
+        )
+
+    zeeman_active = abs(longitudinal_component) > 0.0
+    fixed_spin_uniform_zeeman = zeeman_active and not supports_spin_superposition
+    if fixed_spin_uniform_zeeman:
+        notes.append(
+            "Current generalized GroundStateWF uses one fixed spin template, so uniform longitudinal Zeeman coupling is a constant offset rather than a state-changing interaction."
+        )
+    elif not zeeman_active and abs(float(system.B_magnitude)) > 0.0:
+        notes.append(
+            "Configured magnetic field has no implemented longitudinal component, so the present Hamiltonian adds no magnetic term."
+        )
+
+    state_response_supported = bool(zeeman_active and supports_spin_superposition)
+    if state_response_supported:
+        classification = "nontrivial_state_response_supported"
+    elif fixed_spin_uniform_zeeman:
+        classification = "constant_zeeman_shift_only"
+    elif abs(float(system.B_magnitude)) > 0.0:
+        classification = "no_implemented_longitudinal_coupling"
+    else:
+        classification = "magnetic_field_disabled"
+
+    return {
+        "magnetic_field_configured": abs(float(system.B_magnitude)) > 0.0,
+        "magnetic_field_vector": [float(bx), float(by), float(bz)],
+        "longitudinal_component": longitudinal_component,
+        "transverse_components_present": transverse_components_present,
+        "zeeman_scope": zeeman_scope,
+        "selected_particle_indices": selected_indices,
+        "selected_spin_projection": selected_spin_projection,
+        "constant_energy_shift": constant_energy_shift,
+        "ansatz_fixed_spin_sector": True,
+        "supports_spin_superposition": bool(supports_spin_superposition),
+        "state_response_supported": state_response_supported,
+        "structurally_trivial_uniform_zeeman": fixed_spin_uniform_zeeman,
+        "classification": classification,
+        "notes": notes,
+    }
+
+
 def setup_closed_shell_system(
     system: SystemConfig,
     *,
@@ -41,9 +193,19 @@ def setup_closed_shell_system(
     dtype: torch.dtype,
     E_ref: str | float,
     allow_missing_dmc: bool = False,
+    spin_pattern: Sequence[int] | torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    n_up = (system.n_particles + 1) // 2
-    n_down = system.n_particles // 2
+    if spin_pattern is None:
+        spin_meta = resolve_spin_configuration(system, None)
+    else:
+        if isinstance(spin_pattern, torch.Tensor):
+            pattern_values = [int(value) for value in spin_pattern.detach().cpu().tolist()]
+        else:
+            pattern_values = [int(value) for value in spin_pattern]
+        spin_meta = resolve_spin_configuration(system, {"pattern": pattern_values})
+
+    n_up = int(spin_meta["n_up"])
+    n_down = int(spin_meta["n_down"])
     is_open_shell = n_up != n_down
     dim = system.dim
     n_wells = len(system.wells)
@@ -94,7 +256,7 @@ def setup_closed_shell_system(
     for col, basis_idx in enumerate(occ_basis_indices):
         C_occ[basis_idx, col] = 1.0
 
-    spin = torch.tensor([0] * n_up + [1] * n_down, device=device, dtype=torch.int64)
+    spin = torch.tensor(spin_meta["pattern"], device=device, dtype=torch.int64)
     well_ids: list[int] = []
     for well_idx, well in enumerate(system.wells):
         well_ids.extend([well_idx] * int(well.n_particles))
@@ -117,6 +279,8 @@ def setup_closed_shell_system(
         "well_id": well_id,
         "n_up": int(n_up),
         "n_down": int(n_down),
+        "spin_pattern": list(spin_meta["pattern"]),
+        "spin_label": str(spin_meta["label"]),
         "up_col_idx": list(range(n_up)),
         "down_col_idx": (list(range(n_up, n_up + n_down)) if (is_open_shell or _multi_well) else list(range(n_up))),
     }

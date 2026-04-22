@@ -2,17 +2,27 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
+import os
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import torch
 import yaml
 
 from config import SystemConfig, WellSpec
 from training.vmc_colloc import GroundStateTrainingConfig, train_ground_state
-from wavefunction import GroundStateWF, resolve_reference_energy, setup_closed_shell_system
+from wavefunction import (
+    GroundStateWF,
+    assess_magnetic_response_capability,
+    resolve_spin_configuration,
+    resolve_reference_energy,
+    setup_closed_shell_system,
+)
 
 RESULTS_ROOT = Path(__file__).resolve().parent.parent / "results"
+LOGGER = logging.getLogger(__name__)
 
 
 def _build_system(system_cfg: dict) -> SystemConfig:
@@ -21,6 +31,7 @@ def _build_system(system_cfg: dict) -> SystemConfig:
     _replace = dataclasses.replace
     kind = system_cfg.get("type", "single_dot")
     coulomb = system_cfg.get("coulomb", True)
+    coulomb_strength = float(system_cfg.get("coulomb_strength", 1.0))
     smooth_t = float(system_cfg.get("smooth_T", 0.2))
     b_magnitude = float(system_cfg.get("B_magnitude", 0.0))
     b_direction = tuple(float(v) for v in system_cfg.get("B_direction", (0.0, 0.0, 1.0)))
@@ -62,6 +73,7 @@ def _build_system(system_cfg: dict) -> SystemConfig:
         sys = _replace(sys, coulomb=False)
     sys = _replace(
         sys,
+        coulomb_strength=coulomb_strength,
         smooth_T=smooth_t,
         B_magnitude=b_magnitude,
         B_direction=b_direction,
@@ -71,6 +83,10 @@ def _build_system(system_cfg: dict) -> SystemConfig:
         zeeman_particle_indices=zeeman_particle_indices,
     )
     return sys
+
+
+def build_system_from_config(raw_cfg: dict[str, Any]) -> SystemConfig:
+    return _build_system(raw_cfg["system"])
 
 
 def _check_device(device_str: str) -> torch.device:
@@ -84,23 +100,69 @@ def _check_device(device_str: str) -> torch.device:
     return device
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Train generalized ground-state wavefunctions with collocation only."
+def _magnetic_assessment_mode(raw_cfg: dict) -> str:
+    section = raw_cfg.get("magnetic_assessment", {})
+    if section is None:
+        return "warn"
+    if not isinstance(section, dict):
+        raise ValueError("magnetic_assessment must be a mapping when provided.")
+    mode = str(section.get("mode", "warn")).lower()
+    if mode not in {"off", "warn", "error"}:
+        raise ValueError(
+            f"Unsupported magnetic_assessment.mode '{mode}'. Expected one of: off, warn, error."
+        )
+    return mode
+
+
+def _enforce_magnetic_assessment(raw_cfg: dict, system: SystemConfig, spin: torch.Tensor) -> dict:
+    assessment = assess_magnetic_response_capability(
+        system,
+        spin,
+        supports_spin_superposition=False,
     )
-    parser.add_argument("--config", required=True, help="Path to YAML config file.")
-    args = parser.parse_args()
+    mode = _magnetic_assessment_mode(raw_cfg)
+    assessment["mode"] = mode
+    if mode == "off":
+        return assessment
 
-    cfg_path = Path(args.config).resolve()
-    with cfg_path.open("r", encoding="utf-8") as handle:
-        raw_cfg = yaml.safe_load(handle)
+    if assessment["classification"] == "constant_zeeman_shift_only":
+        message = (
+            "Magnetic configuration is structurally trivial under the current generalized fixed-spin ansatz: "
+            "uniform longitudinal Zeeman coupling only adds a constant energy offset. "
+            "Use a spin-sector-aware ansatz or a different magnetic Hamiltonian before treating this as a state-changing run."
+        )
+        if mode == "error":
+            raise RuntimeError(message)
+        LOGGER.warning(message)
+    elif assessment["classification"] == "no_implemented_longitudinal_coupling":
+        message = (
+            "Configured magnetic field has no implemented longitudinal component in the current Hamiltonian, "
+            "so this run will not include a magnetic interaction."
+        )
+        if mode == "error":
+            raise RuntimeError(message)
+        LOGGER.warning(message)
 
-    run_name = raw_cfg.get("run_name", cfg_path.stem)
-    system = _build_system(raw_cfg["system"])
+    return assessment
+
+
+def run_training_from_config(
+    raw_cfg: dict[str, Any],
+    *,
+    config_source: str | None = None,
+) -> tuple[Path, dict[str, Any]]:
+    run_name = raw_cfg.get("run_name", "ground_state")
+    system = build_system_from_config(raw_cfg)
     train_cfg = GroundStateTrainingConfig(**raw_cfg["training"])
+    manual = os.environ.get("CUDA_MANUAL_DEVICE")
+    if manual is not None and torch.cuda.is_available():
+        import dataclasses
+        train_cfg = dataclasses.replace(train_cfg, device=f"cuda:{manual}")
     device = _check_device(train_cfg.device)
 
     arch_cfg = raw_cfg.get("architecture", {})
+    spin_cfg = raw_cfg.get("spin")
+    spin_meta = resolve_spin_configuration(system, spin_cfg)
     allow_missing_dmc = bool(raw_cfg.get("allow_missing_dmc", True))
     input_E_ref = raw_cfg.get("E_ref", "auto")
     resolved_E_ref = resolve_reference_energy(
@@ -113,7 +175,10 @@ def main() -> None:
         dtype=train_cfg.torch_dtype,
         E_ref=resolved_E_ref,
         allow_missing_dmc=allow_missing_dmc,
+        spin_pattern=spin_meta["pattern"],
     )
+
+    magnetic_assessment = _enforce_magnetic_assessment(raw_cfg, system, spin)
 
     model = GroundStateWF(
         system,
@@ -138,6 +203,12 @@ def main() -> None:
         "resolved": resolved_E_ref,
         "allow_missing_dmc": allow_missing_dmc,
     }
+    result["spin_configuration"] = spin_meta
+    result["magnetic_assessment"] = magnetic_assessment
+    if "spin_sector_scan" in raw_cfg:
+        result["scan_adjustments"] = raw_cfg["spin_sector_scan"]
+    if config_source is not None:
+        result["config_source"] = str(config_source)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_dir = RESULTS_ROOT / f"{run_name}_{timestamp}"
@@ -148,6 +219,21 @@ def main() -> None:
     with open(out_dir / "result.json", "w") as f:
         json.dump(result, f, indent=2)
     torch.save(model.state_dict(), out_dir / "model.pt")
+    return out_dir, result
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Train generalized ground-state wavefunctions with collocation only."
+    )
+    parser.add_argument("--config", required=True, help="Path to YAML config file.")
+    args = parser.parse_args()
+
+    cfg_path = Path(args.config).resolve()
+    with cfg_path.open("r", encoding="utf-8") as handle:
+        raw_cfg = yaml.safe_load(handle)
+
+    out_dir, _ = run_training_from_config(raw_cfg, config_source=str(cfg_path))
     print(f"Saved results to {out_dir}")
 
 

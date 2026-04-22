@@ -73,7 +73,7 @@ from run_ground_state import _build_system
 from training.sampling import stratified_logpdf, stratified_resample
 from training.vmc_colloc import clip_local_energy_by_mad
 from wavefunction import GroundStateWF as GeneralizedGroundStateWF
-from wavefunction import resolve_reference_energy, setup_closed_shell_system
+from wavefunction import resolve_reference_energy, resolve_spin_configuration, setup_closed_shell_system
 
 _manual = os.environ.get("CUDA_MANUAL_DEVICE")
 if _manual is not None and torch.cuda.is_available():
@@ -257,7 +257,7 @@ def _compute_potential_for_cfg(
         )
 
     system_at_B = system_override
-    if well_sep_override is not None:
+    if well_sep_override is not None and system_override.n_wells == 2:
         system_at_B = _with_updated_well_separation(system_at_B, float(well_sep_override))
 
     system_at_B = replace(
@@ -388,6 +388,8 @@ def _load_locked_ground_state(cfg: PINNConfig):
     arch_cfg = raw_cfg.get("architecture", {})
     allow_missing_dmc = bool(raw_cfg.get("allow_missing_dmc", True))
     input_E_ref = raw_cfg.get("E_ref", "auto")
+    spin_cfg = raw_cfg.get("spin")
+    spin_meta = resolve_spin_configuration(system, spin_cfg)
     resolved_E_ref = resolve_reference_energy(
         system,
         input_E_ref,
@@ -399,6 +401,7 @@ def _load_locked_ground_state(cfg: PINNConfig):
         dtype=DTYPE,
         E_ref=resolved_E_ref,
         allow_missing_dmc=allow_missing_dmc,
+        spin_pattern=spin_meta["pattern"],
     )
 
     wf = GeneralizedGroundStateWF(

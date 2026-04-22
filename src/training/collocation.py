@@ -4,31 +4,18 @@ from typing import Callable
 
 import torch
 from config import SystemConfig
+from potential import compute_potential
 
 
-def _potential_energy(x: torch.Tensor, *, omega: float, system: SystemConfig) -> torch.Tensor:
-    (bsz, _, dim) = x.shape
-    dtype = x.dtype
-    device = x.device
-    well_vals = []
-    for well in system.wells:
-        center = torch.tensor(well.center, device=device, dtype=dtype).view(1, 1, dim)
-        dr = x - center
-        v = 0.5 * float(well.omega) ** 2 * torch.sum(dr * dr, dim=-1)
-        well_vals.append(v)
-    v_stack = torch.stack(well_vals, dim=-1)
-    T = float(system.smooth_T)
-    v_conf = -T * torch.logsumexp(-v_stack / T, dim=-1)
-    v_conf = torch.sum(v_conf, dim=-1)
-    if not system.coulomb:
-        return v_conf
-    # Keep a small softening for numerical stability while staying close to 1/r.
-    eps = 1e-2 / max(float(omega), 1e-08) ** 0.5
-    (i, j) = torch.triu_indices(system.n_particles, system.n_particles, offset=1, device=device)
-    rij = x[:, i, :] - x[:, j, :]
-    r2 = torch.sum(rij * rij, dim=-1)
-    v_ee = torch.sum(1 / torch.sqrt(r2 + eps * eps), dim=-1)
-    return v_conf + v_ee
+def _potential_energy(
+    x: torch.Tensor,
+    *,
+    omega: float,
+    system: SystemConfig,
+    spin: torch.Tensor | None = None,
+) -> torch.Tensor:
+    del omega
+    return compute_potential(x, system=system, spin=spin)
 
 
 def _laplacian_over_psi_fd(
@@ -97,6 +84,7 @@ def colloc_fd_loss(
     system: SystemConfig,
     h: float,
     laplacian_mode: str = "fd",
+    spin: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, float, torch.Tensor, dict]:
     del params
     if laplacian_mode == "fd":
@@ -107,7 +95,7 @@ def colloc_fd_loss(
         raise ValueError(
             f"Unknown laplacian_mode '{laplacian_mode}'. Expected 'fd' or 'autograd'."
         )
-    v = _potential_energy(x, omega=omega, system=system)
+    v = _potential_energy(x, omega=omega, system=system, spin=spin)
     e_loc = -0.5 * lap_over_psi + v
     if not torch.isfinite(e_loc).all():
         raise RuntimeError("Non-finite local energy in colloc_fd_loss.")
@@ -126,6 +114,7 @@ def weak_form_local_energy(
     system: SystemConfig,
     h: float = 0.01,
     laplacian_mode: str = "fd",
+    spin: torch.Tensor | None = None,
 ) -> torch.Tensor:
     (_, _, e_loc, _) = colloc_fd_loss(
         psi_log_fn,
@@ -135,6 +124,7 @@ def weak_form_local_energy(
         system=system,
         h=h,
         laplacian_mode=laplacian_mode,
+        spin=spin,
     )
     return e_loc
 
@@ -149,6 +139,7 @@ def rayleigh_hybrid_loss(
     direct_weight: float,
     h: float = 0.01,
     laplacian_mode: str = "fd",
+    spin: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, float, torch.Tensor, dict]:
     del direct_weight
     return colloc_fd_loss(
@@ -159,4 +150,5 @@ def rayleigh_hybrid_loss(
         system=system,
         h=h,
         laplacian_mode=laplacian_mode,
+        spin=spin,
     )

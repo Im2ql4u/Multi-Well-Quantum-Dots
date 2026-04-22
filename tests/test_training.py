@@ -121,6 +121,20 @@ def test_compute_eeff_energy_var_anneals_towards_reference() -> None:
     assert abs(vals[3] - 3.6) < 1e-8
 
 
+def test_compute_eeff_residual_mode_needs_no_reference() -> None:
+    value = compute_eeff(
+        mu=3.8,
+        e_ref=None,
+        epoch=17,
+        total_epochs=100,
+        mode="residual",
+        alpha_start=0.0,
+        alpha_end=1.0,
+        alpha_decay_frac=0.5,
+    )
+    assert value == 3.8
+
+
 def test_clip_local_energy_by_mad_limits_outlier() -> None:
     x = torch.tensor([1.0, 1.1, 0.9, 50.0], dtype=torch.float64)
     y = clip_local_energy_by_mad(x, 3.0)

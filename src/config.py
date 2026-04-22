@@ -14,10 +14,24 @@ import torch
 # GPU selection helpers
 # ---------------------------------------------------------------------
 def _select_best_gpu() -> str:
-    """Return the CUDA device with the most free memory."""
+    """Return the CUDA device with the most free memory (system-wide via nvidia-smi)."""
     if not torch.cuda.is_available():
         return "cpu"
 
+    try:
+        import subprocess
+
+        out = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=memory.free", "--format=csv,noheader,nounits"],
+            timeout=5,
+        )
+        free_mbs = [int(v.strip()) for v in out.decode().splitlines() if v.strip()]
+        best_idx = int(max(range(len(free_mbs)), key=lambda i: free_mbs[i]))
+        return f"cuda:{best_idx}"
+    except Exception:
+        pass
+
+    # Fallback: use PyTorch-internal accounting (underestimates external usage).
     best_idx, best_free = 0, -1
     for i in range(torch.cuda.device_count()):
         props = torch.cuda.get_device_properties(i)
@@ -25,7 +39,7 @@ def _select_best_gpu() -> str:
         reserved = torch.cuda.memory_reserved(i)
         allocated = torch.cuda.memory_allocated(i)
         free_cached = reserved - allocated
-        free_mem = total - allocated - reserved + free_cached  # conservative
+        free_mem = total - allocated - reserved + free_cached
 
         if free_mem > best_free:
             best_idx, best_free = i, free_mem
@@ -153,6 +167,7 @@ class SystemConfig:
     wells: tuple[WellSpec, ...]
     dim: int = 2
     coulomb: bool = True
+    coulomb_strength: float = 1.0
     smooth_T: float = 0.2
     B_magnitude: float = 0.0
     B_direction: tuple[float, ...] = (0.0, 0.0, 1.0)
