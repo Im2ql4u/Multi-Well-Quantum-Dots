@@ -7,7 +7,10 @@ import torch
 from config import SystemConfig
 from imaginary_time_pinn import (
     PINNConfig,
+    _apply_locked_ground_state_system,
     _compute_delta_potential_for_cfg,
+    _finalize_well_separation_bounds,
+    _quench_output_stem,
     _with_updated_well_separation,
     compute_potential as legacy_compute_potential,
 )
@@ -168,3 +171,49 @@ def test_delta_potential_includes_well_separation_quench():
     )
 
     torch.testing.assert_close(deltaV, expected)
+
+
+def test_finalize_well_separation_bounds_uses_cfg_well_sep_when_unset():
+    cfg = PINNConfig(well_sep=6.0, well_sep_initial=None, well_sep_final=None)
+
+    _finalize_well_separation_bounds(cfg)
+
+    assert cfg.well_sep_initial == 6.0
+    assert cfg.well_sep_final == 6.0
+    assert cfg.well_sep == 6.0
+
+
+def test_locked_ground_state_system_sets_missing_quench_geometry_from_artifact():
+    cfg = PINNConfig(well_sep=0.0, well_sep_initial=None, well_sep_final=None)
+    system = SystemConfig.double_dot(N_L=1, N_R=1, sep=4.0, omega=1.0, dim=2)
+
+    locked_sep = _apply_locked_ground_state_system(cfg, system)
+
+    assert locked_sep == 4.0
+    assert cfg.well_sep_initial == 4.0
+    assert cfg.well_sep_final == 4.0
+    assert cfg.well_sep == 4.0
+    assert cfg.n_particles == 2
+    assert cfg.dim == 2
+
+
+def test_locked_ground_state_system_preserves_explicit_quench_geometry():
+    cfg = PINNConfig(well_sep=0.0, well_sep_initial=4.0, well_sep_final=7.0)
+    system = SystemConfig.double_dot(N_L=1, N_R=1, sep=8.0, omega=1.0, dim=2)
+
+    _apply_locked_ground_state_system(cfg, system)
+
+    assert cfg.well_sep_initial == 4.0
+    assert cfg.well_sep_final == 7.0
+    assert cfg.well_sep == 4.0
+
+
+def test_quench_output_stem_includes_ground_state_artifact_name():
+    stem = _quench_output_stem(
+        quench_kind="quench_single",
+        profile="fast",
+        field_tag="0p50",
+        ground_state_dir="/tmp/p4 n2/seed 42 artifact",
+    )
+
+    assert stem == "quench_single_fast_B0p50_seed_42_artifact"

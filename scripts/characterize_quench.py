@@ -175,8 +175,8 @@ def run_characterization(
     B_pre: float,
     B_post: float,
     omega: float = 1.0,
-    kappa: float = 0.7,
-    epsilon: float = 0.02,
+    kappa: float = 1.0,
+    epsilon: float = 0.01,
     nx: int = 20,
     ny: int = 20,
     n_sp_states: int = 40,
@@ -320,7 +320,8 @@ def main() -> int:
     parser.add_argument("--B-pre", type=float, default=0.0, help="B-field before quench.")
     parser.add_argument("--B-post", type=float, default=0.5, help="B-field after quench.")
     parser.add_argument("--omega", type=float, default=1.0, help="Confinement frequency.")
-    parser.add_argument("--kappa", type=float, default=0.7, help="Coulomb strength.")
+    parser.add_argument("--kappa", type=float, default=1.0, help="Coulomb strength.")
+    parser.add_argument("--epsilon", type=float, default=0.01, help="Soft Coulomb epsilon.")
     parser.add_argument("--nx", type=int, default=20, help="DVR grid points in x.")
     parser.add_argument("--ny", type=int, default=20, help="DVR grid points in y.")
     parser.add_argument("--out-json", type=str, default="", help="Write results to JSON file.")
@@ -335,6 +336,7 @@ def main() -> int:
         B_post=args.B_post,
         omega=args.omega,
         kappa=args.kappa,
+        epsilon=args.epsilon,
         nx=args.nx,
         ny=args.ny,
     )

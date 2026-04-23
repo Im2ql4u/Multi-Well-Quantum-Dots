@@ -337,6 +337,48 @@ def _resolved_well_sep_final(cfg: PINNConfig, system_override) -> float:
     return float(cfg.well_sep)
 
 
+def _finalize_well_separation_bounds(cfg: PINNConfig) -> None:
+    if cfg.well_sep_initial is None:
+        cfg.well_sep_initial = float(cfg.well_sep)
+    if cfg.well_sep_final is None:
+        cfg.well_sep_final = float(cfg.well_sep)
+    cfg.well_sep = float(cfg.well_sep_initial)
+
+
+def _apply_locked_ground_state_system(cfg: PINNConfig, system_override: SystemConfig) -> float:
+    cfg.n_particles = int(system_override.n_particles)
+    cfg.dim = int(system_override.dim)
+    cfg.omega = float(system_override.omega)
+    cfg.coulomb = bool(system_override.coulomb)
+    cfg.smooth_T = float(system_override.smooth_T)
+    locked_sep = _system_max_well_separation(system_override)
+    if cfg.well_sep_initial is None:
+        cfg.well_sep_initial = locked_sep
+    if cfg.well_sep_final is None:
+        cfg.well_sep_final = locked_sep
+    cfg.well_sep = float(cfg.well_sep_initial)
+    return locked_sep
+
+
+def _sanitize_output_tag_component(text: str) -> str:
+    safe = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in text)
+    safe = safe.strip("._-")
+    return safe or "artifact"
+
+
+def _quench_output_stem(
+    *,
+    quench_kind: str,
+    profile: str,
+    field_tag: str,
+    ground_state_dir: str | None,
+) -> str:
+    stem = f"{quench_kind}_{profile}_B{field_tag}"
+    if ground_state_dir:
+        stem = f"{stem}_{_sanitize_output_tag_component(Path(ground_state_dir).expanduser().resolve().name)}"
+    return stem
+
+
 def _compute_delta_potential_for_cfg(
     x: torch.Tensor,
     cfg: PINNConfig,
@@ -1417,7 +1459,10 @@ def train_pinn(cfg: PINNConfig, ground_wf: GroundStateWF, precomputed: dict, E_r
         f"loss={cfg.loss_style}, tau_sampling={cfg.tau_sampling}, x_sampling={cfg.x_sampling}"
     )
 
-    optimizer = optim.Adam(g_net.parameters(), lr=cfg.lr_pde)
+    # PyTorch 2.1 can hit a mixed-device/dtype optimizer-state error in the
+    # foreach Adam path for this float64 GPU PINN workload. The scalar Adam
+    # implementation is slower but reliable for these quench runs.
+    optimizer = optim.Adam(g_net.parameters(), lr=cfg.lr_pde, foreach=False)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
         optimizer, cfg.n_epochs_pde, eta_min=cfg.lr_pde / 30
     )
@@ -1939,12 +1984,6 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     if cfg.zeeman_particle_indices is not None and len(cfg.zeeman_particle_indices) == 0:
         raise ValueError("zeeman_particle_indices must not be empty.")
 
-    if cfg.well_sep_initial is None:
-        cfg.well_sep_initial = float(cfg.well_sep)
-    if cfg.well_sep_final is None:
-        cfg.well_sep_final = float(cfg.well_sep)
-    cfg.well_sep = float(cfg.well_sep_initial)
-
     # Seed all RNGs if seed is specified
     if cfg.seed is not None:
         import random
@@ -1954,6 +1993,24 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(cfg.seed)
         print(f"  [RNG] Seeded all generators with seed={cfg.seed}")
+
+    system_override = None
+    ground_wf = None
+    gs_cfg = None
+    gs_dir = None
+    locked_energy = None
+    if cfg.ground_state_dir is not None:
+        print("\n  Preparing locked generalized ground state artifact...")
+        ground_wf, system_override, gs_cfg = _load_locked_ground_state(cfg)
+        locked_sep = _apply_locked_ground_state_system(cfg, system_override)
+        gs_dir = Path(cfg.ground_state_dir).expanduser().resolve()
+        locked_energy = _load_locked_ground_state_energy(gs_dir)
+        print(
+            f"  Locked GS geometry resolved: d_initial={cfg.well_sep_initial:.1f}, "
+            f"d_final={cfg.well_sep_final:.1f} (artifact d={locked_sep:.1f})"
+        )
+    else:
+        _finalize_well_separation_bounds(cfg)
 
     coul_str = "interacting" if cfg.coulomb else "NON-interacting"
     print(f"\n{'='*65}")
@@ -1976,26 +2033,10 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
         )
     print(f"{'='*65}")
 
-    system_override = None
-
     # Phase 1: reference state (locked GS artifact, trained VMC, or Slater-only)
     t0 = time.time()
     if cfg.ground_state_dir is not None:
-        print("\n  Phase 1: Loading locked generalized ground state artifact...")
-        ground_wf, system_override, gs_cfg = _load_locked_ground_state(cfg)
-        gs_dir = Path(cfg.ground_state_dir).expanduser().resolve()
-        cfg.n_particles = int(system_override.n_particles)
-        cfg.dim = int(system_override.dim)
-        cfg.omega = float(system_override.omega)
-        cfg.coulomb = bool(system_override.coulomb)
-        cfg.smooth_T = float(system_override.smooth_T)
-        locked_sep = _system_max_well_separation(system_override)
-        if cfg.well_sep_initial is None:
-            cfg.well_sep_initial = locked_sep
-        if cfg.well_sep_final is None:
-            cfg.well_sep_final = locked_sep
-        cfg.well_sep = float(cfg.well_sep_initial)
-        locked_energy = _load_locked_ground_state_energy(gs_dir)
+        print("\n  Phase 1: Using locked generalized ground state artifact...")
         if locked_energy is not None:
             E_vmc = locked_energy
             E_err = None
@@ -2584,9 +2625,15 @@ def run_quench_single_B(
         cfg.ground_state_dir = str(ground_state_dir)
     btag = f"{B_evol:.2f}".replace(".", "p")
     profile_tag = "fast" if profile == "fast" else "full"
-    tag = f"quench_single_{profile_tag}_B{btag}_"
+    stem = _quench_output_stem(
+        quench_kind="quench_single",
+        profile=profile_tag,
+        field_tag=btag,
+        ground_state_dir=ground_state_dir,
+    )
+    tag = f"{stem}_"
     result = run_single(cfg, tag=tag)
-    out = RESULTS_DIR / f"pinn_quench_single_{profile_tag}_B{btag}.json"
+    out = RESULTS_DIR / f"pinn_{stem}.json"
     _save(result, out)
     print(f"Saved single-B quench result: {out}")
     return result
@@ -2676,9 +2723,12 @@ def run_quench_single_sep(
     itag = f"{well_sep_initial:.2f}".replace(".", "p")
     ftag = f"{well_sep_final:.2f}".replace(".", "p")
     profile_tag = "fast" if profile == "fast" else "full"
-    tag = f"quench_sep_{profile_tag}_d{itag}_to_d{ftag}_"
+    stem = f"quench_sep_{profile_tag}_d{itag}_to_d{ftag}"
+    if ground_state_dir:
+        stem = f"{stem}_{_sanitize_output_tag_component(Path(ground_state_dir).expanduser().resolve().name)}"
+    tag = f"{stem}_"
     result = run_single(cfg, tag=tag)
-    out = RESULTS_DIR / f"pinn_quench_sep_{profile_tag}_d{itag}_to_d{ftag}.json"
+    out = RESULTS_DIR / f"pinn_{stem}.json"
     _save(result, out)
     print(f"Saved single-separation quench result: {out}")
     return result
