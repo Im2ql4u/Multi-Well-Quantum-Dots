@@ -146,6 +146,71 @@ def _enforce_magnetic_assessment(raw_cfg: dict, system: SystemConfig, spin: torc
     return assessment
 
 
+def _resolve_init_from_model_path(
+    init_cfg: Any,
+    *,
+    config_source: str | None,
+) -> tuple[Path, bool] | None:
+    if init_cfg is None:
+        return None
+
+    strict = False
+    raw_path: str | None = None
+    if isinstance(init_cfg, str):
+        raw_path = init_cfg
+    elif isinstance(init_cfg, dict):
+        raw_path = init_cfg.get("result_dir") or init_cfg.get("path")
+        strict = bool(init_cfg.get("strict", False))
+    else:
+        raise ValueError("init_from must be either a string path or a mapping.")
+
+    if not raw_path:
+        return None
+
+    candidate = Path(str(raw_path)).expanduser()
+    if not candidate.is_absolute():
+        base_dirs: list[Path] = []
+        if config_source is not None:
+            base_dirs.append(Path(config_source).resolve().parent)
+        base_dirs.append(Path(__file__).resolve().parent.parent)
+        for base_dir in base_dirs:
+            maybe = (base_dir / candidate).resolve()
+            if maybe.exists():
+                candidate = maybe
+                break
+        else:
+            candidate = (base_dirs[0] / candidate).resolve()
+    else:
+        candidate = candidate.resolve()
+
+    model_path = candidate / "model.pt" if candidate.is_dir() else candidate
+    if not model_path.exists():
+        raise FileNotFoundError(f"Could not find initialization checkpoint at {model_path}")
+    return model_path, strict
+
+
+def _maybe_load_initial_state(
+    model: GroundStateWF,
+    raw_cfg: dict[str, Any],
+    *,
+    device: torch.device,
+    config_source: str | None,
+) -> dict[str, Any] | None:
+    resolved = _resolve_init_from_model_path(raw_cfg.get("init_from"), config_source=config_source)
+    if resolved is None:
+        return None
+
+    model_path, strict = resolved
+    state = torch.load(model_path, map_location=device, weights_only=False)
+    load_info = model.load_state_dict(state, strict=strict)
+    return {
+        "path": str(model_path),
+        "strict": strict,
+        "missing_keys": list(load_info.missing_keys),
+        "unexpected_keys": list(load_info.unexpected_keys),
+    }
+
+
 def run_training_from_config(
     raw_cfg: dict[str, Any],
     *,
@@ -196,6 +261,13 @@ def run_training_from_config(
         singlet=bool(arch_cfg.get("singlet", False)),
     )
 
+    init_info = _maybe_load_initial_state(
+        model,
+        raw_cfg,
+        device=device,
+        config_source=config_source,
+    )
+
     result = train_ground_state(model, system, params, train_cfg)
 
     result["reference_energy"] = {
@@ -203,6 +275,8 @@ def run_training_from_config(
         "resolved": resolved_E_ref,
         "allow_missing_dmc": allow_missing_dmc,
     }
+    if init_info is not None:
+        result["initialization"] = init_info
     result["spin_configuration"] = spin_meta
     result["magnetic_assessment"] = magnetic_assessment
     if "spin_sector_scan" in raw_cfg:
