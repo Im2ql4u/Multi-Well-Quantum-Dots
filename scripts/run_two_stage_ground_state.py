@@ -63,6 +63,42 @@ def _apply_legacy_n2_singlet_recipe(cfg: dict[str, Any]) -> None:
     training["sampler_dimer_eps_max"] = 0.06
 
 
+def _n_particles_from_cfg(base_cfg: dict[str, Any]) -> int:
+    """Return total particle count from a system config."""
+    system = base_cfg.get("system", {})
+    wells = system.get("wells", [])
+    if wells:
+        return sum(int(w.get("n_particles", 1)) for w in wells)
+    # Fallback for double_dot configs
+    return int(system.get("n_left", 1)) + int(system.get("n_right", 1))
+
+
+def _apply_improved_noref_recipe(cfg: dict[str, Any]) -> None:
+    """Wider stratified sampler + no backflow for N≥3 no-ref training.
+
+    Mirrors the N=2 legacy singlet recipe geometry (which proved critical for
+    recovering entanglement without E_ref) but without the singlet=True flag
+    (which is only valid for N=2). The wider sigma values help the sampler
+    explore configurations beyond the single-well localized minima.
+    """
+    n = _n_particles_from_cfg(cfg)
+    architecture = cfg.setdefault("architecture", {})
+    architecture["use_backflow"] = False
+
+    training = cfg.setdefault("training", {})
+    training["sampler"] = "stratified"
+    training["non_mcmc_only"] = True
+    training["sampler_sigma_center"] = 0.20
+    training["sampler_sigma_tails"] = 1.00
+    training["sampler_sigma_mixed_in"] = 0.25
+    training["sampler_sigma_mixed_out"] = 0.70
+    training["sampler_shell_radius"] = 1.20
+    training["sampler_shell_radius_sigma"] = 0.06
+    # More dimer pairs for larger N to sample inter-particle correlations.
+    training["sampler_dimer_pairs"] = max(1, n - 1)
+    training["sampler_dimer_eps_max"] = 0.06
+
+
 def _infer_stage_a_strategy(base_cfg: dict[str, Any]) -> str:
     training = base_cfg.get("training", {})
     if (
@@ -116,6 +152,8 @@ def _build_stage_a_self_residual_cfg(
     stage_a_epochs: int,
     suffix: str,
     use_legacy_n2_singlet: bool = False,
+    use_improved_recipe: bool = False,
+    seed_override: int | None = None,
 ) -> dict[str, Any]:
     cfg = copy.deepcopy(base_cfg)
     cfg["run_name"] = f"{cfg.get('run_name', 'ground_state')}{suffix}"
@@ -130,8 +168,12 @@ def _build_stage_a_self_residual_cfg(
     training["non_mcmc_only"] = True
     training["print_every"] = int(training.get("print_every", 100))
     training["logw_clip_q"] = float(training.get("logw_clip_q", 0.0))
+    if seed_override is not None:
+        training["seed"] = int(seed_override)
     if use_legacy_n2_singlet:
         _apply_legacy_n2_singlet_recipe(cfg)
+    elif use_improved_recipe:
+        _apply_improved_noref_recipe(cfg)
     return cfg
 
 
@@ -142,6 +184,8 @@ def _build_stage_b_cfg(
     stage_b_epochs: int | None,
     suffix: str,
     use_legacy_n2_singlet: bool = False,
+    use_improved_recipe: bool = False,
+    seed_override: int | None = None,
 ) -> dict[str, Any]:
     cfg = copy.deepcopy(base_cfg)
     cfg["run_name"] = f"{cfg.get('run_name', 'ground_state')}{suffix}"
@@ -156,8 +200,12 @@ def _build_stage_b_cfg(
     training["alpha_end"] = 0.0
     training["sampler"] = "stratified"
     training["non_mcmc_only"] = True
+    if seed_override is not None:
+        training["seed"] = int(seed_override)
     if use_legacy_n2_singlet:
         _apply_legacy_n2_singlet_recipe(cfg)
+    elif use_improved_recipe:
+        _apply_improved_noref_recipe(cfg)
     return cfg
 
 
@@ -190,8 +238,11 @@ def run_two_stage_from_config(
     stage_a_strategy: str = "auto",
     stage_a_suffix: str = "__stageA_energywarm",
     stage_b_suffix: str = "__stageB_noref",
+    seed_override: int | None = None,
 ) -> dict[str, Any]:
     base_cfg = _load_yaml(config_path)
+    if seed_override is not None:
+        base_cfg.setdefault("training", {})["seed"] = int(seed_override)
     resolved_strategy = (
         _infer_stage_a_strategy(base_cfg) if stage_a_strategy == "auto" else stage_a_strategy
     )
@@ -210,10 +261,18 @@ def run_two_stage_from_config(
             suffix="__stageA_singlet_self_residual",
             use_legacy_n2_singlet=True,
         )
+    elif resolved_strategy == "improved_self_residual":
+        stage_a_cfg = _build_stage_a_self_residual_cfg(
+            base_cfg,
+            stage_a_epochs=stage_a_epochs,
+            suffix="__stageA_improved_self_residual",
+            use_improved_recipe=True,
+        )
     else:
         raise ValueError(
             "Unknown stage_a_strategy "
-            f"'{stage_a_strategy}'. Expected one of: auto, guided, self_residual, singlet_self_residual."
+            f"'{stage_a_strategy}'. Expected one of: "
+            "auto, guided, self_residual, singlet_self_residual, improved_self_residual."
         )
     stage_a_dir, stage_a_result = run_training_from_config(stage_a_cfg, config_source=str(config_path))
     gate_status = _stage_a_gate_status(stage_a_result, stage_a_gate)
@@ -245,6 +304,7 @@ def run_two_stage_from_config(
         stage_b_epochs=stage_b_epochs,
         suffix=stage_b_suffix,
         use_legacy_n2_singlet=(resolved_strategy == "singlet_self_residual"),
+        use_improved_recipe=(resolved_strategy == "improved_self_residual"),
     )
     stage_b_dir, stage_b_result = run_training_from_config(stage_b_cfg, config_source=str(config_path))
     summary["stage_b"] = {
@@ -298,12 +358,18 @@ def main() -> None:
     parser.add_argument(
         "--stage-a-strategy",
         default="auto",
-        choices=["auto", "guided", "self_residual", "singlet_self_residual"],
+        choices=["auto", "guided", "self_residual", "singlet_self_residual", "improved_self_residual"],
         help=(
-            "Stage-A warm-start strategy. 'auto' selects a CI-free self-residual warm start for "
-            "the fragile N=2 one-per-well lane, upgrading it to the legacy singlet recipe, "
-            "and keeps the legacy guided warm start elsewhere."
+            "Stage-A warm-start strategy. 'auto' selects singlet_self_residual for N=2 "
+            "double_dot configs and guided elsewhere. 'improved_self_residual' applies the "
+            "wider stratified sampler geometry (no E_ref) for N>=3 without backflow."
         ),
+    )
+    parser.add_argument(
+        "--seed-override",
+        type=int,
+        default=None,
+        help="Override the seed in the base config for multi-seed sweeps.",
     )
     args = parser.parse_args()
 
@@ -317,13 +383,18 @@ def main() -> None:
             min_final_energy=float(args.stage_a_min_energy),
         ),
         stage_a_strategy=str(args.stage_a_strategy),
+        seed_override=args.seed_override,
     )
 
-    out_path = (
-        Path(args.summary_json).expanduser().resolve()
-        if args.summary_json
-        else DEFAULT_OUTPUT_DIR / f"{config_path.stem}__two_stage_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    )
+    if args.summary_json:
+        out_path = Path(args.summary_json).expanduser().resolve()
+    else:
+        seed_tag = f"_seed{args.seed_override}" if args.seed_override is not None else ""
+        strategy_tag = f"__{args.stage_a_strategy}" if args.stage_a_strategy != "auto" else ""
+        out_path = (
+            DEFAULT_OUTPUT_DIR
+            / f"{config_path.stem}{seed_tag}{strategy_tag}__two_stage_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
