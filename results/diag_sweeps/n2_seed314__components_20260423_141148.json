@@ -1,0 +1,15 @@
+{
+  "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260423_141646",
+  "n_samples": 4096,
+  "mh_steps_eval": 20,
+  "acc_rate": 0.715283203125,
+  "E_mean_fd": 2.3450282037258745,
+  "T_mean_fd": 0.9864616107561572,
+  "V_total_mean": 1.358566592969717,
+  "V_conf_mean": 1.040198607181248,
+  "V_ee_mean": 0.31836798578846914,
+  "occupancy_fraction": [
+    0.47021484375,
+    0.52978515625
+  ]
+}
