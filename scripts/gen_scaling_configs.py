@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""Generate grid configs for N-scaling experiments.
+
+Places N electrons one-per-well in a 2D rectangular grid (n_rows × n_cols),
+spacing d between nearest-neighbour wells.  Half-filling: n_up = N//2, n_down = N//2.
+
+Multi-ref is disabled for N >= 12 (C(N,N//2) becomes prohibitive).
+Network size and Laplacian mode are scaled with N automatically.
+
+Usage:
+    python3 scripts/gen_scaling_configs.py
+    python3 scripts/gen_scaling_configs.py --N-list 8 12 16 --d 6
+    python3 scripts/gen_scaling_configs.py --N-list 32 --d 6 --dry-run
+"""
+from __future__ import annotations
+
+import argparse
+import math
+from pathlib import Path
+
+import yaml
+
+REPO = Path(__file__).resolve().parent.parent
+OUT_DIR = REPO / "configs" / "scaling"
+
+# Configurations per N
+_NET = {
+    8:  dict(pinn_hidden=128, pinn_layers=2, multi_ref=True,  laplacian_mode="fd"),
+    12: dict(pinn_hidden=256, pinn_layers=3, multi_ref=False, laplacian_mode="fd"),
+    16: dict(pinn_hidden=256, pinn_layers=3, multi_ref=False, laplacian_mode="autograd"),
+    20: dict(pinn_hidden=512, pinn_layers=3, multi_ref=False, laplacian_mode="autograd"),
+    32: dict(pinn_hidden=512, pinn_layers=4, multi_ref=False, laplacian_mode="autograd"),
+}
+
+def _grid_wells(N: int, d: float) -> list[dict]:
+    """Return well centers for the smallest rectangular grid containing N wells."""
+    n_cols = math.ceil(math.sqrt(N))
+    n_rows = math.ceil(N / n_cols)
+    wells = []
+    idx = 0
+    for row in range(n_rows):
+        for col in range(n_cols):
+            if idx >= N:
+                break
+            x = (col - (n_cols - 1) / 2.0) * d
+            y = (row - (n_rows - 1) / 2.0) * d
+            wells.append({"center": [round(x, 4), round(y, 4)], "omega": 1.0, "n_particles": 1})
+            idx += 1
+    return wells
+
+
+def gen_config(N: int, d: float) -> dict:
+    net = _NET.get(N, dict(pinn_hidden=512, pinn_layers=4, multi_ref=False, laplacian_mode="autograd"))
+    n_up = N // 2
+    n_down = N - n_up
+
+    # For large N, reduce collocation points to keep training time reasonable
+    n_coll = max(64, min(512, 512 * 4 // N))
+
+    cfg: dict = {
+        "allow_missing_dmc": True,
+        "run_name": f"n{N}_grid_d{int(d)}_s42",
+        "architecture": {
+            "arch_type": "pinn",
+            "pinn_hidden": net["pinn_hidden"],
+            "pinn_layers": net["pinn_layers"],
+            "use_backflow": False,
+        },
+        "system": {
+            "type": "custom",
+            "dim": 2,
+            "coulomb": True,
+            "B_magnitude": 0.0,
+            "wells": _grid_wells(N, d),
+        },
+        "spin": {
+            "n_up": n_up,
+            "n_down": n_down,
+        },
+        "training": {
+            "epochs": 5000,
+            "lr": 0.0001,
+            "lr_warmup_epochs": 400,
+            "lr_min_factor": 0.1,
+            "n_coll": n_coll,
+            "loss_type": "residual",
+            "residual_objective": "energy_var",
+            "residual_target_energy": None,
+            "alpha_start": 0.0,
+            "alpha_end": 0.0,
+            "alpha_decay_frac": 0.6,
+            "local_energy_clip_width": 5.0,
+            "laplacian_mode": net["laplacian_mode"],
+            "fd_h": 0.01,
+            "sampler": "stratified",
+            "non_mcmc_only": True,
+            "sampler_mix_weights": [0.55, 0.05, 0.20, 0.15, 0.05],
+            "sampler_sigma_center": 0.20,
+            "sampler_sigma_tails": 1.00,
+            "sampler_sigma_mixed_in": 0.25,
+            "sampler_sigma_mixed_out": 0.70,
+            "sampler_shell_radius": 1.20,
+            "sampler_shell_radius_sigma": 0.06,
+            "sampler_dimer_pairs": max(1, n_up - 1),
+            "sampler_dimer_eps_max": 0.06,
+            "grad_clip": 0.2,
+            "print_every": 100,
+            "seed": 42,
+            "device": "cuda:0",
+            "dtype": "float64",
+        },
+    }
+    return cfg
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--N-list", type=int, nargs="+",
+                        default=[8, 12, 16, 32],
+                        help="Particle counts to generate")
+    parser.add_argument("--d", type=float, default=6.0,
+                        help="Nearest-neighbour well spacing (ℓ_HO units)")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args(argv)
+
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    for N in args.N_list:
+        cfg = gen_config(N, args.d)
+        fname = f"n{N}_grid_d{int(args.d)}_s42.yaml"
+        out = OUT_DIR / fname
+
+        comment = (
+            f"# N={N} electrons in {math.ceil(math.sqrt(N))}×{math.ceil(N/math.ceil(math.sqrt(N)))} "
+            f"grid, d={args.d}, no CI ref.\n"
+            f"# multi_ref={'True' if _NET.get(N, {}).get('multi_ref', False) else 'False'}, "
+            f"pinn_hidden={cfg['architecture']['pinn_hidden']}\n"
+            f"# Generated by gen_scaling_configs.py\n"
+        )
+
+        yaml_str = comment + yaml.dump(cfg, default_flow_style=False, sort_keys=False)
+
+        if args.dry_run:
+            print(f"[DRY] {out.name}  N={N}, d={args.d}, "
+                  f"multi_ref={_NET.get(N, {}).get('multi_ref', False)}, "
+                  f"pinn_hidden={cfg['architecture']['pinn_hidden']}, "
+                  f"n_coll={cfg['training']['n_coll']}")
+        else:
+            out.write_text(yaml_str)
+            print(f"Written: {out.name}")
+
+    if not args.dry_run:
+        print(f"\nConfigs in {OUT_DIR}")
+
+
+if __name__ == "__main__":
+    main()
