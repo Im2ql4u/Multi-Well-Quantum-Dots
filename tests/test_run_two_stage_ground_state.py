@@ -4,10 +4,12 @@ from pathlib import Path
 
 from scripts.run_two_stage_ground_state import (
     StageAGate,
+    _apply_improved_noref_recipe,
     _build_stage_a_cfg,
     _build_stage_a_self_residual_cfg,
     _build_stage_b_cfg,
     _infer_stage_a_strategy,
+    _n_particles_from_cfg,
     _stage_a_gate_status,
 )
 
@@ -154,6 +156,90 @@ def test_infer_stage_a_strategy_uses_singlet_self_residual_for_n2_annealed_targe
     }
 
     assert _infer_stage_a_strategy(base_cfg) == "singlet_self_residual"
+
+
+def test_n_particles_from_cfg_handles_custom_wells_and_double_dot() -> None:
+    wells_cfg = {
+        "system": {
+            "type": "custom",
+            "wells": [{"n_particles": 1}, {"n_particles": 1}, {"n_particles": 1}],
+        }
+    }
+    assert _n_particles_from_cfg(wells_cfg) == 3
+
+    double_dot_cfg = {"system": {"type": "double_dot", "n_left": 1, "n_right": 1}}
+    assert _n_particles_from_cfg(double_dot_cfg) == 2
+
+
+def test_apply_improved_noref_recipe_sets_wide_sampler_and_no_backflow() -> None:
+    cfg: dict = {
+        "system": {
+            "type": "custom",
+            "wells": [{"n_particles": 1}, {"n_particles": 1}, {"n_particles": 1}],
+        },
+        "architecture": {"use_backflow": True},
+        "training": {"sampler_sigma_tails": 0.80},
+    }
+    _apply_improved_noref_recipe(cfg)
+
+    assert cfg["architecture"]["use_backflow"] is False
+    assert cfg["training"]["sampler_sigma_tails"] == 1.00
+    assert cfg["training"]["sampler_sigma_center"] == 0.20
+    assert cfg["training"]["sampler_shell_radius"] == 1.20
+    assert cfg["training"]["sampler_dimer_pairs"] == 2  # N=3: max(1, 3-1)=2
+
+
+def test_apply_improved_noref_recipe_scales_dimer_pairs_with_n() -> None:
+    cfg4: dict = {
+        "system": {"type": "custom", "wells": [{"n_particles": 1}] * 4},
+        "architecture": {},
+        "training": {},
+    }
+    _apply_improved_noref_recipe(cfg4)
+    assert cfg4["training"]["sampler_dimer_pairs"] == 3  # N=4: max(1, 4-1)=3
+
+
+def test_build_stage_a_self_residual_cfg_can_apply_improved_recipe() -> None:
+    base_cfg = {
+        "run_name": "demo",
+        "system": {
+            "type": "custom",
+            "wells": [{"n_particles": 1}, {"n_particles": 1}, {"n_particles": 1}],
+        },
+        "architecture": {"use_backflow": True},
+        "training": {
+            "epochs": 4000,
+            "sampler_sigma_tails": 0.80,
+            "sampler_sigma_center": 0.15,
+        },
+    }
+
+    cfg = _build_stage_a_self_residual_cfg(
+        base_cfg,
+        stage_a_epochs=4000,
+        suffix="__stageA",
+        use_improved_recipe=True,
+    )
+
+    assert cfg["architecture"]["use_backflow"] is False
+    assert cfg["training"]["sampler_sigma_tails"] == 1.00
+    assert cfg["training"]["sampler_dimer_pairs"] == 2
+
+
+def test_seed_override_is_applied_in_stage_a_self_residual() -> None:
+    base_cfg = {
+        "run_name": "demo",
+        "training": {"epochs": 4000, "seed": 42},
+    }
+
+    cfg = _build_stage_a_self_residual_cfg(
+        base_cfg,
+        stage_a_epochs=4000,
+        suffix="__stageA",
+        seed_override=314,
+    )
+
+    assert cfg["training"]["seed"] == 314
 
 
 def test_infer_stage_a_strategy_keeps_guided_for_larger_systems() -> None:
