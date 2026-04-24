@@ -121,11 +121,11 @@ def print_phase_diagram(data: dict[SectorKey, list[float]]) -> None:
         by_NB[(key.N, key.B)][key] = Es
 
     for (N, B), sectors in sorted(by_NB.items()):
-        print(f"\n{'='*60}")
+        print(f"\n{'='*72}")
         print(f"  N={N}  B={B:.2f}  (d=4, ω=1, no E_ref)")
-        print(f"{'='*60}")
-        print(f"  {'Sector':<28}  {'n_seeds':>7}  {'E_mean':>12}  {'E_std':>10}  {'ΔE vs GS':>10}")
-        print(f"  {'-'*72}")
+        print(f"{'='*72}")
+        print(f"  {'Sector':<28}  {'n':>3}  {'E_mean':>12}  {'E_std':>10}  {'ΔE vs GS':>10}  {'E_base':>10}")
+        print(f"  {'-'*75}")
 
         # Sort sectors by n_up ascending (Sz ascending)
         sorted_sectors = sorted(sectors.items(), key=lambda kv: kv[0].n_up)
@@ -141,13 +141,31 @@ def print_phase_diagram(data: dict[SectorKey, list[float]]) -> None:
         E_gs = min(s[1] for s in stats)
         gs_key = next(k for k, E, _ in stats if E == E_gs)
 
+        E_bases = []
         for key, E_mean, E_std in stats:
             dE = E_mean - E_gs
+            # E_base = Zeeman-corrected intrinsic energy (should be ~const in Mott limit)
+            E_base = E_mean - B * (key.n_up - key.n_down)
+            E_bases.append(E_base)
             gs_marker = " ← GS" if key == gs_key else ""
             print(
-                f"  {key.label():<28}  {len(sectors[key]):>7}  {E_mean:>12.6f}  "
-                f"{E_std:>10.6f}  {dE:>10.6f}{gs_marker}"
+                f"  {key.label():<28}  {len(sectors[key]):>3}  {E_mean:>12.6f}  "
+                f"{E_std:>10.6f}  {dE:>10.6f}  {E_base:>10.6f}{gs_marker}"
             )
+
+        # E_base spread → exchange energy scale and critical field
+        if len(E_bases) > 1:
+            E_base_spread = max(E_bases) - min(E_bases)
+            # The minimum E_base sector is the most correlated (AFM exchange)
+            min_E_base = min(E_bases)
+            max_E_base = max(E_bases)
+            # Critical field: Zeeman energy at which GS switches from ferromagnet to AFM
+            # B_c * (2 * g * mu_B / 2) * delta_Sz ≈ delta_E_base per Sz step
+            # With g=2, mu_B=1: B_c ≈ E_base_spread / N  (rough estimate for full ladder)
+            B_c_est = E_base_spread / N
+            print(f"\n  E_base spread = {E_base_spread:.4f} Ha  (AFM exchange scale, B_c ~ {B_c_est:.4f} Ha)")
+            if B > B_c_est * 3:
+                print(f"  B={B:.2f} >> B_c ~ {B_c_est:.4f}: fully in ferromagnet phase ✓")
 
         # Physical interpretation
         print()
