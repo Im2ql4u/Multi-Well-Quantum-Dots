@@ -17,6 +17,7 @@ from training.sampling import (
     mcmc_resample,
     multiwell_init_logpdf,
     sample_multiwell_init,
+    stratified_logpdf,
     stratified_resample,
 )
 
@@ -205,12 +206,11 @@ def train_ground_state(
     if train_cfg.non_mcmc_only and train_cfg.sampler == "mh":
         raise ValueError("non_mcmc_only=true forbids sampler='mh'.")
     direct_local_energy_losses = ("weak_form", "fd_colloc", "reinforce_hybrid")
-    if train_cfg.loss_type in direct_local_energy_losses and train_cfg.sampler not in ("mh", "is"):
+    if train_cfg.loss_type in direct_local_energy_losses and train_cfg.sampler not in ("mh", "is", "stratified"):
         raise ValueError(
-            f"loss_type='{train_cfg.loss_type}' requires sampler='mh' or sampler='is' in the current trainer. "
-            "The stratified non-MCMC sampler does not provide a valid direct local-energy estimator for this loss. "
-            "Use sampler='is' for fixed-proposal non-MCMC variational estimation, loss_type='residual' for stratified runs, "
-            "or sampler='mh' for direct variational minimization."
+            f"loss_type='{train_cfg.loss_type}' requires sampler='mh', sampler='is', or sampler='stratified' in the current trainer. "
+            "Use sampler='is' for the simple Gaussian fixed proposal, sampler='stratified' for the structured non-MCMC mixture, "
+            "loss_type='residual' for pure residual runs, or sampler='mh' for direct variational minimization."
         )
     if train_cfg.laplacian_mode not in ("fd", "autograd"):
         raise ValueError(
@@ -322,6 +322,24 @@ def train_ground_state(
                 dimer_pairs=train_cfg.sampler_dimer_pairs,
                 dimer_eps_max=train_cfg.sampler_dimer_eps_max,
             )
+            if train_cfg.loss_type in direct_local_energy_losses:
+                proposal_logpdf = stratified_logpdf(
+                    x,
+                    omega=system.omega,
+                    system=system,
+                    component_weights=train_cfg.sampler_mix_weights,
+                    sigma_center=train_cfg.sampler_sigma_center,
+                    sigma_tails=train_cfg.sampler_sigma_tails,
+                    sigma_mixed_in=train_cfg.sampler_sigma_mixed_in,
+                    sigma_mixed_out=train_cfg.sampler_sigma_mixed_out,
+                    shell_radius=train_cfg.sampler_shell_radius,
+                    shell_radius_sigma=train_cfg.sampler_shell_radius_sigma,
+                    dimer_pairs=train_cfg.sampler_dimer_pairs,
+                    dimer_eps_max=train_cfg.sampler_dimer_eps_max,
+                )
+                with torch.no_grad():
+                    w_det = normalized_is_weights(x, proposal_logpdf, detach=True)
+                    ess = float((1.0 / torch.sum(w_det * w_det)).item())
         else:
             x, accept_rate, mh_scale = mcmc_resample(
                 psi_log_fn,

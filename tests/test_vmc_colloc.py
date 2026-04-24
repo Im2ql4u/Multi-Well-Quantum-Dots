@@ -64,19 +64,19 @@ def test_same_dot_occupancy_penalty_uses_margin_as_soft_distance_weight() -> Non
     assert penalty.item() < 1.0
 
 
-def test_direct_variational_losses_require_mh_sampler() -> None:
+def test_direct_variational_losses_require_supported_sampler() -> None:
     system = SystemConfig.double_dot(N_L=1, N_R=1, sep=4.0, omega=1.0)
     train_cfg = GroundStateTrainingConfig(
         epochs=1,
         n_coll=8,
         loss_type="weak_form",
-        sampler="stratified",
+        sampler="not_a_sampler",
         non_mcmc_only=True,
         device="cpu",
         dtype="float64",
     )
 
-    with pytest.raises(ValueError, match="requires sampler='mh' or sampler='is'"):
+    with pytest.raises(ValueError, match="Unknown sampler"):
         train_ground_state(_ConstantModel(), system, params={}, train_cfg=train_cfg)
 
 
@@ -88,6 +88,26 @@ def test_direct_variational_losses_allow_fixed_proposal_is_sampler() -> None:
         loss_type="weak_form",
         sampler="is",
         non_mcmc_only=True,
+        device="cpu",
+        dtype="float64",
+    )
+
+    result = train_ground_state(_QuadraticModel(), system, params={}, train_cfg=train_cfg)
+
+    assert torch.isfinite(torch.tensor(result["final_energy"], dtype=torch.float64))
+    assert torch.isfinite(torch.tensor(result["final_loss"], dtype=torch.float64))
+    assert result["final_ess"] > 0.0
+
+
+def test_direct_variational_losses_allow_stratified_fixed_proposal_sampler() -> None:
+    system = SystemConfig.double_dot(N_L=1, N_R=1, sep=4.0, omega=1.0)
+    train_cfg = GroundStateTrainingConfig(
+        epochs=1,
+        n_coll=16,
+        loss_type="weak_form",
+        sampler="stratified",
+        non_mcmc_only=True,
+        sampler_mix_weights=(0.4, 0.2, 0.2, 0.2, 0.0),
         device="cpu",
         dtype="float64",
     )
