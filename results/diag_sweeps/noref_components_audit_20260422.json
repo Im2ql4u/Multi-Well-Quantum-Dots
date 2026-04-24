@@ -1,0 +1,204 @@
+{
+  "baseline": {
+    "n2": {
+      "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42_20260414_150947",
+      "n_samples": 4096,
+      "mh_steps_eval": 20,
+      "acc_rate": 0.7176025390625,
+      "E_mean_fd": 2.3567438834920016,
+      "T_mean_fd": 1.0224372318965487,
+      "V_total_mean": 1.334306651595453,
+      "V_conf_mean": 0.9861797300336058,
+      "V_ee_mean": 0.3481269215618471,
+      "occupancy_fraction": [
+        0.4686279296875,
+        0.5313720703125
+      ]
+    },
+    "n3": {
+      "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916",
+      "n_samples": 4096,
+      "mh_steps_eval": 20,
+      "acc_rate": 0.655810546875,
+      "E_mean_fd": 3.6473497350323276,
+      "T_mean_fd": 1.530124542037465,
+      "V_total_mean": 2.1172251929948627,
+      "V_conf_mean": 1.4685900040725817,
+      "V_ee_mean": 0.6486351889222808,
+      "occupancy_fraction": [
+        0.332763671875,
+        0.3338216145833333,
+        0.3334147135416667
+      ]
+    },
+    "n4": {
+      "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42_20260416_113343",
+      "n_samples": 4096,
+      "mh_steps_eval": 20,
+      "acc_rate": 0.6179443359375,
+      "E_mean_fd": 5.0975413138058085,
+      "T_mean_fd": 2.042014565559095,
+      "V_total_mean": 3.0555267482467134,
+      "V_conf_mean": 1.95711604111028,
+      "V_ee_mean": 1.0984107071364337,
+      "occupancy_fraction": [
+        0.2501220703125,
+        0.25006103515625,
+        0.24993896484375,
+        0.2498779296875
+      ]
+    }
+  },
+  "noref": {
+    "n2": [
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n2_nonmcmc_residual_noref_s314_20260422_123958",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.71485595703125,
+        "E_mean_fd": 2.353715186341561,
+        "T_mean_fd": 1.0209418187587382,
+        "V_total_mean": 1.3327733675828228,
+        "V_conf_mean": 1.0004418317947479,
+        "V_ee_mean": 0.3323315357880753,
+        "occupancy_fraction": [
+          0.462646484375,
+          0.537353515625
+        ]
+      },
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n2_nonmcmc_residual_noref_s42_20260422_123706",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.71612548828125,
+        "E_mean_fd": 2.350301525116769,
+        "T_mean_fd": 1.007658831622869,
+        "V_total_mean": 1.3426426934939002,
+        "V_conf_mean": 1.0064394674952484,
+        "V_ee_mean": 0.3362032259986519,
+        "occupancy_fraction": [
+          0.4681396484375,
+          0.5318603515625
+        ]
+      },
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n2_nonmcmc_residual_noref_s901_20260422_124237",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.717578125,
+        "E_mean_fd": 2.4217615847464122,
+        "T_mean_fd": 1.0415985761900397,
+        "V_total_mean": 1.380163008556372,
+        "V_conf_mean": 0.974760517768813,
+        "V_ee_mean": 0.4054024907875589,
+        "occupancy_fraction": [
+          0.4501953125,
+          0.5498046875
+        ]
+      }
+    ],
+    "n3": [
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n3_nonmcmc_residual_noref_s314_20260422_124431",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.66116943359375,
+        "E_mean_fd": 3.6341233266046844,
+        "T_mean_fd": 1.4954466076330533,
+        "V_total_mean": 2.138676718971631,
+        "V_conf_mean": 1.5027551892184652,
+        "V_ee_mean": 0.6359215297531656,
+        "occupancy_fraction": [
+          0.33349609375,
+          0.333251953125,
+          0.333251953125
+        ]
+      },
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n3_nonmcmc_residual_noref_s42_20260422_123925",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.65872802734375,
+        "E_mean_fd": 3.63272978360916,
+        "T_mean_fd": 1.4995811086656672,
+        "V_total_mean": 2.133148674943493,
+        "V_conf_mean": 1.500467807855319,
+        "V_ee_mean": 0.6326808670881743,
+        "occupancy_fraction": [
+          0.3336588541666667,
+          0.3324381510416667,
+          0.3339029947916667
+        ]
+      },
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n3_nonmcmc_residual_noref_s901_20260422_124929",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.6586669921875,
+        "E_mean_fd": 3.6304016968709076,
+        "T_mean_fd": 1.498694534046908,
+        "V_total_mean": 2.131707162824,
+        "V_conf_mean": 1.497085686404679,
+        "V_ee_mean": 0.6346214764193207,
+        "occupancy_fraction": [
+          0.3330891927083333,
+          0.3335774739583333,
+          0.3333333333333333
+        ]
+      }
+    ],
+    "n4": [
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n4_nonmcmc_residual_noref_s314_20260422_125939",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.6157958984375,
+        "E_mean_fd": 5.100100999007042,
+        "T_mean_fd": 2.0013855262111657,
+        "V_total_mean": 3.0987154727958757,
+        "V_conf_mean": 2.0027375604688764,
+        "V_ee_mean": 1.0959779123270001,
+        "occupancy_fraction": [
+          0.25018310546875,
+          0.24951171875,
+          0.25,
+          0.25030517578125
+        ]
+      },
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n4_nonmcmc_residual_noref_s42_20260422_125103",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.6125,
+        "E_mean_fd": 5.099738618065621,
+        "T_mean_fd": 1.9989988763220223,
+        "V_total_mean": 3.1007397417436,
+        "V_conf_mean": 2.004025951229421,
+        "V_ee_mean": 1.0967137905141784,
+        "occupancy_fraction": [
+          0.24993896484375,
+          0.24993896484375,
+          0.24993896484375,
+          0.25018310546875
+        ]
+      },
+      {
+        "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n4_nonmcmc_residual_noref_s901_20260422_125756",
+        "n_samples": 4096,
+        "mh_steps_eval": 20,
+        "acc_rate": 0.612939453125,
+        "E_mean_fd": 5.09908874579078,
+        "T_mean_fd": 2.0020087607624673,
+        "V_total_mean": 3.097079985028312,
+        "V_conf_mean": 1.9932827991642321,
+        "V_ee_mean": 1.10379718586408,
+        "occupancy_fraction": [
+          0.2501220703125,
+          0.25018310546875,
+          0.24969482421875,
+          0.25
+        ]
+      }
+    ]
+  }
+}

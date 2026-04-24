@@ -1,0 +1,111 @@
+{
+  "date": "2026-04-22",
+  "scope": "ground_states",
+  "jobs": [
+    {
+      "suite": "ground_states",
+      "label": "n2_seed42",
+      "legacy_config": "configs/one_per_well/n2_nonmcmc_residual_anneal_s42.yaml",
+      "legacy_result_glob": "results/p4_n2_nonmcmc_residual_anneal_s42_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n2_seed314",
+      "legacy_config": "configs/one_per_well/seed_sweep/n2_nonmcmc_residual_anneal_s314.yaml",
+      "legacy_result_glob": "results/p4_n2_nonmcmc_residual_anneal_s314_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n2_seed901",
+      "legacy_config": "configs/one_per_well/seed_sweep/n2_nonmcmc_residual_anneal_s901.yaml",
+      "legacy_result_glob": "results/p4_n2_nonmcmc_residual_anneal_s901_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n3_seed42",
+      "legacy_config": "configs/one_per_well/n3_nonmcmc_residual_anneal_s42.yaml",
+      "legacy_result_glob": "results/p4_n3_nonmcmc_residual_anneal_s42_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n3_seed314",
+      "legacy_config": "configs/one_per_well/seed_sweep/n3_nonmcmc_residual_anneal_s314.yaml",
+      "legacy_result_glob": "results/p4_n3_nonmcmc_residual_anneal_s314_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n3_seed901",
+      "legacy_config": "configs/one_per_well/seed_sweep/n3_nonmcmc_residual_anneal_s901.yaml",
+      "legacy_result_glob": "results/p4_n3_nonmcmc_residual_anneal_s901_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n4_seed42",
+      "legacy_config": "configs/one_per_well/n4_nonmcmc_residual_anneal_s42.yaml",
+      "legacy_result_glob": "results/p4_n4_nonmcmc_residual_anneal_s42_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n4_seed314",
+      "legacy_config": "configs/one_per_well/seed_sweep/n4_nonmcmc_residual_anneal_s314.yaml",
+      "legacy_result_glob": "results/p4_n4_nonmcmc_residual_anneal_s314_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    },
+    {
+      "suite": "ground_states",
+      "label": "n4_seed901",
+      "legacy_config": "configs/one_per_well/seed_sweep/n4_nonmcmc_residual_anneal_s901.yaml",
+      "legacy_result_glob": "results/p4_n4_nonmcmc_residual_anneal_s901_*",
+      "validation_bundle": "training+fd_components+generalized_virial",
+      "notes": [
+        "Primary benchmark lane from the 2026-04-13 non-MCMC seed sweep report.",
+        "Compare to finite-basis CI using one-sided exceedance and to legacy runs using FD/virial."
+      ]
+    }
+  ],
+  "notes": [
+    "ground_states must be the first gate because they feed all later physics products.",
+    "singlet_separation_sweep is the second gate because it checks the dedicated singlet ansatz and entanglement measurement path.",
+    "magnetic_sectors are fixed-spin energy ladders only; they do not validate nontrivial uniform-B response by themselves.",
+    "lambda_sweep is already effectively CI-free in the legacy lane and should be resumed after the reproduction gates pass."
+  ]
+}

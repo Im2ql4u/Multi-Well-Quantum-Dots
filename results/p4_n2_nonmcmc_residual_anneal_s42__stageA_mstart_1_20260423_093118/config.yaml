@@ -1,0 +1,54 @@
+allow_missing_dmc: true
+architecture:
+  arch_type: pinn
+  bf_hidden: 32
+  bf_layers: 2
+  pinn_hidden: 64
+  pinn_layers: 2
+  use_backflow: false
+run_name: p4_n2_nonmcmc_residual_anneal_s42__stageA_mstart_1
+system:
+  coulomb: true
+  dim: 2
+  n_left: 1
+  n_right: 1
+  omega: 1.0
+  separation: 4.0
+  type: double_dot
+training:
+  alpha_decay_frac: 0.6
+  alpha_end: 0.0
+  alpha_start: 0.0
+  device: cuda:5
+  dtype: float64
+  epochs: 200
+  fd_h: 0.01
+  grad_clip: 0.2
+  laplacian_mode: fd
+  local_energy_clip_width: 5.0
+  logw_clip_q: 0.0
+  loss_type: residual
+  lr: 0.0001
+  lr_min_factor: 0.1
+  lr_warmup_epochs: 200
+  n_coll: 512
+  non_mcmc_only: true
+  print_every: 100
+  residual_objective: residual
+  residual_target_energy: null
+  sampler: stratified
+  sampler_dimer_eps_max: 0.05
+  sampler_dimer_pairs: 1
+  sampler_mix_weights:
+  - 0.55
+  - 0.05
+  - 0.2
+  - 0.15
+  - 0.05
+  sampler_shell_radius: 1.0
+  sampler_shell_radius_sigma: 0.05
+  sampler_sigma_center: 0.15
+  sampler_sigma_mixed_in: 0.2
+  sampler_sigma_mixed_out: 0.5
+  sampler_sigma_tails: 0.8
+  seed: 10042

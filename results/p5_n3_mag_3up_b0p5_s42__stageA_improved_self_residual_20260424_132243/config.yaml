@@ -1,0 +1,79 @@
+allow_missing_dmc: true
+architecture:
+  arch_type: pinn
+  bf_hidden: 32
+  bf_layers: 2
+  multi_ref: true
+  pinn_hidden: 64
+  pinn_layers: 2
+  use_backflow: false
+magnetic_assessment:
+  mode: 'off'
+run_name: p5_n3_mag_3up_b0p5_s42__stageA_improved_self_residual
+spin:
+  n_down: 0
+  n_up: 3
+system:
+  B_direction:
+  - 0.0
+  - 0.0
+  - 1.0
+  B_magnitude: 0.5
+  coulomb: true
+  dim: 2
+  g_factor: 2.0
+  mu_B: 1.0
+  type: custom
+  wells:
+  - center:
+    - -4.0
+    - 0.0
+    n_particles: 1
+    omega: 1.0
+  - center:
+    - 0.0
+    - 0.0
+    n_particles: 1
+    omega: 1.0
+  - center:
+    - 4.0
+    - 0.0
+    n_particles: 1
+    omega: 1.0
+training:
+  alpha_decay_frac: 0.6
+  alpha_end: 0.0
+  alpha_start: 0.0
+  device: cuda:0
+  dtype: float64
+  epochs: 4000
+  fd_h: 0.01
+  grad_clip: 0.2
+  laplacian_mode: fd
+  local_energy_clip_width: 5.0
+  logw_clip_q: 0.0
+  loss_type: residual
+  lr: 0.0001
+  lr_min_factor: 0.1
+  lr_warmup_epochs: 300
+  n_coll: 512
+  non_mcmc_only: true
+  print_every: 100
+  residual_objective: residual
+  residual_target_energy: null
+  sampler: stratified
+  sampler_dimer_eps_max: 0.06
+  sampler_dimer_pairs: 2
+  sampler_mix_weights:
+  - 0.55
+  - 0.05
+  - 0.2
+  - 0.15
+  - 0.05
+  sampler_shell_radius: 1.2
+  sampler_shell_radius_sigma: 0.06
+  sampler_sigma_center: 0.2
+  sampler_sigma_mixed_in: 0.25
+  sampler_sigma_mixed_out: 0.7
+  sampler_sigma_tails: 1.0
+  seed: 314

@@ -1,0 +1,163 @@
+{
+  "config_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/configs/one_per_well/seed_sweep/n2_nonmcmc_residual_anneal_s314.yaml",
+  "strategy": "bootstrap_target",
+  "bootstrap_pilot": {
+    "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_bootstrap_pilot_20260423_092715",
+    "run_name": "p4_n2_nonmcmc_residual_anneal_s314__stageA_bootstrap_pilot",
+    "training": {
+      "epochs": 200,
+      "lr": 0.0001,
+      "lr_warmup_epochs": 200,
+      "lr_min_factor": 0.1,
+      "n_coll": 512,
+      "loss_type": "residual",
+      "residual_objective": "residual",
+      "residual_target_energy": null,
+      "alpha_start": 0.0,
+      "alpha_end": 0.0,
+      "alpha_decay_frac": 0.6,
+      "local_energy_clip_width": 5.0,
+      "laplacian_mode": "fd",
+      "fd_h": 0.01,
+      "sampler": "stratified",
+      "non_mcmc_only": true,
+      "sampler_mix_weights": [
+        0.55,
+        0.05,
+        0.2,
+        0.15,
+        0.05
+      ],
+      "sampler_sigma_center": 0.15,
+      "sampler_sigma_tails": 0.8,
+      "sampler_sigma_mixed_in": 0.2,
+      "sampler_sigma_mixed_out": 0.5,
+      "sampler_shell_radius": 1.0,
+      "sampler_shell_radius_sigma": 0.05,
+      "sampler_dimer_pairs": 1,
+      "sampler_dimer_eps_max": 0.05,
+      "grad_clip": 0.2,
+      "print_every": 100,
+      "seed": 314,
+      "device": "cuda:0",
+      "dtype": "float64",
+      "logw_clip_q": 0.0
+    },
+    "result": {
+      "final_energy": 2.2396135153992693,
+      "final_loss": 2.1104524124468056e-05,
+      "final_energy_var": 2.110452412446803e-05,
+      "final_ess": 512.0
+    }
+  },
+  "bootstrap_pilot_gate": {
+    "passed": true,
+    "min_final_ess": 32.0,
+    "min_final_energy": 0.0,
+    "failures": []
+  },
+  "bootstrap_target_energy": 2.2396135153992693,
+  "stage_a": {
+    "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_bootstrap_target_20260423_092758",
+    "run_name": "p4_n2_nonmcmc_residual_anneal_s314__stageA_bootstrap_target",
+    "training": {
+      "epochs": 600,
+      "lr": 0.0001,
+      "lr_warmup_epochs": 200,
+      "lr_min_factor": 0.1,
+      "n_coll": 512,
+      "loss_type": "residual",
+      "residual_objective": "energy_var",
+      "residual_target_energy": 2.2396135153992693,
+      "alpha_start": 0.0,
+      "alpha_end": 1.0,
+      "alpha_decay_frac": 0.6,
+      "local_energy_clip_width": 5.0,
+      "laplacian_mode": "fd",
+      "fd_h": 0.01,
+      "sampler": "stratified",
+      "non_mcmc_only": true,
+      "sampler_mix_weights": [
+        0.55,
+        0.05,
+        0.2,
+        0.15,
+        0.05
+      ],
+      "sampler_sigma_center": 0.15,
+      "sampler_sigma_tails": 0.8,
+      "sampler_sigma_mixed_in": 0.2,
+      "sampler_sigma_mixed_out": 0.5,
+      "sampler_shell_radius": 1.0,
+      "sampler_shell_radius_sigma": 0.05,
+      "sampler_dimer_pairs": 1,
+      "sampler_dimer_eps_max": 0.05,
+      "grad_clip": 0.2,
+      "print_every": 100,
+      "seed": 314,
+      "device": "cuda:0",
+      "dtype": "float64",
+      "logw_clip_q": 0.0
+    },
+    "result": {
+      "final_energy": 2.2393441989951994,
+      "final_loss": 1.1754314590280703e-05,
+      "final_energy_var": 1.1681783264780003e-05,
+      "final_ess": 512.0
+    }
+  },
+  "stage_a_gate": {
+    "passed": true,
+    "min_final_ess": 32.0,
+    "min_final_energy": 0.0,
+    "failures": []
+  },
+  "stage_b": {
+    "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260423_093104",
+    "run_name": "p4_n2_nonmcmc_residual_anneal_s314__stageB_noref",
+    "training": {
+      "epochs": 3000,
+      "lr": 0.0001,
+      "lr_warmup_epochs": 200,
+      "lr_min_factor": 0.1,
+      "n_coll": 512,
+      "loss_type": "residual",
+      "residual_objective": "residual",
+      "residual_target_energy": null,
+      "alpha_start": 0.0,
+      "alpha_end": 0.0,
+      "alpha_decay_frac": 0.6,
+      "local_energy_clip_width": 5.0,
+      "laplacian_mode": "fd",
+      "fd_h": 0.01,
+      "sampler": "stratified",
+      "non_mcmc_only": true,
+      "sampler_mix_weights": [
+        0.55,
+        0.05,
+        0.2,
+        0.15,
+        0.05
+      ],
+      "sampler_sigma_center": 0.15,
+      "sampler_sigma_tails": 0.8,
+      "sampler_sigma_mixed_in": 0.2,
+      "sampler_sigma_mixed_out": 0.5,
+      "sampler_shell_radius": 1.0,
+      "sampler_shell_radius_sigma": 0.05,
+      "sampler_dimer_pairs": 1,
+      "sampler_dimer_eps_max": 0.05,
+      "grad_clip": 0.2,
+      "print_every": 100,
+      "seed": 314,
+      "device": "cuda:0",
+      "dtype": "float64"
+    },
+    "result": {
+      "final_energy": 2.234303963779407,
+      "final_loss": 1.829696608332073e-06,
+      "final_energy_var": 1.8296966083320261e-06,
+      "final_ess": 512.0
+    }
+  }
+}

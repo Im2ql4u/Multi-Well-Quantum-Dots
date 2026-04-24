@@ -1,0 +1,107 @@
+{
+  "config_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/configs/one_per_well/n2_singlet_d12_s42.yaml",
+  "stage_a_strategy": "singlet_self_residual",
+  "stage_a_gate": {
+    "passed": true,
+    "min_final_ess": 32.0,
+    "min_final_energy": 0.5,
+    "failures": []
+  },
+  "stage_a": {
+    "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageA_singlet_self_residual_20260424_141328",
+    "run_name": "p4_n2_singlet_d12_s42__stageA_singlet_self_residual",
+    "training": {
+      "epochs": 2000,
+      "lr": 0.0001,
+      "lr_warmup_epochs": 200,
+      "lr_min_factor": 0.1,
+      "n_coll": 512,
+      "loss_type": "residual",
+      "residual_objective": "residual",
+      "residual_target_energy": null,
+      "alpha_start": 0.0,
+      "alpha_end": 0.0,
+      "alpha_decay_frac": 0.6,
+      "local_energy_clip_width": 5.0,
+      "laplacian_mode": "fd",
+      "fd_h": 0.01,
+      "sampler": "stratified",
+      "non_mcmc_only": true,
+      "sampler_mix_weights": [
+        0.6,
+        0.05,
+        0.15,
+        0.15,
+        0.05
+      ],
+      "sampler_sigma_center": 0.2,
+      "sampler_sigma_tails": 1.0,
+      "sampler_sigma_mixed_in": 0.25,
+      "sampler_sigma_mixed_out": 0.7,
+      "sampler_shell_radius": 1.2,
+      "sampler_shell_radius_sigma": 0.06,
+      "sampler_dimer_pairs": 1,
+      "sampler_dimer_eps_max": 0.06,
+      "grad_clip": 0.2,
+      "print_every": 200,
+      "seed": 42,
+      "device": "cuda:7",
+      "dtype": "float64",
+      "logw_clip_q": 0.0
+    },
+    "result": {
+      "final_energy": 2.081022988266463,
+      "final_loss": 1.7191774764637016e-06,
+      "final_energy_var": 1.7191774764636966e-06,
+      "final_ess": 512.0
+    }
+  },
+  "stage_b": {
+    "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageB_noref_20260424_142112",
+    "run_name": "p4_n2_singlet_d12_s42__stageB_noref",
+    "training": {
+      "epochs": 3000,
+      "lr": 0.0001,
+      "lr_warmup_epochs": 200,
+      "lr_min_factor": 0.1,
+      "n_coll": 512,
+      "loss_type": "residual",
+      "residual_objective": "residual",
+      "residual_target_energy": null,
+      "alpha_start": 0.0,
+      "alpha_end": 0.0,
+      "alpha_decay_frac": 0.6,
+      "local_energy_clip_width": 5.0,
+      "laplacian_mode": "fd",
+      "fd_h": 0.01,
+      "sampler": "stratified",
+      "non_mcmc_only": true,
+      "sampler_mix_weights": [
+        0.6,
+        0.05,
+        0.15,
+        0.15,
+        0.05
+      ],
+      "sampler_sigma_center": 0.2,
+      "sampler_sigma_tails": 1.0,
+      "sampler_sigma_mixed_in": 0.25,
+      "sampler_sigma_mixed_out": 0.7,
+      "sampler_shell_radius": 1.2,
+      "sampler_shell_radius_sigma": 0.06,
+      "sampler_dimer_pairs": 1,
+      "sampler_dimer_eps_max": 0.06,
+      "grad_clip": 0.2,
+      "print_every": 200,
+      "seed": 42,
+      "device": "cuda:7",
+      "dtype": "float64"
+    },
+    "result": {
+      "final_energy": 2.0826869040624962,
+      "final_loss": 5.364049356251822e-09,
+      "final_energy_var": 5.3640493562528345e-09,
+      "final_ess": 512.0
+    }
+  }
+}
