@@ -43,8 +43,8 @@ class SectorKey(NamedTuple):
 
 
 def _parse_b_from_tag(tag: str) -> float:
-    """Convert 'b0p5' → 0.5."""
-    m = re.search(r"b(\d+)p(\d+)", tag)
+    """Convert 'b0p5' or '0p5' → 0.5."""
+    m = re.search(r"(\d+)p(\d+)", tag)
     if m:
         return float(f"{m.group(1)}.{m.group(2)}")
     return float("nan")
