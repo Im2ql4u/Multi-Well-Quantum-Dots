@@ -2189,17 +2189,20 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     fit_s = fit_single_exponential(traj, E_ref)
     fit_d = fit_double_exponential(traj, E_ref)
     fit_r = fit_restricted_exponential(traj, E_ref, tau_min=0.15, tau_max=3.0)
-    # Log-linear fit: fix E0 to last τ-point average
-    E0_for_log = np.mean([r["E"] for r in traj[-5:]])
-    fit_ll = fit_log_linear(traj, E0_for_log)
+    # Log-linear fit anchored to E_vmc — the correct asymptotic E0.
+    # The old "last-5-points mean" anchor produces E0 >> E_vmc when the trajectory
+    # hasn't converged, causing a 10-50× inflated gap estimate; keep it as a
+    # diagnostic-only "fit_log_linear" entry but exclude it from fit_best.
+    E0_last_tau = np.mean([r["E"] for r in traj[-5:]])
+    fit_ll = fit_log_linear(traj, E0_last_tau)  # diagnostic only — E0 unreliable
     # Log-linear with E0 = VMC energy (best independent estimate)
     fit_ll_vmc = fit_log_linear(traj, E_vmc, tau_min=0.1, tau_max=2.5)
-    # Windowed log-linear: use middle τ range where single exponential dominates
-    fit_ll_win = fit_log_linear(traj, E0_for_log, tau_min=0.15, tau_max=2.5)
-    # Explicit window sweep to diagnose fit stability vs τ-range choices.
+    # Windowed log-linear: also use E_vmc to stay consistent with fit_ll_vmc
+    fit_ll_win = fit_log_linear(traj, E_vmc, tau_min=0.15, tau_max=2.5)
+    # Explicit window sweep anchored to E_vmc for consistency.
     fit_ll_windows = fit_log_linear_windows(
         traj,
-        E0_for_log,
+        E_vmc,
         windows=[
             (0.05, 1.0),
             (0.10, 1.5),
@@ -2210,12 +2213,13 @@ def run_single(cfg: PINNConfig, tag="") -> dict:
     )
     # Optimal E0 scan: finds E0 that gives best linear fit in log-space
     fit_opt = fit_optimal_E0(traj, E_ref)
-    # Best estimate: ensemble of exp fit, restricted exp, and log-linear
+    # Best estimate: ensemble of exp fit, restricted exp, and log-linear-vmc.
+    # fit_log_linear (last-τ E0) is excluded — it gives wrong answers when the
+    # trajectory hasn't converged to E_0 yet.
     fit_best = fit_best_estimate(
         {
             "exp": fit_s,
             "restricted": fit_r,
-            "loglin": fit_ll,
             "loglin_vmc": fit_ll_vmc,
         }
     )

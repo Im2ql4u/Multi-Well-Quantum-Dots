@@ -86,6 +86,7 @@ def _load_ground_state_from_state(
         use_well_backflow=bool(arch_cfg.get("use_well_backflow", False)),
         use_backflow=bool(arch_cfg.get("use_backflow", True)),
         singlet=bool(arch_cfg.get("singlet", False)),
+        multi_ref=bool(arch_cfg.get("multi_ref", False)),
     )
 
     # Handle C_occ shape mismatch between old (n_orb=n_up) and new (n_orb=n_up+n_down) code.
@@ -118,6 +119,7 @@ def _load_ground_state_from_state(
             use_well_backflow=bool(arch_cfg.get("use_well_backflow", False)),
             use_backflow=bool(arch_cfg.get("use_backflow", True)),
             singlet=bool(arch_cfg.get("singlet", False)),
+        multi_ref=bool(arch_cfg.get("multi_ref", False)),
         )
 
     missing, unexpected = model.load_state_dict(state_dict, strict=False)
@@ -140,6 +142,7 @@ def _load_ground_state_from_state(
                 pinn_layers=int(arch_cfg.get("pinn_layers", 2)),
                 use_backflow=False,
                 singlet=bool(arch_cfg.get("singlet", False)),
+        multi_ref=bool(arch_cfg.get("multi_ref", False)),
             )
             missing2, unexpected2 = model.load_state_dict(state_dict, strict=False)
             if missing2:

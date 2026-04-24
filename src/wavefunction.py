@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from itertools import combinations
 from typing import Any, Sequence
 
 import torch
@@ -310,6 +311,7 @@ class GroundStateWF(nn.Module):
         use_well_backflow: bool = False,
         use_backflow: bool = True,
         singlet: bool = False,
+        multi_ref: bool = False,
     ) -> None:
         super().__init__()
         self.system = system
@@ -317,6 +319,7 @@ class GroundStateWF(nn.Module):
         self.sd_params = dict(params)  # For Slater determinant basis evaluation
 
         self.singlet = bool(singlet)
+        self.multi_ref = bool(multi_ref)
         self.arch_type = str(arch_type).lower()
         if self.arch_type not in {"pinn", "ctnn", "unified"}:
             raise ValueError(
@@ -325,6 +328,14 @@ class GroundStateWF(nn.Module):
         if self.singlet and (len(system.wells) != 2 or system.n_particles != 2):
             raise ValueError(
                 "Singlet permanent ansatz currently requires N=2 and exactly 2 wells."
+            )
+        if self.multi_ref and len(system.wells) < 2:
+            raise ValueError(
+                "Multi-reference ansatz requires at least 2 wells."
+            )
+        if self.singlet and self.multi_ref:
+            raise ValueError(
+                "singlet and multi_ref are mutually exclusive."
             )
 
         if spin.ndim != 1 or spin.numel() != system.n_particles:
@@ -424,6 +435,84 @@ class GroundStateWF(nn.Module):
         sign_perm = torch.sign(perm)
         log_perm = torch.log(torch.abs(perm).clamp(min=1e-30))
         return sign_perm, log_perm
+
+    def _multi_ref_sign_logabs(
+        self,
+        x: torch.Tensor,
+        spin: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Sum over all C(N_wells, n_up) well-to-spin assignments.
+
+        For one particle per well, each reference assigns n_up wells to the
+        spin-up sector and n_down wells to spin-down. The resulting Slater
+        determinants are summed with their signs using a numerically stable
+        signed logsumexp. For N=2 this exactly recovers the singlet permanent.
+        """
+        B, N, d = x.shape
+        wells = self.system.wells
+        n_wells = len(wells)
+
+        # Ground-state HO orbital (K=0) per well at all particle positions.
+        # phi_all[b, i, w] = φ_w^0(r_i),  shape (B, N, N_wells)
+        Phi_per_well = []
+        for well in wells:
+            center = torch.tensor(well.center, device=x.device, dtype=x.dtype).view(1, 1, d)
+            x_shifted = x - center
+            if d == 2:
+                phi_w = self._evaluate_ho_basis_2d(x_shifted)[:, :, 0]  # (B, N)
+            elif d == 1:
+                omega_p = {"omega": float(self.system.omega)}
+                phi_w = evaluate_basis_functions_torch(
+                    x_shifted.squeeze(-1), 1, params=omega_p
+                )[:, :, 0]  # (B, N)
+            else:
+                raise ValueError(f"Unsupported dim={d} for multi-reference ansatz.")
+            Phi_per_well.append(phi_w)
+        phi_all = torch.stack(Phi_per_well, dim=-1)  # (B, N, N_wells)
+
+        spin_1d = spin if spin.ndim == 1 else spin[0]
+        idx_up = (spin_1d == 0).nonzero(as_tuple=True)[0]
+        idx_down = (spin_1d == 1).nonzero(as_tuple=True)[0]
+        n_up = int(idx_up.numel())
+        n_down = int(idx_down.numel())
+
+        phi_up = phi_all[:, idx_up, :]    # (B, n_up, N_wells)
+        phi_down = phi_all[:, idx_down, :]  # (B, n_down, N_wells)
+
+        signs_list: list[torch.Tensor] = []
+        logabs_list: list[torch.Tensor] = []
+
+        for up_wells in combinations(range(n_wells), n_up):
+            down_wells = [w for w in range(n_wells) if w not in up_wells]
+            up_idx = torch.tensor(list(up_wells), device=x.device, dtype=torch.long)
+            down_idx = torch.tensor(down_wells, device=x.device, dtype=torch.long)
+
+            if n_up > 0:
+                Psi_up_k = phi_up[:, :, up_idx]      # (B, n_up, n_up)
+                sign_up_k, log_up_k = torch.linalg.slogdet(Psi_up_k)
+            else:
+                sign_up_k = x.new_ones(B)
+                log_up_k = x.new_zeros(B)
+
+            if n_down > 0:
+                Psi_down_k = phi_down[:, :, down_idx]  # (B, n_down, n_down)
+                sign_down_k, log_down_k = torch.linalg.slogdet(Psi_down_k)
+            else:
+                sign_down_k = x.new_ones(B)
+                log_down_k = x.new_zeros(B)
+
+            signs_list.append(sign_up_k * sign_down_k)
+            logabs_list.append(log_up_k + log_down_k)
+
+        signs = torch.stack(signs_list, dim=0)   # (n_refs, B)
+        logabs = torch.stack(logabs_list, dim=0)  # (n_refs, B)
+
+        # Stable signed logsumexp.
+        log_max, _ = logabs.max(dim=0)  # (B,)
+        norm_sum = (signs * torch.exp(logabs - log_max.unsqueeze(0))).sum(dim=0)  # (B,)
+        sign_total = torch.sign(norm_sum)
+        log_total = torch.log(norm_sum.abs().clamp(min=1e-30)) + log_max
+        return sign_total, log_total
 
     def _evaluate_ho_basis_2d(self, x: torch.Tensor) -> torch.Tensor:
         """Evaluate 2D HO basis as outer product of 1D bases."""
@@ -591,6 +680,16 @@ class GroundStateWF(nn.Module):
             if torch.isnan(log_psi).any():
                 raise RuntimeError("NaN in log_psi (singlet mode) in GroundStateWF forward pass.")
             return sign_perm, log_psi
+
+        if self.multi_ref:
+            # Multi-reference: sum over C(N_wells, n_up) well-to-spin assignments.
+            # Backflow is skipped to preserve permutation symmetry of the reference sum.
+            sign_mr, log_mr = self._multi_ref_sign_logabs(x, spin)
+            correlator = self.pinn(x, spin=spin, well_id=self.well_id, cusp_coords=x).squeeze(-1)
+            log_psi = log_mr + correlator
+            if torch.isnan(log_psi).any():
+                raise RuntimeError("NaN in log_psi (multi_ref mode) in GroundStateWF forward pass.")
+            return sign_mr, log_psi
 
         # Default one-per-well path.
         sign_sd, log_sd = self.signed_log_slater(x)

@@ -84,6 +84,7 @@ def _apply_improved_noref_recipe(cfg: dict[str, Any]) -> None:
     n = _n_particles_from_cfg(cfg)
     architecture = cfg.setdefault("architecture", {})
     architecture["use_backflow"] = False
+    architecture["multi_ref"] = True
 
     training = cfg.setdefault("training", {})
     training["sampler"] = "stratified"

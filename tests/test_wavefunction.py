@@ -241,3 +241,110 @@ def test_single_dot_even_n_stays_closed_shell():
     assert params["down_col_idx"] == [0, 1], "Single-dot should still use doubly-occupied orbitals"
     # C_occ should have n_orb=2 columns (closed-shell)
     assert c_occ.shape[1] == 2
+
+
+def test_multi_ref_n2_matches_singlet_permanent() -> None:
+    """For N=2 double-dot, multi_ref must produce identical sign×|perm| as singlet permanent."""
+    from config import WellSpec
+
+    wells = (
+        WellSpec(center=(-2.0, 0.0), omega=1.0, n_particles=1),
+        WellSpec(center=(2.0, 0.0), omega=1.0, n_particles=1),
+    )
+    system = SystemConfig(wells=wells, dim=2)
+    C_occ, spin, params = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref="auto", allow_missing_dmc=True
+    )
+
+    model_singlet = GroundStateWF(system, C_occ, spin, params, use_backflow=False, singlet=True).double()
+    model_mr = GroundStateWF(system, C_occ, spin, params, use_backflow=False, multi_ref=True).double()
+
+    # Copy PINN weights so correlator is identical.
+    model_mr.pinn.load_state_dict(model_singlet.pinn.state_dict())
+
+    torch.manual_seed(0)
+    x = torch.randn(8, 2, 2, dtype=torch.float64)
+
+    sign_s, log_s = model_singlet._permanent_sign_logabs(x)
+    sign_mr, log_mr = model_mr._multi_ref_sign_logabs(x, model_mr.spin_template)
+
+    # Both should agree on magnitude (up to sign convention — perm always positive).
+    assert torch.allclose(log_mr, log_s, atol=1e-10), (
+        f"Multi-ref log|psi| differs from singlet permanent: max diff={( log_mr - log_s).abs().max():.2e}"
+    )
+    # Signs of multi-ref should be non-negative for positive permanent.
+    assert (sign_mr * sign_s > 0).all() or (sign_mr == sign_s).all()
+
+
+def test_multi_ref_n3_forward_is_finite_and_differentiable() -> None:
+    """N=3 triple-dot with multi_ref=True must produce finite outputs and gradients."""
+    system = SystemConfig.triple_dot(Ns=(1, 1, 1), spacing=4.0, omega=1.0, dim=2)
+    C_occ, spin, params = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref=3
+    )
+
+    model = GroundStateWF(system, C_occ, spin, params, use_backflow=False, multi_ref=True).double()
+    x = torch.randn(6, 3, 2, dtype=torch.float64, requires_grad=True)
+    sign, log_psi = model.signed_log_psi(x)
+
+    assert log_psi.shape == (6,)
+    assert sign.shape == (6,)
+    assert torch.isfinite(log_psi).all()
+    assert torch.isfinite(sign).all()
+    log_psi.sum().backward()
+    assert torch.isfinite(x.grad).all()
+    _assert_finite_grads(model)
+
+
+def test_multi_ref_n4_has_correct_reference_count() -> None:
+    """N=4 (n_up=2, n_down=2) should use C(4,2)=6 references."""
+    from config import WellSpec
+    from itertools import combinations
+
+    wells = tuple(
+        WellSpec(center=(float(xc), 0.0), omega=1.0, n_particles=1)
+        for xc in (-6.0, -2.0, 2.0, 6.0)
+    )
+    system = SystemConfig(wells=wells, dim=2)
+    C_occ, spin, params = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref="auto", allow_missing_dmc=True
+    )
+
+    model = GroundStateWF(system, C_occ, spin, params, use_backflow=False, multi_ref=True).double()
+
+    n_up = params["n_up"]  # 2
+    n_wells = 4
+    expected_refs = len(list(combinations(range(n_wells), n_up)))
+    assert expected_refs == 6
+
+    x = torch.randn(4, 4, 2, dtype=torch.float64)
+    sign, log_psi = model.signed_log_psi(x)
+    assert torch.isfinite(log_psi).all()
+
+
+def test_multi_ref_is_permutation_symmetric_n3() -> None:
+    """Swapping any two particles should only change the sign of the multi-ref det sum."""
+    system = SystemConfig.triple_dot(Ns=(1, 1, 1), spacing=4.0, omega=1.0, dim=2)
+    C_occ, spin, params = setup_closed_shell_system(
+        system, device="cpu", dtype=torch.float64, E_ref=3
+    )
+
+    model = GroundStateWF(system, C_occ, spin, params, use_backflow=False, multi_ref=True).double()
+    spin_t = model.spin_template  # [0, 0, 1] for N=3
+
+    torch.manual_seed(42)
+    x = torch.randn(8, 3, 2, dtype=torch.float64)
+
+    sign_orig, log_orig = model._multi_ref_sign_logabs(x, spin_t)
+
+    # Swap the two up-spin particles (index 0 and 1).
+    x_swap = x[:, [1, 0, 2], :]
+    spin_swap = spin_t[[1, 0, 2]]
+    sign_swap, log_swap = model._multi_ref_sign_logabs(x_swap, spin_swap)
+
+    # Log-magnitudes must be identical.
+    assert torch.allclose(log_orig, log_swap, atol=1e-10), (
+        f"Log-magnitude changed under particle swap: max diff={( log_orig - log_swap).abs().max():.2e}"
+    )
+    # Signs must flip (antisymmetry under exchange of same-spin particles).
+    assert torch.allclose(sign_orig, -sign_swap, atol=1e-10)

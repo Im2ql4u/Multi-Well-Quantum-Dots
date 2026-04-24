@@ -259,6 +259,7 @@ def run_training_from_config(
         use_well_backflow=bool(arch_cfg.get("use_well_backflow", False)),
         use_backflow=bool(arch_cfg.get("use_backflow", True)),
         singlet=bool(arch_cfg.get("singlet", False)),
+        multi_ref=bool(arch_cfg.get("multi_ref", False)),
     )
 
     init_info = _maybe_load_initial_state(
