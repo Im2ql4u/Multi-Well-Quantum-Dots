@@ -195,6 +195,11 @@ def qhe_loss(
     # Penalise variance of E_L_im (not MSE): Lz_Phi = m*N(N-1)/2 is a
     # configuration-independent constant so the PINN (amplitude-only) can never
     # reduce the mean of e_imag.  Variance measures deviation from eigenstatehood.
+    # Clip e_imag by MAD too — single bad sample can spike loss_imag to 1e6+.
+    if clip_width > 0:
+        med_i = e_imag.detach().median()
+        mad_i = (e_imag.detach() - med_i).abs().median().clamp_min(1e-8)
+        e_imag = e_imag.clamp(med_i - clip_width * mad_i, med_i + clip_width * mad_i)
     e_imag_centered = e_imag - e_imag.detach().mean()
     loss_imag = (e_imag_centered ** 2).mean()
     loss = loss_var + imag_penalty * loss_imag
