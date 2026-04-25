@@ -175,13 +175,15 @@ def qhe_loss(
     imag_penalty: float = 1.0,
     clip_width: float = 5.0,
 ) -> tuple[torch.Tensor, float, torch.Tensor, dict]:
-    """Variational energy loss for QHE training.
+    """Energy variance loss for QHE training.
 
-    loss = E_mean + imag_penalty * Var(e_imag)
+    loss = Var(E_real) + imag_penalty * Var(e_imag)
 
-    E_mean uses the variational principle (energy decreases monotonically
-    toward ground state).  Pure variance minimisation finds low-variance
-    eigenstates that may be higher in energy than the Laughlin ground state.
+    Variance minimisation is the correct objective for non-MCMC training.
+    Direct energy minimisation collapses with fixed-distribution sampling
+    because the estimator is biased (samples are not drawn from |Psi|^2).
+    Var(E_L) is always >= 0 and cannot collapse; it also converges to zero
+    iff Psi is an exact eigenstate.
 
     Returns (loss, mean_energy, local_energies, diagnostics).
     """
@@ -208,9 +210,7 @@ def qhe_loss(
     e_imag_centered = e_imag - e_imag.detach().mean()
     loss_imag = (e_imag_centered ** 2).mean()
 
-    # Variational objective: minimise energy (not variance).
-    # Variance term kept as diagnostic and secondary regulariser at weight 0.
-    loss = E_mean + imag_penalty * loss_imag
+    loss = loss_var + imag_penalty * loss_imag
 
     diag = {
         "energy": float(E_mean),
