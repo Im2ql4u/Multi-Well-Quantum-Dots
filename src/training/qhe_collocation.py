@@ -191,13 +191,18 @@ def qhe_loss(
 
     E_mean = e_clipped.mean()
     loss_var = ((e_clipped - E_mean.detach()) ** 2).mean()
-    loss_imag = (e_imag ** 2).mean()
+
+    # Penalise variance of E_L_im (not MSE): Lz_Phi = m*N(N-1)/2 is a
+    # configuration-independent constant so the PINN (amplitude-only) can never
+    # reduce the mean of e_imag.  Variance measures deviation from eigenstatehood.
+    e_imag_centered = e_imag - e_imag.detach().mean()
+    loss_imag = (e_imag_centered ** 2).mean()
     loss = loss_var + imag_penalty * loss_imag
 
     diag = {
         "energy": float(E_mean),
         "energy_var": float(loss_var),
         "imag_penalty": float(loss_imag),
-        "lz_mean": float((e_imag + B / 2.0 * 0).mean()),  # placeholder
+        "imag_mean": float(e_imag.mean()),
     }
     return loss, float(E_mean), e_clipped, diag
