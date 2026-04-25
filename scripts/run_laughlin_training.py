@@ -36,7 +36,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 from laughlin import LaughlinJastrowWF, laughlin_log_amplitude, laughlin_phase
 from training.qhe_collocation import qhe_loss
-from training.stratified_sampler import stratified_sample
+from training.sampling import sample_multiwell_init
 from PINN import PINN
 
 
@@ -51,20 +51,6 @@ def _build_pinn_jastrow(cfg: dict, n_particles: int, device: str, dtype: torch.d
     ).to(device=device, dtype=dtype)
     return net
 
-
-def _make_sampler_cfg(cfg: dict) -> dict:
-    tr = cfg.get("training", {})
-    return {
-        "sigma_center": tr.get("sampler_sigma_center", 0.5),
-        "sigma_tails": tr.get("sampler_sigma_tails", 1.0),
-        "sigma_mixed_in": tr.get("sampler_sigma_mixed_in", 0.3),
-        "sigma_mixed_out": tr.get("sampler_sigma_mixed_out", 0.8),
-        "shell_radius": tr.get("sampler_shell_radius", 1.5),
-        "shell_radius_sigma": tr.get("sampler_shell_radius_sigma", 0.2),
-        "dimer_pairs": tr.get("sampler_dimer_pairs", 2),
-        "dimer_eps_max": tr.get("sampler_dimer_eps_max", 0.05),
-        "mix_weights": tr.get("sampler_mix_weights", [0.7, 0.05, 0.15, 0.05, 0.05]),
-    }
 
 
 def train(
@@ -122,15 +108,13 @@ def train(
 
     # Sampler config — build well centers tensor
     wells = cfg["system"]["wells"]
-    from config import SystemConfig, WellConfig
+    from config import SystemConfig, WellSpec
     system = SystemConfig(
-        type="custom", dim=2, coulomb=True,
-        B_magnitude=B, B_direction=[0., 0., 1.], g_factor=2.0, mu_B=1.0,
-        wells=[WellConfig(center=w["center"], omega=w.get("omega", 1.0),
-                          n_particles=w.get("n_particles", 1)) for w in wells],
+        dim=2, coulomb=True,
+        B_magnitude=B, B_direction=(0., 0., 1.), g_factor=2.0, mu_B=1.0,
+        wells=tuple(WellSpec(center=tuple(w["center"]), omega=w.get("omega", 1.0),
+                             n_particles=w.get("n_particles", 1)) for w in wells),
     )
-
-    sampler_kw = _make_sampler_cfg(cfg)
 
     run_name = cfg.get("run_name", config_path.stem) + f"_seed{seed}"
     out_dir = REPO / "results" / run_name
@@ -147,10 +131,9 @@ def train(
     for epoch in range(n_epochs):
         # Sample from |Ψ|² via stratified sampler (ignores phase for sampling)
         with torch.no_grad():
-            x = stratified_sample(
-                n_samples=n_coll, n_particles=N, d=2,
-                system=system, dtype=dtype, device=device_str,
-                **sampler_kw,
+            x = sample_multiwell_init(
+                n_coll, system=system,
+                device=torch.device(device_str), dtype=dtype,
             )
 
         # Compute QHE loss
