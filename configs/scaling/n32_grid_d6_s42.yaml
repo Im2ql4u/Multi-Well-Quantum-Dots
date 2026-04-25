@@ -183,7 +183,7 @@ training:
   lr: 0.0001
   lr_warmup_epochs: 400
   lr_min_factor: 0.1
-  n_coll: 16
+  n_coll: 64
   loss_type: reinforce
   reinforce_clip_width: 5.0
   local_energy_clip_width: 5.0
