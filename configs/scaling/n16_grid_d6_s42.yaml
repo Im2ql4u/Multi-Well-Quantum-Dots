@@ -8,6 +8,7 @@ architecture:
   pinn_hidden: 256
   pinn_layers: 3
   use_backflow: false
+  multi_ref: false
 system:
   type: custom
   dim: 2
@@ -110,7 +111,7 @@ training:
   alpha_end: 0.0
   alpha_decay_frac: 0.6
   local_energy_clip_width: 5.0
-  laplacian_mode: autograd
+  laplacian_mode: fd
   fd_h: 0.01
   sampler: stratified
   non_mcmc_only: true
