@@ -5,8 +5,8 @@ allow_missing_dmc: true
 run_name: n32_grid_d6_s42
 architecture:
   arch_type: pinn
-  pinn_hidden: 512
-  pinn_layers: 4
+  pinn_hidden: 128
+  pinn_layers: 3
   use_backflow: false
   multi_ref: false
 system:
@@ -183,7 +183,7 @@ training:
   lr: 0.0001
   lr_warmup_epochs: 400
   lr_min_factor: 0.1
-  n_coll: 64
+  n_coll: 16
   loss_type: residual
   residual_objective: energy_var
   residual_target_energy: null
