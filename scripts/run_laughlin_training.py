@@ -36,7 +36,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 from laughlin import LaughlinJastrowWF, laughlin_log_amplitude, laughlin_phase
 from training.qhe_collocation import qhe_loss
-from training.sampling import sample_multiwell_init
+from training.sampling import stratified_resample
 from PINN import PINN
 
 
@@ -106,7 +106,7 @@ def train(
     optimizer = torch.optim.Adam(params, lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_epochs, eta_min=lr * 0.05)
 
-    # Sampler config — build well centers tensor
+    # Build SystemConfig for sampler
     wells = cfg["system"]["wells"]
     from config import SystemConfig, WellSpec
     system = SystemConfig(
@@ -114,6 +114,19 @@ def train(
         B_magnitude=B, B_direction=(0., 0., 1.), g_factor=2.0, mu_B=1.0,
         wells=tuple(WellSpec(center=tuple(w["center"]), omega=w.get("omega", 1.0),
                              n_particles=w.get("n_particles", 1)) for w in wells),
+    )
+
+    # Stratified sampler params from config (calibrated to Laughlin scale)
+    sampler_kwargs = dict(
+        component_weights=tuple(tr.get("sampler_mix_weights", [0.25, 0.2, 0.25, 0.2, 0.1])),
+        sigma_center=float(tr.get("sampler_sigma_center", 0.2)),
+        sigma_tails=float(tr.get("sampler_sigma_tails", 1.2)),
+        sigma_mixed_in=float(tr.get("sampler_sigma_mixed_in", 0.25)),
+        sigma_mixed_out=float(tr.get("sampler_sigma_mixed_out", 0.9)),
+        shell_radius=float(tr.get("sampler_shell_radius", 1.4)),
+        shell_radius_sigma=float(tr.get("sampler_shell_radius_sigma", 0.08)),
+        dimer_pairs=int(tr.get("sampler_dimer_pairs", 2)),
+        dimer_eps_max=float(tr.get("sampler_dimer_eps_max", 0.08)),
     )
 
     run_name = cfg.get("run_name", config_path.stem) + f"_seed{seed}"
@@ -130,9 +143,13 @@ def train(
 
     for epoch in range(n_epochs):
         with torch.no_grad():
-            x = sample_multiwell_init(
-                n_coll, system=system,
-                device=torch.device(device_str), dtype=dtype,
+            x, _ = stratified_resample(
+                n_keep=n_coll,
+                omega=omega,
+                system=system,
+                device=torch.device(device_str),
+                dtype=dtype,
+                **sampler_kwargs,
             )
 
         # Compute QHE loss
