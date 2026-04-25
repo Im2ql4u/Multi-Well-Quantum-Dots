@@ -175,16 +175,22 @@ def qhe_loss(
     imag_penalty: float = 1.0,
     clip_width: float = 5.0,
 ) -> tuple[torch.Tensor, float, torch.Tensor, dict]:
-    """Energy variance loss for QHE training.
+    """Variational energy loss for QHE training.
+
+    loss = E_mean + imag_penalty * Var(e_imag)
+
+    E_mean uses the variational principle (energy decreases monotonically
+    toward ground state).  Pure variance minimisation finds low-variance
+    eigenstates that may be higher in energy than the Laughlin ground state.
 
     Returns (loss, mean_energy, local_energies, diagnostics).
     """
     e_real, e_imag = qhe_local_energy(log_amplitude_fn, phase_fn, x, B=B, omega=omega)
 
-    # Clip by MAD for stability
+    # Clip e_real by MAD for stability
     if clip_width > 0:
         med = e_real.median()
-        mad = (e_real - med).abs().median()
+        mad = (e_real - med).abs().median().clamp_min(1e-8)
         e_clipped = e_real.clamp(med - clip_width * mad, med + clip_width * mad)
     else:
         e_clipped = e_real
@@ -192,17 +198,19 @@ def qhe_loss(
     E_mean = e_clipped.mean()
     loss_var = ((e_clipped - E_mean.detach()) ** 2).mean()
 
-    # Penalise variance of E_L_im (not MSE): Lz_Phi = m*N(N-1)/2 is a
-    # configuration-independent constant so the PINN (amplitude-only) can never
-    # reduce the mean of e_imag.  Variance measures deviation from eigenstatehood.
-    # Clip e_imag by MAD too — single bad sample can spike loss_imag to 1e6+.
+    # Penalise variance of E_L_im: Lz_Phi = m*N(N-1)/2 is configuration-
+    # independent so amplitude cannot reduce e_imag mean. Variance measures
+    # deviation from eigenstate condition. Clip by MAD to avoid outlier spikes.
     if clip_width > 0:
         med_i = e_imag.detach().median()
         mad_i = (e_imag.detach() - med_i).abs().median().clamp_min(1e-8)
         e_imag = e_imag.clamp(med_i - clip_width * mad_i, med_i + clip_width * mad_i)
     e_imag_centered = e_imag - e_imag.detach().mean()
     loss_imag = (e_imag_centered ** 2).mean()
-    loss = loss_var + imag_penalty * loss_imag
+
+    # Variational objective: minimise energy (not variance).
+    # Variance term kept as diagnostic and secondary regulariser at weight 0.
+    loss = E_mean + imag_penalty * loss_imag
 
     diag = {
         "energy": float(E_mean),
