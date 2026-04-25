@@ -184,12 +184,8 @@ training:
   lr_warmup_epochs: 400
   lr_min_factor: 0.1
   n_coll: 16
-  loss_type: residual
-  residual_objective: energy_var
-  residual_target_energy: null
-  alpha_start: 0.0
-  alpha_end: 0.0
-  alpha_decay_frac: 0.6
+  loss_type: reinforce
+  reinforce_clip_width: 5.0
   local_energy_clip_width: 5.0
   laplacian_mode: fd
   fd_h: 0.01
