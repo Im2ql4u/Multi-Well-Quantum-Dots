@@ -36,7 +36,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 from laughlin import LaughlinJastrowWF, laughlin_log_amplitude, laughlin_phase
 from training.qhe_collocation import qhe_loss
-from training.sampling import sample_multiwell_init, mcmc_resample
+from training.sampling import sample_multiwell_init
 from PINN import PINN
 
 
@@ -128,36 +128,12 @@ def train(
     best_energy = float("inf")
     best_state = None
 
-    # MCMC state: burn in for first 200 epochs with fixed init, then switch to MCMC
-    mcmc_burnin = 200
-    l_B = 1.0 / B**0.5
-    mh_step_scale = l_B * 0.5   # initial step ~ half magnetic length
-    x_mcmc = None                # will be populated after burn-in
-
     for epoch in range(n_epochs):
         with torch.no_grad():
-            if epoch < mcmc_burnin:
-                x = sample_multiwell_init(
-                    n_coll, system=system,
-                    device=torch.device(device_str), dtype=dtype,
-                )
-            else:
-                # MCMC from |Ψ_L × exp(J)|² — proper importance sampling
-                x_mcmc, accept_rate, mh_step_scale = mcmc_resample(
-                    log_amp_fn,
-                    x_mcmc,
-                    n_coll,
-                    n_elec=N, dim=2,
-                    omega=float(system.omega),
-                    device=torch.device(device_str),
-                    dtype=dtype,
-                    system=system,
-                    sigma_fs=(l_B,),
-                    mh_steps=10,
-                    mh_step_scale=mh_step_scale,
-                    mh_decorrelation=1,
-                )
-                x = x_mcmc
+            x = sample_multiwell_init(
+                n_coll, system=system,
+                device=torch.device(device_str), dtype=dtype,
+            )
 
         # Compute QHE loss
         loss, E_mean, e_loc, diag = qhe_loss(
