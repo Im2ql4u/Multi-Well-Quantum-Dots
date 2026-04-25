@@ -1,0 +1,107 @@
+{
+  "config_path": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/configs/magnetic/n3_3up0down_b0p01_s42.yaml",
+  "stage_a_strategy": "improved_self_residual",
+  "stage_a_gate": {
+    "passed": true,
+    "min_final_ess": 32.0,
+    "min_final_energy": 0.5,
+    "failures": []
+  },
+  "stage_a": {
+    "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p01_noref_s42__stageA_improved_self_residual_20260424_200313",
+    "run_name": "n3_mag_3up0down_b0p01_noref_s42__stageA_improved_self_residual",
+    "training": {
+      "epochs": 3000,
+      "lr": 0.0001,
+      "lr_warmup_epochs": 300,
+      "lr_min_factor": 0.1,
+      "n_coll": 512,
+      "loss_type": "residual",
+      "residual_objective": "residual",
+      "residual_target_energy": null,
+      "alpha_start": 0.0,
+      "alpha_end": 0.0,
+      "alpha_decay_frac": 0.6,
+      "local_energy_clip_width": 5.0,
+      "laplacian_mode": "fd",
+      "fd_h": 0.01,
+      "sampler": "stratified",
+      "non_mcmc_only": true,
+      "sampler_mix_weights": [
+        0.55,
+        0.05,
+        0.2,
+        0.15,
+        0.05
+      ],
+      "sampler_sigma_center": 0.2,
+      "sampler_sigma_tails": 1.0,
+      "sampler_sigma_mixed_in": 0.25,
+      "sampler_sigma_mixed_out": 0.7,
+      "sampler_shell_radius": 1.2,
+      "sampler_shell_radius_sigma": 0.06,
+      "sampler_dimer_pairs": 2,
+      "sampler_dimer_eps_max": 0.06,
+      "grad_clip": 0.2,
+      "print_every": 100,
+      "seed": 314,
+      "device": "cuda:0",
+      "dtype": "float64",
+      "logw_clip_q": 0.0
+    },
+    "result": {
+      "final_energy": 3.6609811627146613,
+      "final_loss": 3.0462643005495024e-05,
+      "final_energy_var": 3.046264300549498e-05,
+      "final_ess": 512.0
+    }
+  },
+  "stage_b": {
+    "result_dir": "/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p01_noref_s42__stageB_noref_20260424_200541",
+    "run_name": "n3_mag_3up0down_b0p01_noref_s42__stageB_noref",
+    "training": {
+      "epochs": 2000,
+      "lr": 0.0001,
+      "lr_warmup_epochs": 300,
+      "lr_min_factor": 0.1,
+      "n_coll": 512,
+      "loss_type": "residual",
+      "residual_objective": "residual",
+      "residual_target_energy": null,
+      "alpha_start": 0.0,
+      "alpha_end": 0.0,
+      "alpha_decay_frac": 0.6,
+      "local_energy_clip_width": 5.0,
+      "laplacian_mode": "fd",
+      "fd_h": 0.01,
+      "sampler": "stratified",
+      "non_mcmc_only": true,
+      "sampler_mix_weights": [
+        0.55,
+        0.05,
+        0.2,
+        0.15,
+        0.05
+      ],
+      "sampler_sigma_center": 0.2,
+      "sampler_sigma_tails": 1.0,
+      "sampler_sigma_mixed_in": 0.25,
+      "sampler_sigma_mixed_out": 0.7,
+      "sampler_shell_radius": 1.2,
+      "sampler_shell_radius_sigma": 0.06,
+      "sampler_dimer_pairs": 2,
+      "sampler_dimer_eps_max": 0.06,
+      "grad_clip": 0.2,
+      "print_every": 100,
+      "seed": 314,
+      "device": "cuda:0",
+      "dtype": "float64"
+    },
+    "result": {
+      "final_energy": 3.663548476514178,
+      "final_loss": 8.85493143664687e-06,
+      "final_energy_var": 8.854931436646733e-06,
+      "final_ess": 512.0
+    }
+  }
+}
