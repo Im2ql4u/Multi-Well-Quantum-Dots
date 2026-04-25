@@ -194,11 +194,17 @@ def _build_stage_b_cfg(
     training = cfg.setdefault("training", {})
     if stage_b_epochs is not None:
         training["epochs"] = int(stage_b_epochs)
-    training["loss_type"] = "residual"
-    training["residual_objective"] = "residual"
-    training["residual_target_energy"] = None
-    training["alpha_start"] = 0.0
-    training["alpha_end"] = 0.0
+    # Preserve reinforce from stage A when set — residual keeps O(2Nd) graphs
+    # alive for FD Laplacian and OOMs for large N (N≥16).
+    if base_cfg.get("training", {}).get("loss_type") == "reinforce":
+        training["loss_type"] = "reinforce"
+        training["reinforce_clip_width"] = base_cfg["training"].get("reinforce_clip_width", 5.0)
+    else:
+        training["loss_type"] = "residual"
+        training["residual_objective"] = "residual"
+        training["residual_target_energy"] = None
+        training["alpha_start"] = 0.0
+        training["alpha_end"] = 0.0
     training["sampler"] = "stratified"
     training["non_mcmc_only"] = True
     if seed_override is not None:
