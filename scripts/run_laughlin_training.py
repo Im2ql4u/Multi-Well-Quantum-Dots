@@ -36,8 +36,66 @@ sys.path.insert(0, str(REPO / "src"))
 
 from laughlin import LaughlinJastrowWF, laughlin_log_amplitude, laughlin_phase
 from training.qhe_collocation import qhe_loss
-from training.sampling import stratified_resample, sample_multiwell_init
+from training.sampling import stratified_resample
 from PINN import PINN
+
+
+def _sample_laughlin_dot(
+    n_samples: int,
+    N: int,
+    m: int,
+    l_B: float,
+    device: torch.device,
+    dtype: torch.dtype,
+    mix: tuple[float, float, float] = (0.5, 0.3, 0.2),
+) -> torch.Tensor:
+    """Physics-informed non-MCMC sampler for single-dot Laughlin states.
+
+    The N-body Laughlin state has each electron occupying orbital l=m*k (k=0..N-1)
+    with peak radius r_k = sqrt(2*m*k) * l_B.  Three-component mixture:
+      mix[0]: orbital-ring — electron i placed at r=sqrt(2*m*i)*l_B ± l_B with
+              random angle, permuted randomly across electrons each call.
+      mix[1]: annular uniform — all electrons uniform in [l_B, r_max] disk.
+      mix[2]: Gaussian broad — all electrons from N(0, sqrt(m*N)*l_B) to cover tails.
+    """
+    n0 = int(round(mix[0] * n_samples))
+    n1 = int(round(mix[1] * n_samples))
+    n2 = n_samples - n0 - n1
+    chunks: list[torch.Tensor] = []
+
+    r_peaks = torch.tensor(
+        [float((2 * m * k) ** 0.5 * l_B) for k in range(N)],
+        device=device, dtype=dtype,
+    )
+    r_max = float(r_peaks[-1]) + 2.0 * l_B
+
+    # Component 0: each electron near its Laughlin orbital radius
+    if n0 > 0:
+        r_offsets = r_peaks.unsqueeze(0) + l_B * torch.randn(n0, N, device=device, dtype=dtype)
+        r = r_offsets.abs()
+        theta = 2.0 * torch.pi * torch.rand(n0, N, device=device, dtype=dtype)
+        # Random permutation per sample so electrons aren't always assigned in order
+        idx = torch.argsort(torch.rand(n0, N, device=device, dtype=dtype), dim=1)
+        r = r.gather(1, idx)
+        c0 = torch.stack([r * torch.cos(theta), r * torch.sin(theta)], dim=-1)
+        chunks.append(c0)
+
+    # Component 1: uniform in annulus [l_B, r_max]
+    if n1 > 0:
+        r_inner, r_outer = l_B, r_max
+        u = torch.rand(n1, N, device=device, dtype=dtype)
+        r = (r_inner**2 + u * (r_outer**2 - r_inner**2)).sqrt()
+        theta = 2.0 * torch.pi * torch.rand(n1, N, device=device, dtype=dtype)
+        c1 = torch.stack([r * torch.cos(theta), r * torch.sin(theta)], dim=-1)
+        chunks.append(c1)
+
+    # Component 2: isotropic Gaussian centered at origin
+    if n2 > 0:
+        sigma = float((m * N) ** 0.5 * l_B)
+        c2 = sigma * torch.randn(n2, N, 2, device=device, dtype=dtype)
+        chunks.append(c2)
+
+    return torch.cat(chunks, dim=0)
 
 
 def _build_pinn_jastrow(cfg: dict, n_particles: int, device: str, dtype: torch.dtype) -> PINN:
@@ -137,7 +195,7 @@ def train(
     out_dir = REPO / "results" / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    _sampler_name = "gaussian" if _single_dot else "stratified"
+    _sampler_name = "laughlin_orbital" if _single_dot else "stratified"
     print(f"QHE Training: N={N}, ν={nu:.3f} (m={m}), B={B:.3f}, l_B={1/B**0.5:.3f}")
     print(f"  epochs={n_epochs}, n_coll={n_coll}, lr={lr}, imag_penalty={imag_penalty}")
     print(f"  sampler={_sampler_name}, use_laughlin_base={use_laughlin_base}, params={sum(p.numel() for p in params):,}")
@@ -149,8 +207,8 @@ def train(
     for epoch in range(n_epochs):
         with torch.no_grad():
             if _single_dot:
-                x = sample_multiwell_init(
-                    n_coll, system=system,
+                x = _sample_laughlin_dot(
+                    n_coll, N, m, 1.0 / B**0.5,
                     device=torch.device(device_str), dtype=dtype,
                 )
             else:
