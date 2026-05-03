@@ -28,6 +28,9 @@ dist/
 build/
 *.pid
 
+# Local tmux / foreground run logs (can grow large)
+runlogs/
+
 # Generated run artifacts
 .nfs*
 results/imag_time_pinn/pinn_sweep_*.png

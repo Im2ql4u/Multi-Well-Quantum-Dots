@@ -1,0 +1,1024 @@
+status,path,n_up,n_down,expected_Sz,n_particles,reason
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/20260331_171637_baseline_n2_sep4_old_s401,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/20260331_171904_baseline_n2_sep4_old_s402,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_125505_n2_single_smoke,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_125516_n2_single_smoke,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_125621_n2_single_gpu_smoke,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_125643_g6_n2_double_1_1_ctnn,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_130138_n2_single_gpu_smoke,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_130145_n4_double_smoke,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_132431_g2_n2_single_unified,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_132814_g7_n2_double_1_1_unified,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_133426_g1_n2_single_ctnn,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_134141_g0_n2_single_pinn,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_134224_g6_n2_double_1_1_ctnn,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_134412_g3_n4_double_2_2_pinn,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_134854_g5_n4_double_2_2_unified,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260329_140603_g4_n4_double_2_2_ctnn,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_090940_g7_n2_double_1_1_unified_rerun,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_091926_g6_n2_double_1_1_ctnn_rerun,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_092707_g5_n4_double_2_2_unified_rerun,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_093435_g3_n4_double_2_2_pinn_rerun,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_094942_g4_n4_double_2_2_ctnn_rerun,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_125345_g5_n4_double_2_2_unified_s204,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_125435_g5_n4_double_2_2_unified_s205,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_131442_g4_n4_double_2_2_ctnn_s203,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_131508_g4_n4_double_2_2_ctnn_s202,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_131511_g4_n4_double_2_2_ctnn_s201,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_132836_g6_n2_double_1_1_ctnn_s207,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_133631_g5_n4_double_2_2_unified_s206,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_133928_g7_n2_double_1_1_unified_s210,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_134810_g6_n2_double_1_1_ctnn_s208,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_134909_g6_n2_double_1_1_ctnn_s209,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_135232_g7_n2_double_1_1_unified_s211,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_140112_g7_n2_double_1_1_unified_s212,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_170100_validate_nonint_n2_double_1_1,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_170538_validate_nonint_n4_double_2_2,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_193715_smoke_improved,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_204447_impr_n2_ctnn_s301,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_204732_impr_n2_ctnn_s302,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_212815_impr_n2_unified_s303,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_213142_impr_n2_unified_s304,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260330_231223_impr_n4_unified_s306,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260331_004615_impr_n4_ctnn_s305,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260331_083709_validate_nonint_n2_double_1_1,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260331_085858_validate_nonint_n2_double_1_1,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/_archive/2026-04-12_cleanup/timestamped_runs/20260331_090419_validate_nonint_n4_double_2_2,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_ctnn_s301_20260403_200128,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_ctnn_s301_20260403_210745,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_ctnn_s301_20260406_090836,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_ctnn_s301_20260406_100033,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_pinn_s301_20260403_191051,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_pinn_s301_20260403_205744,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_pinn_s301_20260406_090919,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_pinn_s301_20260406_094925,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_unified_s301_20260403_212812,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_unified_s301_20260406_091011,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n2_unified_s301_20260406_095734,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_ctnn_s401_20260406_163419,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_pinn_s401_20260403_214434,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_pinn_s401_20260406_091110,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_pinn_s401_20260406_100359,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_pinn_s401_20260406_163521,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_pinn_s401_20260406_224854,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_pinn_s402_20260406_163623,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_pinn_s402_20260406_224832,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_unified_s401_20260406_163746,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/arch_n4_unified_s401_20260407_011924,,,,,n_particles unknown from config.yaml
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n4_baseline_s42_d2.5__stageA_improved_self_residual_20260427_110458,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n4_baseline_s42_d3__stageA_improved_self_residual_20260427_110949,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n4_baseline_s42_d4__stageA_improved_self_residual_20260427_111438,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n4_baseline_s42_d5__stageA_improved_self_residual_20260427_111928,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n4_baseline_s42_d6__stageA_improved_self_residual_20260427_112416,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_b0__stageA_improved_self_residual_20260427_221531,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_b0p05__stageA_improved_self_residual_20260427_225458,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_b0p2__stageA_improved_self_residual_20260427_233712,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_b0p5__stageA_improved_self_residual_20260428_001900,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_b1__stageA_improved_self_residual_20260428_010117,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_d2.5__stageA_improved_self_residual_20260427_182832,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_d3__stageA_improved_self_residual_20260427_192005,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_d4__stageA_improved_self_residual_20260427_195648,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_d5__stageA_improved_self_residual_20260427_203651,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_n8_fast_s42_d6__stageA_improved_self_residual_20260427_211555,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__singlet__stageA_improved_self_residual_20260426_215431,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__singlet__stageA_improved_self_residual_20260426_222338,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__singlet__stageA_improved_self_residual_20260427_094836,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__singlet__stageA_singlet_self_residual_20260427_101247,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_improved_self_residual_20260426_201031,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_improved_self_residual_20260426_205149,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_improved_self_residual_20260426_233716,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_improved_self_residual_20260427_020152,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_improved_self_residual_20260427_081214,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_improved_self_residual_20260427_112935,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_improved_self_residual_20260427_144839,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_singlet_self_residual_20260426_173509,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_singlet_self_residual_20260426_174122,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_singlet_self_residual_20260426_180303,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageA_singlet_self_residual_20260426_180345,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageB_noref_20260426_173519,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__stageB_noref_20260426_174232,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__triplet__stageA_improved_self_residual_20260426_215527,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__triplet__stageA_improved_self_residual_20260426_222435,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__triplet__stageA_improved_self_residual_20260427_094957,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__triplet__stageA_improved_self_residual_20260427_100915,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_centre__triplet__stageA_improved_self_residual_20260427_101409,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__singlet__stageA_improved_self_residual_20260426_215828,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__singlet__stageA_improved_self_residual_20260426_222734,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__singlet__stageA_improved_self_residual_20260427_095420,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__singlet__stageA_singlet_self_residual_20260427_101920,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_improved_self_residual_20260426_201913,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_improved_self_residual_20260426_205911,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_improved_self_residual_20260426_234442,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_improved_self_residual_20260427_035648,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_improved_self_residual_20260427_145356,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_singlet_self_residual_20260426_173630,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_singlet_self_residual_20260426_174808,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageA_singlet_self_residual_20260426_181553,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__stageB_noref_20260426_173641,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__triplet__stageA_improved_self_residual_20260426_215925,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__triplet__stageA_improved_self_residual_20260426_222830,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__triplet__stageA_improved_self_residual_20260427_095543,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_minus__triplet__stageA_improved_self_residual_20260427_102043,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__singlet__stageA_improved_self_residual_20260426_215629,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__singlet__stageA_improved_self_residual_20260426_222536,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__singlet__stageA_improved_self_residual_20260427_095128,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__singlet__stageA_singlet_self_residual_20260427_101603,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_improved_self_residual_20260426_201443,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_improved_self_residual_20260426_205528,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_improved_self_residual_20260426_234101,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_improved_self_residual_20260427_025927,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_improved_self_residual_20260427_084604,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_improved_self_residual_20260427_113431,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_improved_self_residual_20260427_145119,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_singlet_self_residual_20260426_173551,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_singlet_self_residual_20260426_174446,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageA_singlet_self_residual_20260426_180954,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageB_noref_20260426_173602,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__stageB_noref_20260426_174558,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__triplet__stageA_improved_self_residual_20260426_215726,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__triplet__stageA_improved_self_residual_20260426_222633,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__triplet__stageA_improved_self_residual_20260427_095250,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir0_plus__triplet__stageA_improved_self_residual_20260427_101725,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_minus__stageA_improved_self_residual_20260426_202751,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_minus__stageA_improved_self_residual_20260426_210635,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_minus__stageA_improved_self_residual_20260426_235204,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_minus__stageA_improved_self_residual_20260427_055144,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_plus__stageA_improved_self_residual_20260426_202334,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_plus__stageA_improved_self_residual_20260426_210253,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_plus__stageA_improved_self_residual_20260426_234822,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_plus__stageA_improved_self_residual_20260427_045409,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_plus__stageA_improved_self_residual_20260427_091914,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir1_plus__stageA_improved_self_residual_20260427_114434,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir2_minus__stageA_improved_self_residual_20260427_074643,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir2_plus__stageA_improved_self_residual_20260427_064927,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir2_plus__stageA_improved_self_residual_20260427_115633,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir3_minus__stageA_improved_self_residual_20260427_094203,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir3_plus__stageA_improved_self_residual_20260427_084428,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir3_plus__stageA_improved_self_residual_20260427_120832,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir4_plus__stageA_improved_self_residual_20260427_121549,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir5_plus__stageA_improved_self_residual_20260427_122048,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir6_plus__stageA_improved_self_residual_20260427_122547,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step000_dir7_plus__stageA_improved_self_residual_20260427_123046,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__singlet__stageA_improved_self_residual_20260426_220028,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__singlet__stageA_improved_self_residual_20260426_222931,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__singlet__stageA_improved_self_residual_20260427_095715,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__singlet__stageA_singlet_self_residual_20260427_102238,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_improved_self_residual_20260426_203142,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_improved_self_residual_20260426_211018,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_improved_self_residual_20260426_235545,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_improved_self_residual_20260427_095229,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_improved_self_residual_20260427_123551,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_improved_self_residual_20260427_145633,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_singlet_self_residual_20260426_173709,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_singlet_self_residual_20260426_175017,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageA_singlet_self_residual_20260426_182152,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageB_noref_20260426_173720,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__stageB_noref_20260426_175128,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__triplet__stageA_improved_self_residual_20260426_220126,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__triplet__stageA_improved_self_residual_20260426_223029,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__triplet__stageA_improved_self_residual_20260427_095835,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_centre__triplet__stageA_improved_self_residual_20260427_102402,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__singlet__stageA_improved_self_residual_20260426_220424,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__singlet__stageA_improved_self_residual_20260426_223329,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__singlet__stageA_improved_self_residual_20260427_100256,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__singlet__stageA_singlet_self_residual_20260427_102906,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__stageA_improved_self_residual_20260426_203907,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__stageA_improved_self_residual_20260426_211742,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__stageA_improved_self_residual_20260427_000309,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__stageA_improved_self_residual_20260427_150141,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__stageA_singlet_self_residual_20260426_173826,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__stageA_singlet_self_residual_20260426_183342,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__stageB_noref_20260426_173837,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__triplet__stageA_improved_self_residual_20260426_220522,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__triplet__stageA_improved_self_residual_20260426_223426,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_minus__triplet__stageA_improved_self_residual_20260427_103027,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__singlet__stageA_improved_self_residual_20260426_220227,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__singlet__stageA_improved_self_residual_20260426_223130,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__singlet__stageA_improved_self_residual_20260427_100007,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__singlet__stageA_singlet_self_residual_20260427_102554,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_improved_self_residual_20260426_203528,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_improved_self_residual_20260426_211359,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_improved_self_residual_20260426_235927,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_improved_self_residual_20260427_102549,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_improved_self_residual_20260427_124056,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_improved_self_residual_20260427_145909,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_singlet_self_residual_20260426_173748,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_singlet_self_residual_20260426_175336,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageA_singlet_self_residual_20260426_182751,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageB_noref_20260426_173759,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__stageB_noref_20260426_175448,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__triplet__stageA_improved_self_residual_20260426_220323,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__triplet__stageA_improved_self_residual_20260426_223227,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__triplet__stageA_improved_self_residual_20260427_100128,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir0_plus__triplet__stageA_improved_self_residual_20260427_102716,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_minus__stageA_improved_self_residual_20260426_204621,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_minus__stageA_improved_self_residual_20260426_212506,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_minus__stageA_improved_self_residual_20260427_001034,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_plus__stageA_improved_self_residual_20260426_204244,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_plus__stageA_improved_self_residual_20260426_212124,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_plus__stageA_improved_self_residual_20260427_000651,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_plus__stageA_improved_self_residual_20260427_105852,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir1_plus__stageA_improved_self_residual_20260427_124554,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir2_plus__stageA_improved_self_residual_20260427_125057,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir3_plus__stageA_improved_self_residual_20260427_125607,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir4_plus__stageA_improved_self_residual_20260427_130106,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir5_plus__stageA_improved_self_residual_20260427_130605,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir6_plus__stageA_improved_self_residual_20260427_131102,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step001_dir7_plus__stageA_improved_self_residual_20260427_131601,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__singlet__stageA_improved_self_residual_20260426_220625,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__singlet__stageA_improved_self_residual_20260426_223528,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__singlet__stageA_singlet_self_residual_20260427_103217,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageA_improved_self_residual_20260426_212848,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageA_improved_self_residual_20260427_001417,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageA_improved_self_residual_20260427_113221,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageA_improved_self_residual_20260427_132058,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageA_improved_self_residual_20260427_150418,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageA_singlet_self_residual_20260426_175949,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageA_singlet_self_residual_20260426_183942,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__stageB_noref_20260426_180249,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__triplet__stageA_improved_self_residual_20260426_220720,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__triplet__stageA_improved_self_residual_20260426_223624,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_centre__triplet__stageA_improved_self_residual_20260427_103338,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__singlet__stageA_improved_self_residual_20260426_223927,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__singlet__stageA_singlet_self_residual_20260427_103840,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__stageA_improved_self_residual_20260426_213611,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__stageA_improved_self_residual_20260427_002139,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__stageA_improved_self_residual_20260427_151442,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__stageA_singlet_self_residual_20260426_181212,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__stageA_singlet_self_residual_20260426_185157,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__triplet__stageA_improved_self_residual_20260426_224023,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_minus__triplet__stageA_improved_self_residual_20260427_103959,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__singlet__stageA_improved_self_residual_20260426_220824,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__singlet__stageA_improved_self_residual_20260426_223726,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__singlet__stageA_singlet_self_residual_20260427_103529,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageA_improved_self_residual_20260426_213230,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageA_improved_self_residual_20260427_001759,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageA_improved_self_residual_20260427_120635,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageA_improved_self_residual_20260427_132556,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageA_improved_self_residual_20260427_150652,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageA_singlet_self_residual_20260426_180625,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageA_singlet_self_residual_20260426_184555,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__stageB_noref_20260426_180835,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__triplet__stageA_improved_self_residual_20260426_220920,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__triplet__stageA_improved_self_residual_20260426_223824,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir0_plus__triplet__stageA_improved_self_residual_20260427_103649,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir1_minus__stageA_improved_self_residual_20260426_214335,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir1_minus__stageA_improved_self_residual_20260427_002904,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir1_plus__stageA_improved_self_residual_20260426_213953,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir1_plus__stageA_improved_self_residual_20260427_002521,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir1_plus__stageA_improved_self_residual_20260427_124029,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir1_plus__stageA_improved_self_residual_20260427_133055,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir2_plus__stageA_improved_self_residual_20260427_133552,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir3_plus__stageA_improved_self_residual_20260427_134051,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir4_plus__stageA_improved_self_residual_20260427_134551,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir5_plus__stageA_improved_self_residual_20260427_135048,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir6_plus__stageA_improved_self_residual_20260427_135558,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step002_dir7_plus__stageA_improved_self_residual_20260427_140057,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__singlet__stageA_improved_self_residual_20260426_221021,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__singlet__stageA_improved_self_residual_20260426_224124,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__singlet__stageA_singlet_self_residual_20260427_104152,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageA_improved_self_residual_20260426_214716,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageA_improved_self_residual_20260427_003245,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageA_improved_self_residual_20260427_131426,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageA_improved_self_residual_20260427_140602,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageA_improved_self_residual_20260427_152248,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageA_singlet_self_residual_20260426_181555,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageA_singlet_self_residual_20260426_185757,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__stageB_noref_20260426_181757,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__triplet__stageA_improved_self_residual_20260426_221118,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__triplet__stageA_improved_self_residual_20260426_224221,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_centre__triplet__stageA_improved_self_residual_20260427_104315,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__singlet__stageA_improved_self_residual_20260426_224521,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__singlet__stageA_singlet_self_residual_20260427_104826,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__stageA_improved_self_residual_20260426_215438,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__stageA_improved_self_residual_20260427_004010,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__stageA_improved_self_residual_20260427_153817,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__stageA_singlet_self_residual_20260426_182730,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__stageA_singlet_self_residual_20260426_190958,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__triplet__stageA_improved_self_residual_20260426_224618,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_minus__triplet__stageA_improved_self_residual_20260427_104948,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__singlet__stageA_improved_self_residual_20260426_221219,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__singlet__stageA_improved_self_residual_20260426_224323,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__singlet__stageA_singlet_self_residual_20260427_104508,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageA_improved_self_residual_20260426_215058,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageA_improved_self_residual_20260427_003628,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageA_improved_self_residual_20260427_134845,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageA_improved_self_residual_20260427_141059,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageA_improved_self_residual_20260427_153026,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageA_singlet_self_residual_20260426_182144,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageA_singlet_self_residual_20260426_190358,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__stageB_noref_20260426_182346,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__triplet__stageA_improved_self_residual_20260426_221314,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__triplet__stageA_improved_self_residual_20260426_224419,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir0_plus__triplet__stageA_improved_self_residual_20260427_104631,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir1_minus__stageA_improved_self_residual_20260426_220200,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir1_minus__stageA_improved_self_residual_20260427_004736,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir1_plus__stageA_improved_self_residual_20260426_215819,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir1_plus__stageA_improved_self_residual_20260427_004353,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir1_plus__stageA_improved_self_residual_20260427_141556,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir1_plus__stageA_improved_self_residual_20260427_142309,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir2_plus__stageA_improved_self_residual_20260427_142053,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir3_plus__stageA_improved_self_residual_20260427_142552,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir4_plus__stageA_improved_self_residual_20260427_143048,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir5_plus__stageA_improved_self_residual_20260427_143544,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir6_plus__stageA_improved_self_residual_20260427_144042,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step003_dir7_plus__stageA_improved_self_residual_20260427_144539,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__singlet__stageA_singlet_self_residual_20260427_105142,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__stageA_improved_self_residual_20260426_220541,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__stageA_improved_self_residual_20260427_005120,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__stageA_improved_self_residual_20260427_145725,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__stageA_improved_self_residual_20260427_154627,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__stageA_singlet_self_residual_20260426_183112,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__stageA_singlet_self_residual_20260426_191600,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__stageB_noref_20260426_183324,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_centre__triplet__stageA_improved_self_residual_20260427_105302,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_minus__singlet__stageA_singlet_self_residual_20260427_105812,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_minus__stageA_improved_self_residual_20260426_221304,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_minus__stageA_improved_self_residual_20260427_005846,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_minus__stageA_improved_self_residual_20260427_160150,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_minus__stageA_singlet_self_residual_20260426_184246,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_minus__stageA_singlet_self_residual_20260426_192800,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_minus__triplet__stageA_improved_self_residual_20260427_105933,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__singlet__stageA_singlet_self_residual_20260427_105456,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__stageA_improved_self_residual_20260426_220921,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__stageA_improved_self_residual_20260427_005502,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__stageA_improved_self_residual_20260427_153205,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__stageA_improved_self_residual_20260427_155401,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__stageA_singlet_self_residual_20260426_183705,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__stageA_singlet_self_residual_20260426_192200,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__stageB_noref_20260426_183907,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir0_plus__triplet__stageA_improved_self_residual_20260427_105619,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir1_minus__stageA_improved_self_residual_20260426_222023,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir1_minus__stageA_improved_self_residual_20260427_010609,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir1_plus__stageA_improved_self_residual_20260426_221643,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir1_plus__stageA_improved_self_residual_20260427_010226,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step004_dir1_plus__stageA_improved_self_residual_20260427_160600,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_centre__stageA_improved_self_residual_20260426_222404,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_centre__stageA_improved_self_residual_20260427_010952,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_centre__stageA_improved_self_residual_20260427_164044,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_centre__stageA_singlet_self_residual_20260426_184625,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_centre__stageA_singlet_self_residual_20260426_193330,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_centre__stageB_noref_20260426_184829,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_minus__stageA_improved_self_residual_20260426_223130,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_minus__stageA_improved_self_residual_20260427_011717,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_minus__stageA_singlet_self_residual_20260426_185758,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_minus__stageA_singlet_self_residual_20260426_194034,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_plus__stageA_improved_self_residual_20260426_222746,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_plus__stageA_improved_self_residual_20260427_011335,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_plus__stageA_improved_self_residual_20260427_171450,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_plus__stageA_singlet_self_residual_20260426_185211,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_plus__stageA_singlet_self_residual_20260426_193659,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir0_plus__stageB_noref_20260426_185412,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir1_minus__stageA_improved_self_residual_20260426_223853,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir1_minus__stageA_improved_self_residual_20260427_012444,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir1_plus__stageA_improved_self_residual_20260426_223511,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir1_plus__stageA_improved_self_residual_20260427_012102,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step005_dir1_plus__stageA_improved_self_residual_20260427_174838,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_centre__stageA_improved_self_residual_20260426_224233,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_centre__stageA_improved_self_residual_20260427_012825,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_centre__stageA_improved_self_residual_20260427_182339,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_centre__stageA_singlet_self_residual_20260426_190146,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_centre__stageA_singlet_self_residual_20260426_194403,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_centre__stageB_noref_20260426_190353,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_minus__stageA_improved_self_residual_20260426_224956,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_minus__stageA_improved_self_residual_20260427_013550,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_minus__stageA_singlet_self_residual_20260426_191322,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_minus__stageA_singlet_self_residual_20260426_195101,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_minus__stageB_noref_20260426_191531,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_plus__stageA_improved_self_residual_20260426_224614,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_plus__stageA_improved_self_residual_20260427_013208,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_plus__stageA_improved_self_residual_20260427_185959,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_plus__stageA_singlet_self_residual_20260426_190737,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_plus__stageA_singlet_self_residual_20260426_194731,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir0_plus__stageB_noref_20260426_190939,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir1_minus__stageA_improved_self_residual_20260426_225720,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir1_minus__stageA_improved_self_residual_20260427_014315,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir1_plus__stageA_improved_self_residual_20260426_225336,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir1_plus__stageA_improved_self_residual_20260427_013933,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step006_dir1_plus__stageA_improved_self_residual_20260427_193358,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_centre__stageA_improved_self_residual_20260426_230059,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_centre__stageA_improved_self_residual_20260427_014657,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_centre__stageA_improved_self_residual_20260427_204848,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_centre__stageA_singlet_self_residual_20260426_191909,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_centre__stageA_singlet_self_residual_20260426_195425,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_centre__stageB_noref_20260426_192115,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_minus__stageA_improved_self_residual_20260426_230811,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_minus__stageA_improved_self_residual_20260427_015424,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_minus__stageA_singlet_self_residual_20260426_193040,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_minus__stageA_singlet_self_residual_20260426_200114,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_minus__stageB_noref_20260426_193249,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_plus__stageA_improved_self_residual_20260426_230435,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_plus__stageA_improved_self_residual_20260427_015039,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_plus__stageA_improved_self_residual_20260427_220555,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_plus__stageA_singlet_self_residual_20260426_192451,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_plus__stageA_singlet_self_residual_20260426_195747,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir0_plus__stageB_noref_20260426_192655,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir1_minus__stageA_improved_self_residual_20260426_231526,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir1_minus__stageA_improved_self_residual_20260427_020151,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir1_plus__stageA_improved_self_residual_20260426_231148,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir1_plus__stageA_improved_self_residual_20260427_015805,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step007_dir1_plus__stageA_improved_self_residual_20260427_232520,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step008_centre__stageA_improved_self_residual_20260426_231904,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step008_dir0_minus__stageA_improved_self_residual_20260426_232619,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step008_dir0_plus__stageA_improved_self_residual_20260426_232242,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step008_dir1_minus__stageA_improved_self_residual_20260426_233330,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step008_dir1_plus__stageA_improved_self_residual_20260426_232955,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step009_centre__stageA_improved_self_residual_20260426_233706,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step009_dir0_minus__stageA_improved_self_residual_20260426_234420,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step009_dir0_plus__stageA_improved_self_residual_20260426_234042,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step009_dir1_minus__stageA_improved_self_residual_20260426_235134,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/invdes_step009_dir1_plus__stageA_improved_self_residual_20260426_234758,2,2,0.0,4,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/long_n4_ctnn_s701_20260406_124108,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/long_n4_pinn_s701_20260406_124244,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/long_n4_pinn_s702_20260406_124416,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/long_n4_unified_s701_20260406_124605,,,,,n_particles unknown from config.yaml
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n12_grid_d6_s42__stageA_self_residual_20260428_093807,6,6,0.0,12,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n16_grid_d6_s42__stageA_energywarm_20260425_105253,8,8,0.0,16,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n16_grid_d6_s42__stageA_energywarm_20260426_010648,8,8,0.0,16,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n16_grid_d6_s42__stageA_energywarm_20260426_170519,8,8,0.0,16,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n16_grid_d6_s42__stageA_self_residual_20260428_034125,8,8,0.0,16,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n16_grid_d6_s42__stageB_noref_20260425_124853,8,8,0.0,16,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n32_grid_d6_s42__stageA_energywarm_20260425_110327,16,16,0.0,32,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n32_grid_d6_s42__stageA_energywarm_20260425_130311,16,16,0.0,32,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n32_grid_d6_s42__stageA_energywarm_20260425_135240,16,16,0.0,32,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n32_grid_d6_s42__stageA_energywarm_20260426_004523,16,16,0.0,32,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n32_grid_d6_s42__stageB_noref_20260425_212902,16,16,0.0,32,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n32_grid_d6_s42__stageB_noref_20260426_033302,16,16,0.0,32,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p003_noref_s42__stageA_improved_self_residual_20260424_183118,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p003_noref_s42__stageA_improved_self_residual_20260424_183740,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p003_noref_s42__stageB_noref_20260424_183349,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p003_noref_s42__stageB_noref_20260424_184010,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p005_noref_s42__stageA_improved_self_residual_20260424_184402,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p005_noref_s42__stageA_improved_self_residual_20260424_185023,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p005_noref_s42__stageB_noref_20260424_184632,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p005_noref_s42__stageB_noref_20260424_185251,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p01_noref_s42__stageA_improved_self_residual_20260424_185638,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p01_noref_s42__stageA_improved_self_residual_20260424_190303,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p01_noref_s42__stageB_noref_20260424_185907,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p01_noref_s42__stageB_noref_20260424_190536,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p0_noref_s42__stageA_improved_self_residual_20260424_181835,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p0_noref_s42__stageA_improved_self_residual_20260424_182456,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p0_noref_s42__stageB_noref_20260424_182105,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_0up3down_b0p0_noref_s42__stageB_noref_20260424_182724,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p003_noref_s42__stageA_improved_self_residual_20260424_192518,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p003_noref_s42__stageA_improved_self_residual_20260424_193250,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p003_noref_s42__stageB_noref_20260424_192815,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p003_noref_s42__stageB_noref_20260424_193550,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p005_noref_s42__stageA_improved_self_residual_20260424_194028,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p005_noref_s42__stageA_improved_self_residual_20260424_194801,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p005_noref_s42__stageB_noref_20260424_194327,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p005_noref_s42__stageB_noref_20260424_195059,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p01_noref_s42__stageA_improved_self_residual_20260424_195537,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p01_noref_s42__stageA_improved_self_residual_20260424_200317,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p01_noref_s42__stageB_noref_20260424_195837,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p01_noref_s42__stageB_noref_20260424_200616,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p0_noref_s42__stageA_improved_self_residual_20260424_191015,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p0_noref_s42__stageA_improved_self_residual_20260424_191748,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p0_noref_s42__stageB_noref_20260424_191315,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_1up2down_b0p0_noref_s42__stageB_noref_20260424_192045,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p003_noref_s42__stageA_improved_self_residual_20260424_183417,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p003_noref_s42__stageA_improved_self_residual_20260424_184147,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p003_noref_s42__stageB_noref_20260424_183716,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p003_noref_s42__stageB_noref_20260424_184443,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p005_noref_s42__stageA_improved_self_residual_20260424_184921,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p005_noref_s42__stageA_improved_self_residual_20260424_185651,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p005_noref_s42__stageB_noref_20260424_185219,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p005_noref_s42__stageB_noref_20260424_185950,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p01_noref_s42__stageA_improved_self_residual_20260424_190423,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p01_noref_s42__stageA_improved_self_residual_20260424_191150,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p01_noref_s42__stageB_noref_20260424_190720,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p01_noref_s42__stageB_noref_20260424_191446,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p0_noref_s42__stageA_improved_self_residual_20260424_181914,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p0_noref_s42__stageA_improved_self_residual_20260424_182647,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p0_noref_s42__stageB_noref_20260424_182214,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_2up1down_b0p0_noref_s42__stageB_noref_20260424_182946,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p003_noref_s42__stageA_improved_self_residual_20260424_193126,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p003_noref_s42__stageA_improved_self_residual_20260424_193743,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p003_noref_s42__stageB_noref_20260424_193353,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p003_noref_s42__stageB_noref_20260424_194013,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p005_noref_s42__stageA_improved_self_residual_20260424_194410,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p005_noref_s42__stageA_improved_self_residual_20260424_195037,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p005_noref_s42__stageB_noref_20260424_194644,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p005_noref_s42__stageB_noref_20260424_195307,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p01_noref_s42__stageA_improved_self_residual_20260424_195656,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p01_noref_s42__stageA_improved_self_residual_20260424_200313,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p01_noref_s42__stageB_noref_20260424_195925,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p01_noref_s42__stageB_noref_20260424_200541,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p0_noref_s42__stageA_improved_self_residual_20260424_191842,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p0_noref_s42__stageA_improved_self_residual_20260424_192508,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p0_noref_s42__stageB_noref_20260424_192115,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n3_mag_3up0down_b0p0_noref_s42__stageB_noref_20260424_192739,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d4_2up2down_s42__stageA_improved_self_residual_20260424_141839,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d4_2up2down_s42__stageA_improved_self_residual_20260424_145533,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d4_2up2down_s42__stageA_improved_self_residual_20260424_151930,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d4_2up2down_s42__stageB_noref_20260424_143658,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d4_2up2down_s42__stageB_noref_20260424_150533,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d4_2up2down_s42__stageB_noref_20260424_152949,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d8_2up2down_s42__stageA_improved_self_residual_20260424_141905,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d8_2up2down_s42__stageA_improved_self_residual_20260424_145603,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d8_2up2down_s42__stageA_improved_self_residual_20260424_151859,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d8_2up2down_s42__stageB_noref_20260424_143825,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d8_2up2down_s42__stageB_noref_20260424_150603,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n4_plaq2x2_d8_2up2down_s42__stageB_noref_20260424_152856,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_4up4down__stageA_improved_self_residual_20260428_084039,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_4up4down__stageA_improved_self_residual_20260428_111111,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_5up3down__stageA_improved_self_residual_20260428_091147,5,3,1.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_5up3down__stageA_improved_self_residual_20260428_114152,5,3,1.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_6up2down__stageA_improved_self_residual_20260428_093101,6,2,2.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_6up2down__stageA_improved_self_residual_20260428_120103,6,2,2.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_7up1down__stageA_improved_self_residual_20260428_094130,7,1,3.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_7up1down__stageA_improved_self_residual_20260428_121126,7,1,3.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_8up0down__stageA_improved_self_residual_20260428_094851,8,0,4.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_chain_d4_mag_4up4down_b0_s42_8up0down__stageA_improved_self_residual_20260428_121844,8,0,4.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42__stageA_improved_self_residual_20260424_215434,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42__stageA_improved_self_residual_20260424_215604,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42__stageB_noref_20260424_230350,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42__stageB_noref_20260424_230632,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r0__stageA_improved_self_residual_20260424_220018,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r0__stageA_improved_self_residual_20260425_002535,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r0__stageB_noref_20260424_224847,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r0__stageB_noref_20260425_011327,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r1__stageA_improved_self_residual_20260425_024807,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r1__stageA_improved_self_residual_20260425_051008,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r1__stageB_noref_20260425_033534,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r1__stageB_noref_20260425_055732,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r2__stageA_improved_self_residual_20260425_073004,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r2__stageA_improved_self_residual_20260425_095346,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r2__stageB_noref_20260425_081815,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r2__stageB_noref_20260425_104157,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r3__stageA_improved_self_residual_20260425_121538,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r3__stageA_improved_self_residual_20260425_143521,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r3__stageB_noref_20260425_130249,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p0_r3__stageB_noref_20260425_152145,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r0__stageA_improved_self_residual_20260425_181719,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r0__stageA_improved_self_residual_20260425_182933,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r0__stageB_noref_20260425_194743,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r0__stageB_noref_20260425_195434,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r1__stageA_improved_self_residual_20260425_212930,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r1__stageA_improved_self_residual_20260425_234659,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r1__stageB_noref_20260425_221254,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r1__stageB_noref_20260426_003008,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r2__stageA_improved_self_residual_20260426_020431,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r2__stageA_improved_self_residual_20260426_042147,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r2__stageB_noref_20260426_024751,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r2__stageB_noref_20260426_050508,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r3__stageA_improved_self_residual_20260426_063920,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r3__stageA_improved_self_residual_20260426_085541,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r3__stageB_noref_20260426_072221,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p3_r3__stageB_noref_20260426_093833,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r0__stageA_improved_self_residual_20260426_111017,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r0__stageA_improved_self_residual_20260426_132530,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r0__stageB_noref_20260426_115237,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r0__stageB_noref_20260426_140944,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r1__stageA_improved_self_residual_20260426_154339,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r1__stageA_improved_self_residual_20260426_180805,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r1__stageB_noref_20260426_162649,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r1__stageB_noref_20260426_185812,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig0p6_r2__stageA_improved_self_residual_20260426_204202,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r0__stageA_improved_self_residual_20260425_170252,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r0__stageA_improved_self_residual_20260425_192732,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r0__stageB_noref_20260425_174940,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r0__stageB_noref_20260425_201540,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r1__stageA_improved_self_residual_20260425_215220,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r1__stageA_improved_self_residual_20260426_001255,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r1__stageB_noref_20260425_223653,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r1__stageB_noref_20260426_005641,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r2__stageA_improved_self_residual_20260426_022838,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r2__stageA_improved_self_residual_20260426_044539,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r2__stageB_noref_20260426_031043,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r2__stageB_noref_20260426_052928,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r3__stageA_improved_self_residual_20260426_070413,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r3__stageA_improved_self_residual_20260426_092638,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r3__stageB_noref_20260426_074751,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p0_r3__stageB_noref_20260426_101129,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r0__stageA_improved_self_residual_20260426_114550,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r0__stageA_improved_self_residual_20260426_140351,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r0__stageB_noref_20260426_122910,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r0__stageB_noref_20260426_144723,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r1__stageA_improved_self_residual_20260426_162003,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r1__stageA_improved_self_residual_20260426_184736,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r1__stageB_noref_20260426_170247,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/n8_grid_d6_s42_mbl_sig1p5_r1__stageB_noref_20260426_193656,4,4,0.0,8,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1r_n2_double_20260405_121058,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1r_n2_single_20260405_115132,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1r_n2_single_20260405_120854,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1r_n4_double_20260405_121409,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1r_n4_single_20260405_115504,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1r_n4_single_20260405_121156,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1rl_n2_double_20260405_140708,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1rl_n2_single_20260405_135157,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1rl_n4_double_20260405_144546,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1rl_n4_single_20260405_143113,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1san_n4_dd_pinn_s901_fdcolloc_20260409_141827,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1san_n4_dd_pinn_s901_weakform_20260409_141921,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p1san_n4_dd_pinn_s903_reinforce_20260409_141325,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2_n2_1p1w_gs_s42_20260411_075729,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2_n2_1p1w_gs_s42_ctnn_20260411_080759,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2fix2_n4_pinn_s901_cusp_eps_2h_20260409_104115,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2fix2_n4_pinn_s901_cusp_eps_smoke_20260408_154419,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2fix2_n4_pinn_s902_cusp_eps_2h_20260409_104130,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2fix2_n4_pinn_s902_cusp_eps_sanity_20260409_090537,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2fix_n4_pinn_s901_smoke_20260407_085735,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2wa_n4_dd_baseline_s901_rerun_20260409_152422,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2wa_n4_dd_wellpinn_s901_20260409_152546,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p2wa_n4_dd_wellpinn_s902_20260409_152636,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_base_autograd_s901_20260410_085549,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_base_fd_s901_20260410_085510,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_both_autograd_s901_20260410_085915,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_both_fd_s901_20260410_085457,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_wellbf_autograd_s901_20260410_085704,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_wellbf_fd_s901_20260410_085309,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_wellpinn_autograd_s901_20260410_084755,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3fix_n4_dd_wellpinn_fd_s901_20260410_085327,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3wa_n4_dd_baseline_s901_20260409_181652,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3wa_n4_dd_baseline_s902_20260409_185818,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3wa_n4_dd_wellbf_s901_20260409_181900,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3wa_n4_dd_wellpinn_s901_20260409_181814,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p3wa_n4_dd_wellpinn_wellbf_s901_20260409_182034,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_reinforce_d8_sharedci_smoke_s42_20260415_131742,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d2_occpen20_s42_20260415_111012,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d2_occpen_s42_20260415_104932,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d2_s42_20260414_160054,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d2_sharedci_s42_20260415_115615,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d2_sharedci_v2_s42_20260415_123029,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d2_wellaware_s42_20260415_110723,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d4_sharedci_s42_20260415_120333,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d4_sharedci_v2_s42_20260415_123521,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d8_occpen_s42_20260415_103951,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d8_s42_20260414_160016,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d8_sharedci_s42_20260415_121133,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_d8_sharedci_v2_s42_20260415_124018,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_bootstrap_pilot_20260423_092715,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_bootstrap_target_20260423_092758,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_150726,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_194839,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_214036,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_energywarm_20260423_010722,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_mstart_0_20260423_093128,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_mstart_1_20260423_093143,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_mstart_2_20260423_093158,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_mstart_3_20260423_093212,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_mstart_refine_20260423_093256,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_self_residual_20260423_092310,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageA_self_residual_20260423_141308,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260422_150946,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260422_195929,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260423_011857,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260423_092650,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260423_093104,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260423_093619,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s314__stageB_noref_20260423_141646,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42_20260414_150947,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_bootstrap_pilot_20260423_092658,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_bootstrap_target_20260423_092738,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_150737,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_194936,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_214033,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_energywarm_20260423_010723,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_mstart_0_20260423_093103,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_mstart_1_20260423_093118,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_mstart_2_20260423_093132,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_mstart_3_20260423_093146,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_mstart_refine_20260423_093225,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_self_residual_20260423_092305,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_self_residual_20260423_141528,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageA_singlet_self_residual_20260423_181245,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260422_151008,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260422_200045,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260423_011908,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260423_092633,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260423_093040,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260423_093537,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260423_142619,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s42__stageB_noref_20260423_182608,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_bootstrap_pilot_20260423_093742,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_bootstrap_target_20260423_093849,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_150726,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_192803,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_211912,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_energywarm_20260423_010527,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_mstart_0_20260423_095214,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_mstart_1_20260423_095229,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_mstart_2_20260423_095313,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_mstart_3_20260423_095402,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_mstart_refine_20260423_095646,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_self_residual_20260423_092441,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageA_self_residual_20260423_141548,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageB_noref_20260422_150953,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageB_noref_20260422_193113,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageB_noref_20260423_011147,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageB_noref_20260423_093639,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageB_noref_20260423_095147,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageB_noref_20260423_100803,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_residual_anneal_s901__stageB_noref_20260423_142743,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_variational_d2_sharedci_s42_20260415_130137,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_variational_d4_sharedci_s42_20260415_130633,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_variational_d8_sharedci_is_smoke_s42_20260415_131511,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_variational_d8_sharedci_is_smoke_s42_20260415_134049,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_nonmcmc_variational_d8_sharedci_s42_20260415_131133,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42_20260416_002839,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageA_singlet_self_residual_20260424_141328,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageA_singlet_self_residual_20260424_142619,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageA_singlet_self_residual_20260424_143826,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageB_noref_20260424_142112,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageB_noref_20260424_143330,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d12_s42__stageB_noref_20260424_144602,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d20_s42_20260416_002508,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d20_s42__stageA_singlet_self_residual_20260424_141437,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d20_s42__stageA_singlet_self_residual_20260424_143019,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d20_s42__stageA_singlet_self_residual_20260424_144547,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d20_s42__stageB_noref_20260424_142359,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d20_s42__stageB_noref_20260424_143925,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d20_s42__stageB_noref_20260424_145452,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d2_s42_20260415_154545,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d2_s42__stageA_singlet_self_residual_20260424_141524,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d2_s42__stageA_singlet_self_residual_20260424_143018,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d2_s42__stageA_singlet_self_residual_20260424_144427,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d2_s42__stageB_noref_20260424_142430,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d2_s42__stageB_noref_20260424_143834,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d2_s42__stageB_noref_20260424_145241,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42_20260415_154551,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageA_singlet_self_residual_20260423_222903,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageA_singlet_self_residual_20260423_230359,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageA_singlet_self_residual_20260424_141330,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageA_singlet_self_residual_20260424_142645,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageA_singlet_self_residual_20260424_143858,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageB_noref_20260423_223230,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageB_noref_20260423_230721,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageB_noref_20260424_142119,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageB_noref_20260424_143358,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d4_s42__stageB_noref_20260424_144634,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d6_s42_20260416_002831,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d6_s42__stageA_singlet_self_residual_20260424_141548,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d6_s42__stageA_singlet_self_residual_20260424_143319,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d6_s42__stageA_singlet_self_residual_20260424_145112,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d6_s42__stageB_noref_20260424_142615,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d6_s42__stageB_noref_20260424_144352,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d6_s42__stageB_noref_20260424_150014,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_s42_20260415_154923,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_s42__stageA_singlet_self_residual_20260424_141536,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_s42__stageA_singlet_self_residual_20260424_143331,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_s42__stageA_singlet_self_residual_20260424_145052,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_s42__stageB_noref_20260424_142558,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_s42__stageB_noref_20260424_144412,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_s42__stageB_noref_20260424_150026,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n2_singlet_d8_smoke_s42_20260415_153333,,,,,n_particles unknown from config.yaml
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__0up_3down_20260416_184447,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__0up_3down_20260417_102432,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__0up_3down_20260417_104949,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__1up_2down_20260416_184734,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__1up_2down_20260417_102818,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__1up_2down_20260417_105323,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__2up_1down_20260416_185018,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__2up_1down_20260417_103201,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__2up_1down_20260417_105656,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__3up_0down_20260416_185300,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__3up_0down_20260417_103538,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_generalized_uniform_b_fixedspin_guard_s42__3up_0down_20260417_110021,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_150202,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_192445,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_211523,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s314__stageB_noref_20260422_150641,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s314__stageB_noref_20260422_194453,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s314__stageB_noref_20260422_213654,2,1,0.5,3,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42_20260416_112916,,,,,spin_configuration absent or incomplete
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_150201,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_192452,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_211523,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260423_222513,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260423_222607,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260423_222609,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260424_093800,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260424_093817,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260424_093820,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260422_150650,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260422_194539,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260422_213650,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260423_223032,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260423_223127,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260423_223139,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260424_094930,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260424_094954,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s42__stageB_noref_20260424_095005,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_150159,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_192053,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_211202,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s901__stageB_noref_20260422_150639,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s901__stageB_noref_20260422_192700,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_anneal_s901__stageB_noref_20260422_211812,2,1,0.5,3,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n3_nonmcmc_residual_selfconsistent_s42_20260416_120332,,,,,spin_configuration absent or incomplete
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_150221,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_192641,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s314__stageA_energywarm_20260422_211617,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s314__stageB_noref_20260422_151017,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s314__stageB_noref_20260422_200356,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s314__stageB_noref_20260422_215511,2,2,0.0,4,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42_20260416_113343,,,,,spin_configuration absent or incomplete
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_150537,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_192228,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_energywarm_20260422_211338,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260423_222751,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260423_222858,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260423_222907,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260424_093805,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260424_094844,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageA_improved_self_residual_20260424_094952,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260422_153446,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260422_194016,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260422_213057,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260423_223453,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260423_223645,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260423_223720,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260424_094937,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260424_100919,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s42__stageB_noref_20260424_101003,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_150222,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_192635,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s901__stageA_energywarm_20260422_211608,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s901__stageB_noref_20260422_151030,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s901__stageB_noref_20260422_200335,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4_n4_nonmcmc_residual_anneal_s901__stageB_noref_20260422_215429,2,2,0.0,4,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4ab_n3_ctnn_reinforce_s42_20260411_173323,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4ab_n3_ctnn_weakform_s42_20260411_174607,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4ab_n3_pinn_reinforce_s42_20260411_172719,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4ab_n3_pinn_weakform_s42_20260411_173950,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4setup_n3_pinn_rf_mh20_dec2_coll512_lr5e4_s42_20260411_230609,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4setup_n3_pinn_rf_mh20_dec2_coll512_s42_20260411_225405,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p4setup_n3_pinn_rf_mh40_dec3_coll512_s42_20260411_230234,,,,,spin_configuration absent or incomplete
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n10_nonmcmc_selfconsistent_s314_20260420_160005,5,5,0.0,10,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n10_nonmcmc_selfconsistent_s42_20260420_154614,5,5,0.0,10,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42_20260420_123025,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42_20260420_123144,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42__stageA_singlet_self_residual_20260424_104948,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42__stageA_singlet_self_residual_20260424_110716,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42__stageA_singlet_self_residual_20260424_112541,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42__stageB_noref_20260424_105938,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42__stageB_noref_20260424_111813,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p00_s42__stageB_noref_20260424_113719,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p25_s42_20260420_123702,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p25_s42__stageA_singlet_self_residual_20260424_104805,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p25_s42__stageA_singlet_self_residual_20260424_110136,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p25_s42__stageA_singlet_self_residual_20260424_111503,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p25_s42__stageB_noref_20260424_105611,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p25_s42__stageB_noref_20260424_110935,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p25_s42__stageB_noref_20260424_112256,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p50_s42_20260420_124139,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p50_s42__stageA_singlet_self_residual_20260424_104808,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p50_s42__stageA_singlet_self_residual_20260424_110146,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p50_s42__stageA_singlet_self_residual_20260424_111508,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p50_s42__stageB_noref_20260424_105625,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p50_s42__stageB_noref_20260424_110942,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p50_s42__stageB_noref_20260424_112300,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p75_s42_20260420_124654,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p75_s42__stageA_singlet_self_residual_20260424_104548,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p75_s42__stageA_singlet_self_residual_20260424_105417,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p75_s42__stageA_singlet_self_residual_20260424_110242,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p75_s42__stageB_noref_20260424_105056,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p75_s42__stageB_noref_20260424_105919,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam0p75_s42__stageB_noref_20260424_110722,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam1p00_s42__stageA_singlet_self_residual_20260424_104807,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam1p00_s42__stageA_singlet_self_residual_20260424_110302,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam1p00_s42__stageA_singlet_self_residual_20260424_111735,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam1p00_s42__stageB_noref_20260424_105657,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam1p00_s42__stageB_noref_20260424_111148,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n2_singlet_d4_lam1p00_s42__stageB_noref_20260424_112554,,,,,n_particles unknown from config.yaml
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42_20260420_131404,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42_20260423_153701,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42__stageA_improved_self_residual_20260424_132153,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42__stageA_improved_self_residual_20260424_135007,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42__stageA_improved_self_residual_20260424_142805,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42__stageB_noref_20260424_133426,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42__stageB_noref_20260424_140341,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_0up_b0p5_s42__stageB_noref_20260424_144739,0,3,-1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42_20260420_130208,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42_20260423_151653,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42__stageA_improved_self_residual_20260424_131824,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42__stageA_improved_self_residual_20260424_134129,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42__stageA_improved_self_residual_20260424_140424,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42__stageB_noref_20260424_132823,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42__stageB_noref_20260424_135057,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_1up_b0p5_s42__stageB_noref_20260424_141756,1,2,-0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42_20260420_124934,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42_20260423_145520,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42__stageA_improved_self_residual_20260424_131951,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42__stageA_improved_self_residual_20260424_134345,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42__stageA_improved_self_residual_20260424_140527,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42__stageB_noref_20260424_133036,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42__stageB_noref_20260424_135251,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_2up_b0p5_s42__stageB_noref_20260424_141852,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42_20260420_123644,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42_20260423_143401,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42__stageA_improved_self_residual_20260424_131143,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42__stageA_improved_self_residual_20260424_132243,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42__stageA_improved_self_residual_20260424_133308,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42__stageB_noref_20260424_131641,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42__stageB_noref_20260424_132706,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n3_mag_3up_b0p5_s42__stageB_noref_20260424_133732,3,0,1.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42_20260420_125209,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42_20260423_153527,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42__stageA_improved_self_residual_20260424_132145,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42__stageA_improved_self_residual_20260424_135140,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42__stageA_improved_self_residual_20260424_142930,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42__stageB_noref_20260424_133352,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42__stageB_noref_20260424_140453,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_0up4down_b0p5_s42__stageB_noref_20260424_144942,0,4,-2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_1up3down_b0p5_s42__stageA_improved_self_residual_20260424_145158,1,3,-1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_1up3down_b0p5_s42__stageA_improved_self_residual_20260424_162350,1,3,-1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_1up3down_b0p5_s42__stageA_improved_self_residual_20260424_182400,1,3,-1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_1up3down_b0p5_s42__stageB_noref_20260424_152146,1,3,-1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_1up3down_b0p5_s42__stageB_noref_20260424_172115,1,3,-1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_1up3down_b0p5_s42__stageB_noref_20260424_192619,1,3,-1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42_20260420_124301,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42_20260423_150644,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42__stageA_improved_self_residual_20260424_132857,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42__stageA_improved_self_residual_20260424_141237,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42__stageA_improved_self_residual_20260424_151118,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42__stageB_noref_20260424_134706,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42__stageB_noref_20260424_143940,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_2up2down_b0p5_s42__stageB_noref_20260424_152934,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_3up1down_b0p5_s42__stageA_improved_self_residual_20260424_143025,3,1,1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_3up1down_b0p5_s42__stageA_improved_self_residual_20260424_150739,3,1,1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_3up1down_b0p5_s42__stageA_improved_self_residual_20260424_154334,3,1,1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_3up1down_b0p5_s42__stageB_noref_20260424_144531,3,1,1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_3up1down_b0p5_s42__stageB_noref_20260424_152326,3,1,1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_3up1down_b0p5_s42__stageB_noref_20260424_155802,3,1,1.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42_20260420_123340,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42_20260423_143834,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42__stageA_improved_self_residual_20260424_131403,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42__stageA_improved_self_residual_20260424_133007,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42__stageA_improved_self_residual_20260424_134450,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42__stageB_noref_20260424_132052,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42__stageB_noref_20260424_133637,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n4_mag_4up_b0p5_s42__stageB_noref_20260424_135059,4,0,2.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n6_nonmcmc_residual_anneal_s314_20260419_202704,3,3,0.0,6,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n6_nonmcmc_residual_anneal_s42_20260419_144602,3,3,0.0,6,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n6_nonmcmc_residual_anneal_s901_20260420_010721,3,3,0.0,6,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n6_nonmcmc_residual_scout_s42_20260414_000445,,,,,spin_configuration absent or incomplete
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n8_nonmcmc_residual_s314_20260420_152535,4,4,0.0,8,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n8_nonmcmc_residual_s42_20260414_134404,,,,,spin_configuration absent or incomplete
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n8_nonmcmc_residual_s42_20260420_141356,4,4,0.0,8,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p5_n8_nonmcmc_residual_s901_20260420_152341,4,4,0.0,8,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n2_nonmcmc_residual_noref_s314_20260422_123958,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n2_nonmcmc_residual_noref_s42_20260422_123706,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n2_nonmcmc_residual_noref_s901_20260422_124237,,,,,n_particles unknown from config.yaml
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n3_nonmcmc_residual_noref_s314_20260422_124431,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n3_nonmcmc_residual_noref_s42_20260422_123925,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n3_nonmcmc_residual_noref_s901_20260422_124929,2,1,0.5,3,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n4_nonmcmc_residual_noref_s314_20260422_125939,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n4_nonmcmc_residual_noref_s42_20260422_125103,2,2,0.0,4,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/p6_n4_nonmcmc_residual_noref_s901_20260422_125756,2,2,0.0,4,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/phase0_ni_n2_single_mh_smoke500_20260403_125538,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/phase1_ni_n2_double_mh_20260403_131703,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/phase1_ni_n4_double_mh_20260403_132819,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/phase1_ni_n4_single_mh_20260403_132840,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/phase2_ni_n2_single_mh_20260403_092449,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/phase2_ni_n2_single_mh_20260403_131622,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_n2_ctnn_mh_fd_lr2e4_20260403_125716,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_n2_ctnn_mh_weak_lr5e4_20260403_125811,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_n2_pinn_nobf_mh_fd_lr5e4_20260403_125839,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_n2_pinn_nobf_mh_weak_lr1e3_20260403_125907,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p1r_test_20260405_114204,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p1san_n4_dd_pinn_s901_fdcolloc_20260409_133543,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p1san_n4_dd_pinn_s901_weakform_20260409_133549,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p1san_n4_dd_pinn_s903_reinforce_20260409_133555,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p2_n2_1p1w_gs_s42_20260411_074935,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p2_n2_1p1w_gs_s42_20260411_075007,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p2wa_n4_dd_baseline_s901_rerun_20260409_144730,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p2wa_n4_dd_wellpinn_s901_20260409_144737,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p2wa_n4_dd_wellpinn_s902_20260409_144743,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p3fix_autograd_20260410_080049,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p3fix_fd_20260410_080016,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p3wa_n4_dd_wellpinn_wellbf_20260409_174010,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p4_n3_1p1p1w_gs_s42_20260411_105715,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p4_n3_1p1p1w_gs_s42_20260411_114755,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/smoke_p4_n3_1p1p1w_nocoul_s42_20260411_114310,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/stab_n2_ctnn_fd_lr1e4_2k_20260404_092211,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/stab_n2_ctnn_weak_lr2e4_2k_20260404_092205,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/stab_n2_pinn_nobf_fd_lr1e4_2k_20260404_092022,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/stab_n2_pinn_nobf_weak_lr1e4_2k_20260404_092022,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/stab_n4_double_pinn_nobf_weak_lr1e4_2k_20260404_092616,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/stab_n4_single_pinn_nobf_weak_lr1e4_2k_20260404_092637,,,,,spin_configuration absent or incomplete
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/tmp_n2_magnetic_sector_validation__0up_2down_20260417_102100,0,2,-1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/tmp_n2_magnetic_sector_validation__1up_1down_20260417_102101,1,1,0.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/tmp_n2_magnetic_sector_validation__2up_0down_20260417_102101,2,0,1.0,2,
+pass,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/triplet_smoke__stageA_improved_self_residual_20260426_215306,2,0,1.0,2,
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n2_ctnn_s301_20260404_103130,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n2_ctnn_s302_20260404_103048,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n2_pinn_s301_20260404_102134,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n2_pinn_s302_20260404_102058,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n2_unified_s301_20260404_112213,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n2_unified_s302_20260404_112133,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n4_ctnn_s401_20260404_115510,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n4_ctnn_s402_20260404_115535,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n4_pinn_s401_20260404_125758,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n4_pinn_s402_20260404_125851,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n4_unified_s401_20260404_131918,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_arch_n4_unified_s402_20260404_131902,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p1_n2_double_20260404_093632,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p1_n2_single_20260404_093650,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p1_n4_double_20260404_094053,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p1_n4_single_20260404_094103,,,,,spin_configuration absent or incomplete
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p3_n2_w0p5_pinn_s501_20260404_142434,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p3_n2_w0p5_pinn_s502_20260404_142536,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p3_n2_w1p0_pinn_s501_20260404_142637,,,,,n_particles unknown from config.yaml
+skipped,/itf-fi-ml/home/aleksns/Multi-Well-Quantum-Dots/results/wk2_p3_n2_w1p0_pinn_s502_20260404_142411,,,,,n_particles unknown from config.yaml

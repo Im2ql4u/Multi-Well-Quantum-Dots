@@ -540,6 +540,17 @@ def train_ground_state(
         history, n_coll=train_cfg.n_coll, sampler=train_cfg.sampler
     )
 
+    # Phase 0.1 anchor: structural quantum-number tripwire. Raises
+    # SymmetryViolationError on any inconsistency.
+    from training.symmetry_asserts import assert_quantum_numbers_consistent
+
+    symmetry_diag = assert_quantum_numbers_consistent(
+        model=model,
+        system=system,
+        params=params,
+        context=f"train_ground_state[loss={train_cfg.loss_type}]",
+    )
+
     return {
         "history": history,
         "diagnostics": diagnostics,
@@ -548,4 +559,5 @@ def train_ground_state(
         "final_energy": history["energy"][-1],
         "final_energy_var": history["energy_var"][-1],
         "final_ess": history["ess"][-1],
+        "symmetry_check": symmetry_diag,
     }

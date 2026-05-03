@@ -1,0 +1,103 @@
+# N=8 magnetic sector-aware base config — 4↑4↓ (Sz=0) at B=0.
+#
+# Used by `scripts/n8_sector_b_sweep.py` as the canonical template.
+# The sweep script patches `spin.n_up`/`spin.n_down` in-memory for the
+# remaining sectors {5↑3↓, 6↑2↓, 7↑1↓, 8↑0↓} and trains each separately.
+#
+# We train at B=0 because the current Hamiltonian's Zeeman term is
+# +0.5·g·μ_B·B·(n_up - n_down), which is a *constant* shift per fixed
+# Sz sector. This means the optimised wavefunction in each sector is
+# B-independent, and the full B-dependence of the total energy is
+# obtained analytically as E(B,sector) = E_orbital(sector) + B·(n_up - n_down).
+#
+# Geometry: 8-well linear chain at d=4 (centres ±14, ±10, ±6, ±2),
+# matching the existing N=8 invdes-fast / B-sweep setup so results are
+# directly comparable.
+allow_missing_dmc: true
+run_name: n8_chain_d4_mag_4up4down_b0_s42
+
+architecture:
+  arch_type: pinn
+  multi_ref: true        # 70 spin templates for Sz=0; recipe also forces this
+  pinn_hidden: 64
+  pinn_layers: 2
+  bf_hidden: 32
+  bf_layers: 2
+  use_backflow: false
+
+system:
+  type: custom
+  dim: 2
+  coulomb: true
+  B_magnitude: 0.0
+  B_direction: [0.0, 0.0, 1.0]
+  g_factor: 2.0
+  mu_B: 1.0
+  wells:
+    - center: [-14.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [-10.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [-6.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [-2.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [2.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [6.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [10.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+    - center: [14.0, 0.0]
+      omega: 1.0
+      n_particles: 1
+
+spin:
+  n_up: 4
+  n_down: 4
+
+training:
+  epochs: 1500
+  lr: 0.0001
+  lr_warmup_epochs: 150
+  lr_min_factor: 0.1
+  n_coll: 384
+  loss_type: residual
+  residual_objective: residual
+  residual_target_energy: null
+  alpha_start: 0.0
+  alpha_end: 0.0
+  alpha_decay_frac: 0.6
+  local_energy_clip_width: 5.0
+  laplacian_mode: fd
+  fd_h: 0.01
+  sampler: stratified
+  non_mcmc_only: true
+  sampler_mix_weights: [0.55, 0.05, 0.20, 0.15, 0.05]
+  sampler_sigma_center: 0.20
+  sampler_sigma_tails: 1.00
+  sampler_sigma_mixed_in: 0.25
+  sampler_sigma_mixed_out: 0.70
+  sampler_shell_radius: 1.20
+  sampler_shell_radius_sigma: 0.06
+  sampler_dimer_pairs: 3
+  sampler_dimer_eps_max: 0.06
+  grad_clip: 0.2
+  print_every: 200
+  seed: 42
+  device: "cuda:0"
+  dtype: float64
+
+# Silence the structurally-trivial warning. We are **deliberately**
+# training one fixed-Sz sector at a time and assembling the magnetic
+# phase diagram across sectors externally — that workflow is exactly
+# the spin-sector-aware ansatz the guard recommends.
+magnetic_assessment:
+  mode: "off"

@@ -36,7 +36,7 @@ sys.path.insert(0, str(REPO / "src"))
 
 from laughlin import LaughlinJastrowWF, laughlin_log_amplitude, laughlin_phase
 from training.qhe_collocation import qhe_loss
-from training.sampling import stratified_resample
+from training.sampling import stratified_resample, sample_multiwell_init
 from PINN import PINN
 
 
@@ -175,8 +175,9 @@ def train(
     )
 
     # Stratified sampler works only when electrons have distinct well positions (one per well).
-    # For single-dot geometry (one well, n_particles>1) all electrons map to the same center,
-    # clustering them where the Laughlin wavefunction vanishes — use Gaussian init instead.
+    # For single-dot geometry (one well, n_particles>1) fall back to sample_multiwell_init
+    # (isotropic Gaussian σ=1/√ω per particle), which outperforms orbital-ring sampling
+    # in practice: diverse coverage drives global variance minimisation more effectively.
     _single_dot = len(wells) == 1
     if not _single_dot:
         sampler_kwargs = dict(
@@ -195,7 +196,7 @@ def train(
     out_dir = REPO / "results" / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    _sampler_name = "laughlin_orbital" if _single_dot else "stratified"
+    _sampler_name = "gaussian_init" if _single_dot else "stratified"
     print(f"QHE Training: N={N}, ν={nu:.3f} (m={m}), B={B:.3f}, l_B={1/B**0.5:.3f}")
     print(f"  epochs={n_epochs}, n_coll={n_coll}, lr={lr}, imag_penalty={imag_penalty}")
     print(f"  sampler={_sampler_name}, use_laughlin_base={use_laughlin_base}, params={sum(p.numel() for p in params):,}")
@@ -207,8 +208,8 @@ def train(
     for epoch in range(n_epochs):
         with torch.no_grad():
             if _single_dot:
-                x = _sample_laughlin_dot(
-                    n_coll, N, m, 1.0 / B**0.5,
+                x = sample_multiwell_init(
+                    n_coll, system=system,
                     device=torch.device(device_str), dtype=dtype,
                 )
             else:
@@ -239,7 +240,9 @@ def train(
             lz_expected = -m * N * (N - 1) / 2.0
             print(
                 f"epoch={epoch:5d}  E={E_mean:.6f}  var={diag['energy_var']:.2e}"
-                f"  imag={diag['imag_penalty']:.2e}  lr={scheduler.get_last_lr()[0]:.2e}"
+                f"  imag={diag['imag_penalty']:.2e}  imag_mean={diag['imag_mean']:.4f}"
+                f"  lz_exp={lz_expected:.1f}  lr={scheduler.get_last_lr()[0]:.2e}",
+                flush=True,
             )
             history.append({"epoch": epoch, **diag})
             if E_mean < best_energy:

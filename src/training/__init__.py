@@ -7,9 +7,14 @@ from training.sampling import (
     sample_multiwell_init,
     stratified_resample,
 )
+from training.symmetry_asserts import (
+    SymmetryViolationError,
+    assert_quantum_numbers_consistent,
+)
 
 __all__ = [
     "adapt_sigma_fs",
+    "assert_quantum_numbers_consistent",
     "colloc_fd_loss",
     "importance_resample",
     "mcmc_resample",
@@ -18,4 +23,5 @@ __all__ = [
     "stratified_resample",
     "rayleigh_hybrid_loss",
     "weak_form_local_energy",
+    "SymmetryViolationError",
 ]

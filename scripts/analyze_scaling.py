@@ -27,11 +27,17 @@ DEFAULT_RESULTS = REPO / "results" / "diag_sweeps"
 
 
 def _final_energy(s: dict) -> float | None:
+    best: float | None = None
     for stage in ("stage_b", "stage_a"):
-        E = s.get(stage, {}).get("result", {}).get("final_energy")
+        stage_data = s.get(stage) or {}
+        E = stage_data.get("result", {}).get("final_energy")
         if E is not None:
-            return float(E)
-    return None
+            E = float(E)
+            # Reject diverged runs (non-MCMC energy should be positive and finite)
+            if not math.isfinite(E) or E < -1e6:
+                continue
+            best = E if best is None else min(best, E)
+    return best
 
 
 def _parse_N_d(fname: str) -> tuple[int, float] | None:
@@ -43,8 +49,19 @@ def _parse_N_d(fname: str) -> tuple[int, float] | None:
 
 
 def load_scaling_results(results_dir: Path) -> dict[tuple[int, float], list[float]]:
-    pattern = str(results_dir / "n*_grid_d*_s42_seed*__*__two_stage_summary_*.json")
-    files = sorted(glob.glob(pattern))
+    # Three naming conventions: with strategy tag, without strategy tag (seed-only), and no seed tag
+    patterns = [
+        str(results_dir / "n*_grid_d*_s42_seed*__*__two_stage_summary_*.json"),
+        str(results_dir / "n*_grid_d*_s42_seed*__two_stage_summary_*.json"),
+        str(results_dir / "n*_grid_d*_s42__two_stage_summary_*.json"),
+    ]
+    seen: set[str] = set()
+    files: list[str] = []
+    for pat in patterns:
+        for f in sorted(glob.glob(pat)):
+            if f not in seen:
+                seen.add(f)
+                files.append(f)
     data: dict[tuple[int, float], list[float]] = defaultdict(list)
     for f in files:
         key = _parse_N_d(Path(f).name)

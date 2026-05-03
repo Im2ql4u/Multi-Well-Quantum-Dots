@@ -49,6 +49,12 @@ def _apply_legacy_n2_singlet_recipe(cfg: dict[str, Any]) -> None:
     architecture = cfg.setdefault("architecture", {})
     architecture["singlet"] = True
     architecture["use_backflow"] = False
+    # The (1,1) singlet permanent ansatz and ``multi_ref`` are mutually
+    # exclusive in :class:`GroundStateWF`. When this recipe is invoked
+    # (e.g. via per-sector overrides that force the stable N=2 singlet
+    # path), clear ``multi_ref`` so the construction succeeds.
+    if architecture.get("multi_ref", False):
+        architecture["multi_ref"] = False
 
     training = cfg.setdefault("training", {})
     training["sampler"] = "stratified"
@@ -80,11 +86,23 @@ def _apply_improved_noref_recipe(cfg: dict[str, Any]) -> None:
     recovering entanglement without E_ref) but without the singlet=True flag
     (which is only valid for N=2). The wider sigma values help the sampler
     explore configurations beyond the single-well localized minima.
+
+    Architecture handling:
+
+    * If the base config has ``architecture.singlet=True`` (only valid for
+      N=2), the singlet permanent ansatz is the *correct* choice and we
+      leave the architecture untouched (singlet permanent and
+      ``multi_ref`` are mutually exclusive in :class:`GroundStateWF`,
+      and the singlet permanent already carries the (1,1) correlation
+      directly).
+    * Otherwise we force ``multi_ref=True``, which is required for the
+      generic chain ansatz to carry correlation without E-ref guidance.
     """
     n = _n_particles_from_cfg(cfg)
     architecture = cfg.setdefault("architecture", {})
     architecture["use_backflow"] = False
-    architecture["multi_ref"] = True
+    if not architecture.get("singlet", False):
+        architecture["multi_ref"] = True
 
     training = cfg.setdefault("training", {})
     training["sampler"] = "stratified"
@@ -155,6 +173,7 @@ def _build_stage_a_self_residual_cfg(
     use_legacy_n2_singlet: bool = False,
     use_improved_recipe: bool = False,
     seed_override: int | None = None,
+    n_coll_override: int | None = None,
 ) -> dict[str, Any]:
     cfg = copy.deepcopy(base_cfg)
     cfg["run_name"] = f"{cfg.get('run_name', 'ground_state')}{suffix}"
@@ -169,6 +188,8 @@ def _build_stage_a_self_residual_cfg(
     training["non_mcmc_only"] = True
     training["print_every"] = int(training.get("print_every", 100))
     training["logw_clip_q"] = float(training.get("logw_clip_q", 0.0))
+    if n_coll_override is not None:
+        training["n_coll"] = int(n_coll_override)
     if seed_override is not None:
         training["seed"] = int(seed_override)
     if use_legacy_n2_singlet:
@@ -187,6 +208,7 @@ def _build_stage_b_cfg(
     use_legacy_n2_singlet: bool = False,
     use_improved_recipe: bool = False,
     seed_override: int | None = None,
+    n_coll_override: int | None = None,
 ) -> dict[str, Any]:
     cfg = copy.deepcopy(base_cfg)
     cfg["run_name"] = f"{cfg.get('run_name', 'ground_state')}{suffix}"
@@ -194,17 +216,22 @@ def _build_stage_b_cfg(
     training = cfg.setdefault("training", {})
     if stage_b_epochs is not None:
         training["epochs"] = int(stage_b_epochs)
-    # Preserve reinforce from stage A when set — residual keeps O(2Nd) graphs
-    # alive for FD Laplacian and OOMs for large N (N≥16).
-    if base_cfg.get("training", {}).get("loss_type") == "reinforce":
-        training["loss_type"] = "reinforce"
-        training["reinforce_clip_width"] = base_cfg["training"].get("reinforce_clip_width", 5.0)
+    # Stage B always uses residual — REINFORCE gradient noise causes divergence for
+    # large N (N≥32, n_coll=64 gave grad_norm>3000 and E→-315 Ha before diverging).
+    # N=16 stage B succeeded with residual+n_coll=32 (1.79 GB).
+    # N=32 residual FD Laplacian scales as O(N²×n_coll): n_coll=32 → 10.5 GB OOM;
+    # n_coll=16 → ~5.3 GB fits in 11 GB GPU.
+    training["loss_type"] = "residual"
+    training["residual_objective"] = "residual"
+    training["residual_target_energy"] = None
+    training["alpha_start"] = 0.0
+    training["alpha_end"] = 0.0
+    # Cap n_coll: explicit override takes priority, else cap at 32 (safe for N≤16).
+    base_n_coll = int(base_cfg.get("training", {}).get("n_coll", 64))
+    if n_coll_override is not None:
+        training["n_coll"] = int(n_coll_override)
     else:
-        training["loss_type"] = "residual"
-        training["residual_objective"] = "residual"
-        training["residual_target_energy"] = None
-        training["alpha_start"] = 0.0
-        training["alpha_end"] = 0.0
+        training["n_coll"] = min(base_n_coll, 32)
     training["sampler"] = "stratified"
     training["non_mcmc_only"] = True
     if seed_override is not None:
@@ -246,6 +273,8 @@ def run_two_stage_from_config(
     stage_a_suffix: str = "__stageA_energywarm",
     stage_b_suffix: str = "__stageB_noref",
     seed_override: int | None = None,
+    n_coll_override: int | None = None,
+    stage_a_n_coll_override: int | None = None,
 ) -> dict[str, Any]:
     base_cfg = _load_yaml(config_path)
     if seed_override is not None:
@@ -260,6 +289,7 @@ def run_two_stage_from_config(
             base_cfg,
             stage_a_epochs=stage_a_epochs,
             suffix="__stageA_self_residual",
+            n_coll_override=stage_a_n_coll_override,
         )
     elif resolved_strategy == "singlet_self_residual":
         stage_a_cfg = _build_stage_a_self_residual_cfg(
@@ -267,6 +297,7 @@ def run_two_stage_from_config(
             stage_a_epochs=stage_a_epochs,
             suffix="__stageA_singlet_self_residual",
             use_legacy_n2_singlet=True,
+            n_coll_override=stage_a_n_coll_override,
         )
     elif resolved_strategy == "improved_self_residual":
         stage_a_cfg = _build_stage_a_self_residual_cfg(
@@ -274,6 +305,7 @@ def run_two_stage_from_config(
             stage_a_epochs=stage_a_epochs,
             suffix="__stageA_improved_self_residual",
             use_improved_recipe=True,
+            n_coll_override=stage_a_n_coll_override,
         )
     else:
         raise ValueError(
@@ -312,6 +344,7 @@ def run_two_stage_from_config(
         suffix=stage_b_suffix,
         use_legacy_n2_singlet=(resolved_strategy == "singlet_self_residual"),
         use_improved_recipe=(resolved_strategy == "improved_self_residual"),
+        n_coll_override=n_coll_override,
     )
     stage_b_dir, stage_b_result = run_training_from_config(stage_b_cfg, config_source=str(config_path))
     summary["stage_b"] = {
@@ -323,6 +356,67 @@ def run_two_stage_from_config(
             "final_loss": stage_b_result["final_loss"],
             "final_energy_var": stage_b_result["final_energy_var"],
             "final_ess": stage_b_result["final_ess"],
+        },
+    }
+    return summary
+
+
+def run_stage_b_only(
+    config_path: Path,
+    *,
+    stage_a_result_dir: Path,
+    stage_b_epochs: int | None,
+    stage_b_suffix: str = "__stageB_noref",
+    stage_a_strategy: str = "auto",
+    seed_override: int | None = None,
+    n_coll_override: int | None = None,
+) -> dict[str, Any]:
+    """Run only stage B, loading weights from an existing stage A result directory."""
+    base_cfg = _load_yaml(config_path)
+    if seed_override is not None:
+        base_cfg.setdefault("training", {})["seed"] = int(seed_override)
+
+    result_json = stage_a_result_dir / "result.json"
+    with result_json.open() as fh:
+        stage_a_result = json.load(fh)
+
+    resolved_strategy = (
+        _infer_stage_a_strategy(base_cfg) if stage_a_strategy == "auto" else stage_a_strategy
+    )
+    stage_b_cfg = _build_stage_b_cfg(
+        base_cfg,
+        init_result_dir=stage_a_result_dir,
+        stage_b_epochs=stage_b_epochs,
+        suffix=stage_b_suffix,
+        use_legacy_n2_singlet=(resolved_strategy == "singlet_self_residual"),
+        use_improved_recipe=(resolved_strategy == "improved_self_residual"),
+        seed_override=seed_override,
+        n_coll_override=n_coll_override,
+    )
+    stage_b_dir, stage_b_result = run_training_from_config(stage_b_cfg, config_source=str(config_path))
+
+    summary: dict[str, Any] = {
+        "config_path": str(config_path),
+        "stage_a_strategy": resolved_strategy,
+        "stage_a": {
+            "result_dir": str(stage_a_result_dir),
+            "result": {
+                "final_energy": stage_a_result.get("final_energy"),
+                "final_loss": stage_a_result.get("final_loss"),
+                "final_energy_var": stage_a_result.get("final_energy_var"),
+                "final_ess": stage_a_result.get("final_ess"),
+            },
+        },
+        "stage_b": {
+            "result_dir": str(stage_b_dir),
+            "run_name": stage_b_cfg["run_name"],
+            "training": stage_b_cfg["training"],
+            "result": {
+                "final_energy": stage_b_result["final_energy"],
+                "final_loss": stage_b_result["final_loss"],
+                "final_energy_var": stage_b_result["final_energy_var"],
+                "final_ess": stage_b_result["final_ess"],
+            },
         },
     }
     return summary
@@ -378,20 +472,53 @@ def main() -> None:
         default=None,
         help="Override the seed in the base config for multi-seed sweeps.",
     )
+    parser.add_argument(
+        "--skip-stage-a",
+        type=str,
+        default=None,
+        metavar="RESULT_DIR",
+        help="Skip stage A and load weights from this existing stage A result directory.",
+    )
+    parser.add_argument(
+        "--stage-a-n-coll",
+        type=int,
+        default=None,
+        help="Override n_coll for stage A (useful for large N where FD Laplacian memory/time scales as O(N²×n_coll)).",
+    )
+    parser.add_argument(
+        "--stage-b-n-coll",
+        type=int,
+        default=None,
+        help="Override n_coll for stage B (useful for large N where FD Laplacian memory scales as O(N²×n_coll)).",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config).expanduser().resolve()
-    summary = run_two_stage_from_config(
-        config_path,
-        stage_a_epochs=int(args.stage_a_epochs),
-        stage_b_epochs=args.stage_b_epochs,
-        stage_a_gate=StageAGate(
-            min_final_ess=float(args.stage_a_min_ess),
-            min_final_energy=float(args.stage_a_min_energy),
-        ),
-        stage_a_strategy=str(args.stage_a_strategy),
-        seed_override=args.seed_override,
-    )
+
+    if args.skip_stage_a is not None:
+        stage_a_dir = Path(args.skip_stage_a).expanduser().resolve()
+        summary = run_stage_b_only(
+            config_path,
+            stage_a_result_dir=stage_a_dir,
+            stage_b_epochs=args.stage_b_epochs,
+            stage_a_strategy=str(args.stage_a_strategy),
+            seed_override=args.seed_override,
+            n_coll_override=args.stage_b_n_coll,
+        )
+    else:
+        summary = run_two_stage_from_config(
+            config_path,
+            stage_a_epochs=int(args.stage_a_epochs),
+            stage_b_epochs=args.stage_b_epochs,
+            stage_a_gate=StageAGate(
+                min_final_ess=float(args.stage_a_min_ess),
+                min_final_energy=float(args.stage_a_min_energy),
+            ),
+            stage_a_strategy=str(args.stage_a_strategy),
+            seed_override=args.seed_override,
+            n_coll_override=args.stage_b_n_coll,
+            stage_a_n_coll_override=args.stage_a_n_coll,
+        )
 
     if args.summary_json:
         out_path = Path(args.summary_json).expanduser().resolve()

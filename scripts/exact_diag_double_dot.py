@@ -169,6 +169,31 @@ def precompute_coulomb_kernel(
     epsilon: float,
     include_quadrature_weights: bool = True,
 ) -> np.ndarray:
+    """Precompute the 2-particle Coulomb kernel on a 2D DVR grid.
+
+    Parameters
+    ----------
+    include_quadrature_weights:
+        If ``True`` (legacy default), the returned kernel is
+        ``V_{ij} * w_i * w_j``. If ``False``, the bare kernel ``V_{ij}`` is
+        returned. The "correct" choice depends on how the orbitals being
+        contracted with the kernel are normalized:
+
+        * **Unit-norm DVR coefficients** (``sum_i v(i)^2 = 1`` from
+          ``np.linalg.eigh``, with ``phi(x_i) = v(i) / sqrt(w_i)`` as the
+          continuous wavefunction): the bare kernel (``include_quadrature_weights=False``)
+          is the mathematically correct choice, since the sqrt-weights already
+          absorb into the orbital and the integral reduces to
+          ``sum_{ij} v_a(i) v_c(i) V_{ij} v_b(j) v_d(j)``.
+
+        * **Other conventions** (e.g. coefficients pre-divided by sqrt-weights
+          to match a continuous-wavefunction normalization): may require
+          ``include_quadrature_weights=True``.
+
+        The :func:`run_exact_diagonalization_one_per_well_multi` path uses
+        unit-norm eigenvectors and ``include_quadrature_weights=False`` and is
+        the reference for this codebase.
+    """
     x2d, y2d = np.meshgrid(x_grid, y_grid, indexing="ij")
     x_flat, y_flat = x2d.ravel(), y2d.ravel()
     wx2d, wy2d = np.meshgrid(w_x, w_y, indexing="ij")
@@ -397,6 +422,45 @@ def run_exact_diagonalization_one_per_well_multi(cfg: DiagConfig) -> tuple[np.nd
 
 
 def run_exact_diagonalization(cfg: DiagConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Two-electron CI on a SHARED softmin double-well basis.
+
+    .. warning::
+        **Shared-DVR-CI energies are not quantitatively reliable.** The
+        single-particle eigenvectors of the softmin two-well Hamiltonian have
+        support throughout the whole box, so the Coulomb two-electron integral
+        sum_{i,j} (v_a v_c)(i) V_{ij} (v_b v_d)(j) picks up a spurious
+        contribution from the singular DVR diagonal V_{ii} = kappa/epsilon
+        (= 100 at the production epsilon=0.01). At eps=0.01 this overshoots the
+        true 2D Gaussian Coulomb integral by ~3x; using
+        ``include_quadrature_weights=True`` was an empirical hack that
+        suppresses the diagonal but is mathematically incorrect (the
+        eigenvectors already absorb sqrt-weights, so multiplying the kernel by
+        w_i*w_j double-counts the weights and underestimates the off-diagonal
+        contribution by w_min^2 ≈ 0.3).
+
+        Empirical diagnosis (omega=1.0, kappa=1.0, sep=8, nx=24/ny=18):
+
+        =====  ==================  =====================  ====================
+        eps    one_per_well E_GS   shared(W=True) E_GS    shared(W=False) E_GS
+        =====  ==================  =====================  ====================
+        0.01   2.126               1.806                   -0.679 (unphysical)
+        0.10   2.126               1.946                   1.256
+        0.50   2.126               1.964                   1.498
+        1.00   2.125               1.972                   1.610
+        =====  ==================  =====================  ====================
+
+        Neither W=True nor W=False matches the one-per-well reference (which is
+        physically correct because its CI integrals don't suffer the same
+        diagonal singularity — bra/ket orbitals on different wells have
+        vanishing overlap on the singular grid points).
+
+        **Recommendation:** use :func:`run_exact_diagonalization_one_per_well`
+        (or :func:`run_exact_diagonalization_one_per_well_multi`) for any
+        quantitative energy comparisons. This shared-DVR-CI path is retained
+        for legacy compatibility (eigenvector *structure* / entanglement
+        observables are still qualitatively correct) but its eigenvalue
+        spectrum should not be trusted for absolute energies.
+    """
     x_grid, y_grid, w_x, w_y, t2d = build_2d_dvr(
         nx=cfg.nx,
         ny=cfg.ny,
